@@ -1,0 +1,41 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1788785580464,
+      "tag": "0000_initial_users",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1791427116858,
+      "tag": "0001_thin_the_phantom",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1791427260052,
+      "tag": "0002_supreme_lady_deathstrike",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1791436810186,
+      "tag": "0003_past_starbolt",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1791674557502,
+      "tag": "0004_legal_starfox",
+      "breakpoints": true
+    }
+  ]
+}

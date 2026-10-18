@@ -1,0 +1,123 @@
+{
+  "routes": [
+    {
+      "path": "/"
+    },
+    {
+      "path": "/mercado"
+    },
+    {
+      "path": "/articulo/:slug"
+    },
+    {
+      "path": "/tiendas/:slug"
+    },
+    {
+      "path": "/mi-carrito"
+    },
+    {
+      "path": "/mi-lista"
+    },
+    {
+      "path": "/comprar"
+    },
+    {
+      "path": "/pedidos"
+    },
+    {
+      "path": "/pedidos/:id"
+    },
+    {
+      "path": "/mensajes"
+    },
+    {
+      "path": "/notificaciones"
+    },
+    {
+      "path": "/vendedor/productos"
+    },
+    {
+      "path": "/vendedor/tienda"
+    },
+    {
+      "path": "/vendedor/pedidos"
+    },
+    {
+      "path": "/vendedor/mensajes"
+    },
+    {
+      "path": "/catalogo"
+    },
+    {
+      "path": "/libros"
+    },
+    {
+      "path": "/eventos"
+    },
+    {
+      "path": "/servicios"
+    },
+    {
+      "path": "/producto/:slug"
+    },
+    {
+      "path": "/evento/:slug"
+    },
+    {
+      "path": "/servicio/:slug"
+    },
+    {
+      "path": "/tienda/:slug"
+    },
+    {
+      "path": "/suscripciones"
+    },
+    {
+      "path": "/vender"
+    },
+    {
+      "path": "/carrito"
+    },
+    {
+      "path": "/deseos"
+    },
+    {
+      "path": "/favoritos"
+    },
+    {
+      "path": "/checkout"
+    },
+    {
+      "path": "/mi-cuenta"
+    },
+    {
+      "path": "/solicitud-vendedor"
+    },
+    {
+      "path": "/vendedor"
+    },
+    {
+      "path": "/admin/verificaciones"
+    },
+    {
+      "path": "/admin/denominaciones"
+    },
+    {
+      "path": "/admin"
+    },
+    {
+      "path": "/ayuda"
+    },
+    {
+      "path": "/legal/:topic"
+    },
+    {
+      "path": "/tiendas",
+      "title": "Tiendas por categoría y especialidad"
+    },
+    {
+      "path": "/vendedor/plan",
+      "title": "Mi selección de plan"
+    }
+  ]
+}

@@ -1,0 +1,273 @@
+import { z } from "zod";
+
+export const productKinds = ["product", "book"] as const;
+export const productStatuses = ["draft", "published", "archived"] as const;
+export const deliveryModes = ["shipping", "pickup", "home"] as const;
+export const catalogSorts = [
+  "newest",
+  "price_asc",
+  "price_desc",
+  "popular",
+] as const;
+export const provinceOptions = [
+  "Panamá",
+  "Panamá Oeste",
+  "Chiriquí",
+  "Colón",
+  "Coclé",
+  "Herrera",
+  "Los Santos",
+  "Veraguas",
+  "Bocas del Toro",
+  "Darién",
+] as const;
+
+function isSafeCatalogImageRef(value: string): boolean {
+  if (value.startsWith("/media/catalog/")) {
+    const key = value.slice("/media/".length);
+    return (
+      key.length > 0 &&
+      !key.split("/").some(part => !part || part === "." || part === "..") &&
+      /^[A-Za-z0-9][A-Za-z0-9._~!$&'()*+,;=@%/-]*$/.test(key)
+    );
+  }
+  try {
+    const url = new URL(value);
+    return (
+      url.protocol === "https:" &&
+      Boolean(url.hostname) &&
+      !url.username &&
+      !url.password
+    );
+  } catch {
+    return false;
+  }
+}
+
+export const catalogImageRef = z
+  .string()
+  .trim()
+  .max(2048)
+  .refine(isSafeCatalogImageRef, {
+    message:
+      "La imagen debe ser una ruta /media/catalog/ válida o una URL HTTPS segura",
+  });
+
+export const bookInput = z.object({
+  author: z.string().trim().min(1).max(160),
+  publisher: z.string().trim().max(160).default(""),
+  isbn: z.string().trim().max(32).default(""),
+  language: z.string().trim().max(64).default(""),
+  format: z.string().trim().max(64).default(""),
+  condition: z.enum(["new", "used"]),
+});
+
+export const variantInput = z.object({
+  id: z.number().int().positive().optional(),
+  sku: z.string().trim().min(1).max(80),
+  size: z.string().trim().max(80).nullable().optional(),
+  color: z.string().trim().max(80).nullable().optional(),
+  stock: z.number().int().min(0).max(2_147_483_647),
+  priceCents: z.number().int().min(0).max(2_147_483_647).optional(),
+});
+
+export const saveStoreInput = z.object({
+  name: z.string().trim().min(2).max(160),
+  description: z.string().trim().max(5000),
+  province: z.string().trim().min(2).max(60),
+  city: z.string().trim().min(2).max(100),
+  shippingFeeCents: z
+    .number()
+    .int()
+    .min(0)
+    .max(2_147_483_647)
+    .nullable()
+    .default(null),
+  homeFeeCents: z
+    .number()
+    .int()
+    .min(0)
+    .max(2_147_483_647)
+    .nullable()
+    .default(null),
+  deliveryProvinces: z.array(z.enum(provinceOptions)).default([]),
+});
+
+export const saveProductInput = z
+  .object({
+    id: z.number().int().positive().optional(),
+    expectedRevision: z.number().int().positive().optional(),
+    title: z.string().trim().min(2).max(240),
+    description: z.string().trim().max(10000),
+    category: z.string().trim().min(2).max(120),
+    kind: z.enum(productKinds),
+    priceCents: z.number().int().min(0).max(2_147_483_647),
+    images: z.array(catalogImageRef).max(12),
+    deliveryModes: z.array(z.enum(deliveryModes)).min(1).max(3),
+    variants: z.array(variantInput).max(100),
+    book: bookInput.optional(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.kind === "book" && !value.book) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["book"],
+        message: "Los libros requieren metadatos",
+      });
+    }
+    if (value.kind === "product" && value.book) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["book"],
+        message: "Solo los libros aceptan metadatos de libro",
+      });
+    }
+    if (value.id !== undefined && value.expectedRevision === undefined) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["expectedRevision"],
+        message: "La revisión esperada es obligatoria al editar",
+      });
+    }
+  });
+
+export const listPublicInput = z
+  .object({
+    q: z.string().trim().max(120).optional(),
+    kind: z.enum(productKinds).optional(),
+    category: z.string().trim().max(120).optional(),
+    province: z.string().trim().max(60).optional(),
+    minPriceCents: z.number().int().min(0).optional(),
+    maxPriceCents: z.number().int().min(0).optional(),
+    minRating: z.number().min(0).max(5).optional(),
+    minSold: z.number().int().min(1).optional(),
+    sort: z.enum(catalogSorts).default("newest"),
+    limit: z.number().int().min(1).max(50).default(20),
+    cursor: z.number().int().positive().optional(),
+  })
+  .superRefine((value, ctx) => {
+    if (
+      value.minPriceCents !== undefined &&
+      value.maxPriceCents !== undefined &&
+      value.minPriceCents > value.maxPriceCents
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["minPriceCents"],
+        message: "El precio mínimo no puede superar al máximo",
+      });
+    }
+  });
+
+export const suggestInput = z.object({ q: z.string().trim().min(1).max(120) });
+export const slugInput = z.object({ slug: z.string().trim().min(1).max(240) });
+export const setStatusInput = z.object({
+  id: z.number().int().positive(),
+  expectedRevision: z.number().int().positive(),
+  status: z.enum(productStatuses),
+});
+
+export type ProductKind = (typeof productKinds)[number];
+export type ProductStatus = (typeof productStatuses)[number];
+export type DeliveryMode = (typeof deliveryModes)[number];
+export type BookMetadata = z.infer<typeof bookInput>;
+export type VariantInput = z.infer<typeof variantInput>;
+export type SaveStoreInput = z.infer<typeof saveStoreInput>;
+export type SaveProductInput = z.infer<typeof saveProductInput>;
+export type ListPublicInput = z.infer<typeof listPublicInput>;
+
+export type PublicStore = {
+  id: number;
+  slug: string;
+  name: string;
+  description: string;
+  province: string;
+  city: string;
+  churchName: string;
+  shippingFeeCents: number | null;
+  homeFeeCents: number | null;
+  deliveryProvinces: string[];
+  verified: true;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type OwnerStore = Omit<
+  PublicStore,
+  "verified" | "createdAt" | "updatedAt" | "churchName"
+> & {
+  verified: boolean;
+};
+
+export type PublicVariant = {
+  id: number;
+  sku: string;
+  size: string | null;
+  color: string | null;
+  stock: number;
+  priceCents: number;
+};
+
+export type PublicProduct = {
+  id: number;
+  slug: string;
+  kind: ProductKind;
+  title: string;
+  description: string;
+  category: string;
+  priceCents: number;
+  images: string[];
+  deliveryModes: DeliveryMode[];
+  book: BookMetadata | null;
+  variants: PublicVariant[];
+  store: PublicStore;
+  rating: number;
+  reviewCount: number;
+  soldCount: number;
+  createdAt: string;
+  revision: number;
+};
+
+export type OwnerProduct = Omit<PublicProduct, "store"> & {
+  store: OwnerStore;
+  status: ProductStatus;
+};
+
+export const catalogCategories = [
+  "Hogar",
+  "Ropa",
+  "Tecnología",
+  "Alimentos",
+  "Belleza",
+  "Artesanías",
+  "Papelería",
+  "Música",
+  "Accesorios",
+  "Salud y bienestar",
+  "Educación",
+  "Libros cristianos",
+  "Devocionales",
+  "Biblias",
+  "Regalos",
+  "Servicios",
+] as const;
+
+export const publicProductDtoFields = [
+  "id",
+  "slug",
+  "kind",
+  "title",
+  "description",
+  "category",
+  "priceCents",
+  "images",
+  "deliveryModes",
+  "book",
+  "variants",
+  "store",
+  "rating",
+  "reviewCount",
+  "soldCount",
+  "createdAt",
+  "revision",
+] as const;
