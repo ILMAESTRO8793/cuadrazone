@@ -360,7 +360,7 @@ export default function DetailPage({ slug }: { slug: string }) {
                   onChange={e => setVariant(e.target.value)}
                 >
                   <option>Estándar</option>
-                  <option>Edición crema</option>
+                  <option>Edición negra</option>
                   <option>Selección de ejemplo</option>
                 </select>
               </div>

@@ -16,15 +16,18 @@ export type Listing = {
   description: string;
   details: [string, string][];
 };
-// Imágenes de demostración: reemplázalas en client/public/assets/demo/ con el mismo nombre.
+// Fotos de demostración con licencia de Unsplash (uso comercial libre, sin atribución obligatoria).
+// Créditos: mercado: Giri; auriculares: Petr Macháček; bolso: Kouji Tsuru;
+// Biblia: Sixteen Miles Out; alabanza: Kevin Wright; herramientas: benjamin lehman.
+// Al tener fotos reales de la comunidad, reemplaza estas URLs por rutas en /assets/.
 export const assets = {
   logo: "/assets/logo-carrito-blanco.png",
-  hero: "/assets/demo/hero.webp",
-  headphones: "/assets/demo/headphones.webp",
-  tote: "/assets/demo/tote.webp",
-  book: "/assets/demo/book.webp",
-  event: "/assets/demo/event.webp",
-  service: "/assets/demo/service.webp",
+  hero: "https://images.unsplash.com/photo-1770129157442-5f080cacf11c?auto=format&fit=crop&w=1600&q=75",
+  headphones: "https://images.unsplash.com/photo-1553774661-0651f14b2da4?auto=format&fit=crop&w=1200&q=75",
+  tote: "https://images.unsplash.com/photo-1766634001794-b3003f486954?auto=format&fit=crop&w=1200&q=75",
+  book: "https://images.unsplash.com/photo-1628257228852-a285d25296a6?auto=format&fit=crop&w=1200&q=75",
+  event: "https://images.unsplash.com/photo-1724885794747-f4fb4dd8d0f2?auto=format&fit=crop&w=1200&q=75",
+  service: "https://images.unsplash.com/photo-1645651964715-d200ce0939cc?auto=format&fit=crop&w=1200&q=75",
 };
 export const provinces = [
   "Panamá",
@@ -112,7 +115,7 @@ export const listings: Listing[] = [
   {
     id: "auriculares",
     slug: "auriculares-inalambricos-crema",
-    title: "Auriculares inalámbricos · edición crema",
+    title: "Auriculares inalámbricos · edición negra",
     kind: "producto",
     category: "Tecnología",
     price: 45,
@@ -126,7 +129,7 @@ export const listings: Listing[] = [
     description:
       "Tu música, tus llamadas y tus momentos de calma. Diseño ligero, acabado mate y conexión inalámbrica para acompañarte durante el día. Producto ficticio de demostración.",
     details: [
-      ["Color", "Crema"],
+      ["Color", "Negro"],
       ["Conectividad", "Bluetooth"],
       ["Estado", "Nuevo · demostración"],
       ["Entrega", "Envío o retiro en Panamá"],

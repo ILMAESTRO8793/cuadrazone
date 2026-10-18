@@ -104,7 +104,7 @@ export default function Home() {
           <div className="hero-visual">
             <img
               src={assets.hero}
-              alt="Selección de productos para hogar, lectura y vida diaria"
+              alt="Mercado al aire libre lleno de puestos y compradores"
               fetchPriority="high"
             />
             <div className="hero-label">
@@ -242,7 +242,7 @@ export default function Home() {
         <div className="service-photo">
           <img
             src={assets.service}
-            alt="Manos de un técnico realizando un servicio de plomería de demostración"
+            alt="Herramientas de trabajo para servicios del hogar"
             loading="lazy"
           />
           <span>OFICIOS CON PROPÓSITO</span>
