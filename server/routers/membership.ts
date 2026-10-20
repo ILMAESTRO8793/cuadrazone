@@ -2,6 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import {
   saveApplicationInput,
+  splitApplicationSave,
   applicationStatuses,
   profileInput,
   type ApplicationStatus,
@@ -15,7 +16,8 @@ import {
 } from "../_core/trpc";
 import {
   adminDetail,
-  failClosedVerification,
+  adminSetPhoneVerification,
+  verifyEmailWithAccount,
   getMembership,
   listApplications,
   listAllDenominations,
@@ -128,8 +130,11 @@ export const membershipRouter = router({
       .input(saveApplicationInput)
       .mutation(({ ctx, input }) => {
         csrf(ctx);
+        // revision y consentVersion son campos de control: no forman parte de la
+        // solicitud que el servicio valida de forma estricta.
+        const { revision, consentVersion, application } = splitApplicationSave(input);
         return serviceCall(() =>
-          saveApplication(realUser(ctx.user) as any, input, input.revision, input.consentVersion)
+          saveApplication(realUser(ctx.user) as any, application, revision, consentVersion)
         );
       }),
     submit: protectedProcedure
@@ -142,30 +147,12 @@ export const membershipRouter = router({
       }),
   }),
   verification: router({
-    sendEmail: protectedProcedure.mutation(({ ctx }) => {
+    /** Verifica el correo del perfil con la cuenta de Google de la sesión. */
+    emailWithGoogle: protectedProcedure.mutation(({ ctx }) => {
       csrf(ctx);
-      realUser(ctx.user);
-      return serviceCall(() => failClosedVerification());
+      const user = realUser(ctx.user);
+      return serviceCall(() => verifyEmailWithAccount(user as any));
     }),
-    confirmEmail: protectedProcedure
-      .input(z.object({ code: z.string().regex(/^\d{6}$/) }).strict())
-      .mutation(({ ctx }) => {
-        csrf(ctx);
-        realUser(ctx.user);
-        return serviceCall(() => failClosedVerification());
-      }),
-    sendPhone: protectedProcedure.mutation(({ ctx }) => {
-      csrf(ctx);
-      realUser(ctx.user);
-      return serviceCall(() => failClosedVerification());
-    }),
-    confirmPhone: protectedProcedure
-      .input(z.object({ code: z.string().regex(/^\d{6}$/) }).strict())
-      .mutation(({ ctx }) => {
-        csrf(ctx);
-        realUser(ctx.user);
-        return serviceCall(() => failClosedVerification());
-      }),
   }),
   admin: router({
     denominations: adminProcedure.query(({ ctx }) => {
@@ -202,6 +189,22 @@ export const membershipRouter = router({
         )
       );
     }),
+    phoneVerification: adminProcedure
+      .input(
+        z.object({
+          id: z.number().int().positive(),
+          revision: z.number().int().positive(),
+          verified: z.boolean(),
+          note: z.string().trim().min(5).max(500),
+        }).strict()
+      )
+      .mutation(({ ctx, input }) => {
+        csrf(ctx);
+        const admin = realUser(ctx.user);
+        return serviceCall(() =>
+          adminSetPhoneVerification(admin as any, input.id, input.revision, input.verified, input.note)
+        );
+      }),
     saveDenomination: adminProcedure
       .input(denominationInput)
       .mutation(({ ctx, input }) => {

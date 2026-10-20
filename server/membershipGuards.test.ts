@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { applicationInput, CONSENT_VERSION, saveApplicationInput, splitApplicationSave } from "../shared/membership";
 import {
   canEditApplication,
-  failClosedVerification,
+  accountEmailMatches,
+  contactRequirementError,
   sellerCapabilities,
   validateDocumentBytes,
   MembershipError,
@@ -66,14 +68,41 @@ describe("CuadraZone membership guards", () => {
     ).toThrow(/5 MiB|límite/);
   });
 
-  it("expone readiness fail-closed sin proveedores", async () => {
-    expect(PROVIDERS).toEqual({ emailReady: false, phoneReady: false });
-    await expect(failClosedVerification()).rejects.toMatchObject({
-      code: "PRECONDITION_FAILED",
+  it("guarda una solicitud del formulario real sin rechazar los campos de control", () => {
+    const fromClient = saveApplicationInput.parse({
+      businessType: "individual", businessName: "", businessCategories: [{ categoryId: "viajes-y-turismo", specialtyIds: [] }],
+      identificationType: "cedula", identificationNumber: "8-888-8888", documentExpiry: "", province: "Panamá", city: "Chilibre",
+      denominationId: 1, churchName: "Iglesia Central", pastorName: "Pastor Prueba",
+      residenceConfirmed: true, faithAccepted: true, conductAccepted: true, privacyAccepted: true,
+      revision: 3, consentVersion: CONSENT_VERSION,
     });
-    await expect(failClosedVerification()).rejects.toThrow(
-      /no hay proveedor autorizado\/configurado/
-    );
+    expect(applicationInput.safeParse(fromClient).success).toBe(false);
+    const { revision, consentVersion, application } = splitApplicationSave(fromClient);
+    expect({ revision, consentVersion }).toEqual({ revision: 3, consentVersion: CONSENT_VERSION });
+    expect(applicationInput.safeParse(application).success).toBe(true);
+  });
+
+  it("declara correo verificable con Google y teléfono sin proveedor SMS", () => {
+    expect(PROVIDERS).toEqual({ emailReady: true, phoneReady: false });
+  });
+
+  it("solo verifica el correo cuando coincide con la cuenta de Google", () => {
+    const google = { loginMethod: "google", email: "Salem@Ejemplo.com" };
+    expect(accountEmailMatches(google, "salem@ejemplo.com ")).toBe(true);
+    expect(accountEmailMatches(google, "otro@ejemplo.com")).toBe(false);
+    expect(accountEmailMatches({ loginMethod: "manus", email: "salem@ejemplo.com" }, "salem@ejemplo.com")).toBe(false);
+    expect(accountEmailMatches({ loginMethod: "google", email: null }, "salem@ejemplo.com")).toBe(false);
+    expect(accountEmailMatches({ loginMethod: "google", email: "" }, "")).toBe(false);
+  });
+
+  it("permite enviar con teléfono pendiente pero exige ambos verificados para aprobar", () => {
+    const base = { phone: "+50761234567", emailVerifiedAt: new Date(), phoneVerifiedAt: null };
+    expect(contactRequirementError("submit", base)).toBeNull();
+    expect(contactRequirementError("approve", base)).toMatch(/teléfono/);
+    expect(contactRequirementError("approve", { ...base, phoneVerifiedAt: new Date() })).toBeNull();
+    expect(contactRequirementError("submit", { ...base, emailVerifiedAt: null })).toMatch(/correo/);
+    expect(contactRequirementError("submit", { ...base, phone: "" })).toMatch(/teléfono de Panamá/);
+    expect(contactRequirementError("submit", { ...base, phone: "+50612345678" })).toMatch(/teléfono de Panamá/);
   });
 
   it("rechaza fechas de calendario imposibles y acepta vencimientos reales", () => {

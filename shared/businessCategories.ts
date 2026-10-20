@@ -524,6 +524,10 @@ export const businessSelectionsInput = z
 export type BusinessSelection = z.infer<typeof businessCategorySelection>;
 /** Extrae sólo la clasificación pública: nunca se entrega el resto del expediente. */
 export function readBusinessSelections(details: unknown): BusinessSelection[] {
+  // MySQL 8 entrega las columnas JSON como objeto; MariaDB y otros, como texto.
+  if (typeof details === "string") {
+    try { details = JSON.parse(details); } catch { return []; }
+  }
   if (!details || typeof details !== "object" || Array.isArray(details))
     return [];
   const values = (details as Record<string, unknown>).businessCategories;

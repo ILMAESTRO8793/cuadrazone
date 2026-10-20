@@ -51,3 +51,12 @@ El propietario decidió quitar Manus del proyecto y desplegarlo por su cuenta (R
 - **Eliminado:** módulos de IA, mapas, voz, generación de imágenes, notificaciones y telemetría de Manus, plugins de Vite y la configuración pública `__MANUS_CONFIG__`.
 - **Imágenes de demostración:** las originales quedaron en el almacenamiento de Manus. Se usan marcadores en `client/public/assets/demo/` hasta reemplazarlas.
 - **Pendiente relacionado con la etapa 2:** Google entrega el correo verificado. Se puede aprovechar para dar por verificado el correo del vendedor cuando coincida con el de su cuenta, pero no se hizo sin aprobación.
+
+
+## Cierre de la etapa 2 — 18 de octubre de 2026
+
+- **Correo:** se verifica con la cuenta de Google. Si el correo del perfil coincide con el de la cuenta (Google solo deja entrar con correo verificado), queda verificado al guardar el perfil o con el botón «Verificar con mi cuenta de Google». Se registra `email_verified_google`.
+- **Teléfono:** no hay proveedor de SMS. Un administrador lo confirma por llamada o WhatsApp dentro del expediente, con una nota obligatoria. Se registran `phone_verified_admin` y `phone_verification_revoked` con autor, fecha y nota. Solo aplica a solicitudes pendientes y al mismo teléfono enviado.
+- **Reglas:** para enviar bastan el correo verificado y un teléfono de Panamá válido. Para aprobar, ambos deben estar verificados. Los contactos siguen bloqueados mientras la solicitud está pendiente o aprobada.
+- **Errores corregidos que venían de Manus:** (1) guardar la solicitud siempre fallaba con «Unrecognized key: consentVersion», porque la ruta pasaba campos de control a una validación estricta; (2) las categorías guardadas no se leían si la base devuelve JSON como texto (MariaDB). Ambos tienen prueba.
+- Si más adelante se contrata un proveedor de SMS, puede sustituir la verificación manual sin cambiar las reglas de aprobación.

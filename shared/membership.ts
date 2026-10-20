@@ -53,3 +53,9 @@ export const saveApplicationInput = applicationInput.extend({
   consentVersion: z.literal(CONSENT_VERSION),
 }).strict();
 export const statusLabels: Record<ApplicationStatus, string> = { draft: "Borrador", pending: "Pendiente de revisión", approved: "Aprobado · pago pendiente", rejected: "Rechazado · requiere correcciones" };
+
+/** Separa los campos de control (revision, consentVersion) de la solicitud que se valida. */
+export function splitApplicationSave(input: z.infer<typeof saveApplicationInput>) {
+  const { revision, consentVersion, ...application } = input;
+  return { revision, consentVersion, application: application as ApplicationInput };
+}

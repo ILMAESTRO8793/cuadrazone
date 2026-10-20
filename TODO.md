@@ -76,3 +76,12 @@ Evidencia de planes: migración aditiva 0004 aplicada, 39 rutas sincronizadas, p
 - [x] Preparados `Dockerfile`, `railway.json`, `.env.example` y `docs/despliegue-railway.md`.
 - [ ] Desplegar en Railway y probar el inicio de sesión con una cuenta real de Google.
 - [ ] Reemplazar las imágenes de demostración por las originales.
+
+## Cierre de la etapa 2 — 18 de octubre
+- [x] Correo verificado con la cuenta de Google (automático al guardar o con botón).
+- [x] Teléfono verificado por un administrador con nota e historial; también se puede revocar mientras está pendiente.
+- [x] Envío permitido con teléfono pendiente; aprobación exige ambos verificados.
+- [x] Corregido: guardar la solicitud fallaba siempre («Unrecognized key: consentVersion»).
+- [x] Corregido: lectura de categorías cuando la base devuelve JSON como texto.
+- [x] Probado de punta a punta con el servidor compilado y MySQL: 101 pruebas automáticas.
+- [ ] Probar en Railway con cuentas reales de Google cuando estén las variables configuradas.

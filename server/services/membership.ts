@@ -33,12 +33,15 @@ import {
   type User,
 } from "../../drizzle/schema";
 
+/**
+ * emailReady: el correo se verifica con la cuenta de Google (ya confirmada por Google).
+ * phoneReady: no hay proveedor de SMS; el teléfono lo verifica un administrador.
+ */
 export const PROVIDERS: ProviderReadiness = {
-  emailReady: false,
+  emailReady: true,
   phoneReady: false,
 };
-const PRECONDITION_MESSAGE =
-  "PRECONDITION_FAILED: no hay proveedor autorizado/configurado para verificación";
+const PANAMA_PHONE = /^\+507\d{8}$/;
 const PANAMA_TODAY = () => {
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: "America/Panama",
@@ -59,6 +62,37 @@ export class MembershipError extends Error {
     super(message);
     this.name = "MembershipError";
   }
+}
+
+/** El correo coincide con el de la cuenta de Google con la que inició sesión. */
+export function accountEmailMatches(
+  user: { loginMethod?: string | null; email?: string | null },
+  email: string
+): boolean {
+  return (
+    user.loginMethod === "google" &&
+    typeof user.email === "string" &&
+    user.email.length > 0 &&
+    user.email.trim().toLowerCase() === email.trim().toLowerCase()
+  );
+}
+
+/**
+ * Requisitos de contacto por etapa. Para enviar basta el correo verificado y un
+ * teléfono de Panamá; el teléfono lo verifica un administrador durante la
+ * revisión. Para aprobar, ambos deben estar verificados.
+ */
+export function contactRequirementError(
+  stage: "submit" | "approve",
+  profile: { phone: string; emailVerifiedAt: unknown; phoneVerifiedAt: unknown }
+): string | null {
+  if (!profile.emailVerifiedAt)
+    return "Verifica tu correo: debe ser el mismo de tu cuenta de Google";
+  if (!PANAMA_PHONE.test(profile.phone))
+    return "Guarda un teléfono de Panamá (+507 y 8 dígitos) en tu perfil";
+  if (stage === "approve" && !profile.phoneVerifiedAt)
+    return "Verifica el teléfono del solicitante antes de aprobar";
+  return null;
 }
 
 export function toTRPCError(error: unknown): TRPCError {
@@ -323,7 +357,8 @@ export function assertDraftRevision(current: number | null, expected: number | u
 async function ensureSubmissionGuards(
   db: any,
   app: Application,
-  profile: MembershipProfile | undefined
+  profile: MembershipProfile | undefined,
+  stage: "submit" | "approve"
 ) {
   const categories = businessSelectionsInput.safeParse(readBusinessSelections(app.details));
   if (!categories.success || categories.data.length === 0)
@@ -337,11 +372,8 @@ async function ensureSubmissionGuards(
       "PRECONDITION_FAILED",
       "Guarda tu perfil antes de enviar la solicitud"
     );
-  if (!profile.emailVerifiedAt || !profile.phoneVerifiedAt)
-    throw new MembershipError(
-      "PRECONDITION_FAILED",
-      "Correo y teléfono deben estar verificados por proveedores autorizados"
-    );
+  const contactError = contactRequirementError(stage, profile);
+  if (contactError) throw new MembershipError("PRECONDITION_FAILED", contactError);
   if (app.contactEmail !== profile.email || app.contactPhone !== profile.phone)
     throw new MembershipError(
       "PRECONDITION_FAILED",
@@ -491,19 +523,25 @@ export async function saveProfile(
       email: input.email,
       phone: input.phone,
     };
+    // Google ya verificó el correo de la cuenta: si coincide, queda verificado.
+    const googleVerified = accountEmailMatches(user, input.email);
+    const verifyNow = googleVerified && (!existing || changedEmail || !existing.emailVerifiedAt);
     if (!existing)
       await tx
         .insert(czMembershipProfiles)
-        .values({ userId: user.id, ...values });
+        .values({ userId: user.id, ...values, emailVerifiedAt: googleVerified ? new Date() : null });
     else
       await tx
         .update(czMembershipProfiles)
         .set({
           ...values,
-          ...(changedEmail ? { emailVerifiedAt: null } : {}),
+          ...(changedEmail ? { emailVerifiedAt: verifyNow ? new Date() : null } : {}),
+          ...(!changedEmail && verifyNow ? { emailVerifiedAt: new Date() } : {}),
           ...(changedPhone ? { phoneVerifiedAt: null } : {}),
         })
         .where(eq(czMembershipProfiles.userId, user.id));
+    if (verifyNow)
+      await audit(tx, app?.id ?? null, user.id, user.id, "email_verified_google", null, { method: "google_account" });
     const fresh = await profileFor(tx, user.id);
     if (!fresh)
       throw new MembershipError(
@@ -653,7 +691,7 @@ export async function submitApplication(
         "CONFLICT",
         "La solicitud cambió o ya no está editable"
       );
-    await ensureSubmissionGuards(tx, app, profile);
+    await ensureSubmissionGuards(tx, app, profile, "submit");
     const nextRevision = app.revision + 1;
     const updated = await tx
       .update(czApplications)
@@ -684,8 +722,78 @@ export async function submitApplication(
   });
 }
 
-export async function failClosedVerification(): Promise<never> {
-  throw new MembershipError("PRECONDITION_FAILED", PRECONDITION_MESSAGE);
+/** Verifica el correo del perfil cuando coincide con el de la cuenta de Google. */
+export async function verifyEmailWithAccount(user: User): Promise<ProfileSnapshot> {
+  const db = await requireDb();
+  return await db.transaction(async (tx: any) => {
+    const profile = await profileFor(tx, user.id);
+    if (!profile)
+      throw new MembershipError("PRECONDITION_FAILED", "Guarda tu perfil antes de verificar el correo");
+    if (!profile.emailVerifiedAt) {
+      if (!accountEmailMatches(user, profile.email))
+        throw new MembershipError(
+          "PRECONDITION_FAILED",
+          "El correo del perfil debe ser el mismo de tu cuenta de Google"
+        );
+      await tx
+        .update(czMembershipProfiles)
+        .set({ emailVerifiedAt: new Date() })
+        .where(and(eq(czMembershipProfiles.userId, user.id), eq(czMembershipProfiles.email, profile.email)));
+      const app = await applicationFor(tx, user.id);
+      await audit(tx, app?.id ?? null, user.id, user.id, "email_verified_google", null, { method: "google_account" });
+    }
+    const fresh = await profileFor(tx, user.id);
+    return mapProfile(fresh)!;
+  });
+}
+
+/**
+ * Un administrador confirma el teléfono del solicitante (llamada o WhatsApp)
+ * durante la revisión. Solo para solicitudes pendientes y con el mismo teléfono
+ * que se envió; queda en el historial quién lo verificó, cuándo y cómo.
+ */
+export async function adminSetPhoneVerification(
+  admin: User,
+  applicationId: number,
+  revision: number,
+  verified: boolean,
+  note: string
+): Promise<{ phoneVerified: boolean }> {
+  const cleanNote = note.trim();
+  if (cleanNote.length < 5)
+    throw new MembershipError("BAD_REQUEST", "Anota cómo confirmaste el teléfono (mínimo 5 caracteres)");
+  const db = await requireDb();
+  return await db.transaction(async (tx: any) => {
+    const apps = await tx
+      .select()
+      .from(czApplications)
+      .where(and(eq(czApplications.id, applicationId), eq(czApplications.revision, revision)))
+      .limit(1);
+    const app = apps[0] as Application | undefined;
+    if (!app || app.status !== "pending")
+      throw new MembershipError("CONFLICT", "La solicitud no está pendiente o cambió de versión");
+    const profile = await profileFor(tx, app.userId);
+    if (!profile || profile.phone !== app.contactPhone || !PANAMA_PHONE.test(app.contactPhone))
+      throw new MembershipError("PRECONDITION_FAILED", "El teléfono del perfil no coincide con el de la solicitud");
+    if (Boolean(profile.phoneVerifiedAt) === verified)
+      throw new MembershipError("CONFLICT", verified ? "El teléfono ya está verificado" : "El teléfono no está verificado");
+    const updated = await tx
+      .update(czMembershipProfiles)
+      .set({ phoneVerifiedAt: verified ? new Date() : null })
+      .where(and(eq(czMembershipProfiles.userId, app.userId), eq(czMembershipProfiles.phone, app.contactPhone)));
+    if (!updateChanged(updated))
+      throw new MembershipError("CONFLICT", "El perfil cambió durante la verificación");
+    await audit(
+      tx,
+      app.id,
+      app.userId,
+      admin.id,
+      verified ? "phone_verified_admin" : "phone_verification_revoked",
+      cleanNote,
+      { phoneLast4: app.contactPhone.slice(-4), method: "admin_manual" }
+    );
+    return { phoneVerified: verified };
+  });
 }
 
 export async function listApplications(
@@ -811,7 +919,7 @@ export async function reviewApplication(
         "La solicitud no está pendiente o cambió de versión"
       );
     if (decision === "approved")
-      await ensureSubmissionGuards(tx, app, await profileFor(tx, app.userId));
+      await ensureSubmissionGuards(tx, app, await profileFor(tx, app.userId), "approve");
     const nextRevision = app.revision + 1;
     const updated = await tx
       .update(czApplications)

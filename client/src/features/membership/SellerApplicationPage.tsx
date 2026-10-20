@@ -163,8 +163,7 @@ function SellerApplicationContent() {
       parsedForm.data.businessCategories.length > 0 &&
       !hasUnsavedChanges &&
       profile?.emailVerifiedAt &&
-      profile.phoneVerifiedAt &&
-      profile.phone &&
+      /^\+507\d{8}$/.test(profile.phone) &&
       documentByKind("identity") &&
       documentByKind("pastoral") &&
       form.residenceConfirmed &&
@@ -575,7 +574,11 @@ function SellerApplicationContent() {
             </p>
           )}
           <p className="member-muted">
-            No se puede marcar manualmente un contacto como verificado.
+            El correo se verifica con tu cuenta de Google desde{" "}
+            <Link className="member-inline-link" href="/mi-cuenta">Mi cuenta</Link>.
+            El teléfono lo confirma el equipo de CuadraZone por llamada o
+            WhatsApp durante la revisión; puedes enviar la solicitud con el
+            teléfono pendiente.
           </p>
         </section>
 
@@ -767,11 +770,18 @@ function SellerApplicationContent() {
             Guarda los cambios del formulario antes de enviarlo.
           </p>
         )}
-        {!completeForSubmit && (
-          <p className="member-notice member-notice--warning">
-            No puedes enviarla hasta verificar correo y teléfono; servicios
-            pendientes por ahora.
-          </p>
+        {!completeForSubmit && editable && (
+          <div className="member-notice member-notice--warning">
+            <p>Para enviarla falta:</p>
+            <ul>
+              {!profile?.emailVerifiedAt && <li>Verificar tu correo con tu cuenta de Google (en Mi cuenta).</li>}
+              {!/^\+507\d{8}$/.test(profile?.phone ?? "") && <li>Guardar un teléfono de Panamá (+507 y 8 dígitos) en Mi cuenta.</li>}
+              {(!documentByKind("identity") || !documentByKind("pastoral")) && <li>Cargar la identificación y la carta pastoral.</li>}
+              {!(form.residenceConfirmed && form.faithAccepted && form.conductAccepted && form.privacyAccepted) && <li>Aceptar residencia, fe, conducta y privacidad.</li>}
+              {hasUnsavedChanges && <li>Guardar los cambios del formulario.</li>}
+              {(!parsedForm.success || parsedForm.data.businessCategories.length === 0) && <li>Completar los datos obligatorios de negocio, identificación, iglesia y categoría.</li>}
+            </ul>
+          </div>
         )}
       </section>
     </div>

@@ -26,17 +26,15 @@ function AccountContent() {
     refetchOnWindowFocus: false,
   });
   const profileSave = trpc.membership.profile.save.useMutation();
-  const sendEmail = trpc.membership.verification.sendEmail.useMutation();
-  const sendPhone = trpc.membership.verification.sendPhone.useMutation();
+  const verifyEmail = trpc.membership.verification.emailWithGoogle.useMutation();
   const [form, setForm] = useState<ProfileForm>(emptyForm);
-  const [emailCode, setEmailCode] = useState("");
-  const [phoneCode, setPhoneCode] = useState("");
   const initialized = useRef(false);
   const profile = membership.data?.profile;
   const application = membership.data?.application;
   const preference = membership.data?.planSelection;
   const contactLocked = application?.status === "pending" || application?.status === "approved";
-  const providers = membership.data?.providers;
+  const accountEmail = (user?.email ?? "").toLowerCase();
+  const profileMatchesAccount = Boolean(profile && accountEmail && profile.email.toLowerCase() === accountEmail);
   const emailVerified = Boolean(profile?.emailVerifiedAt);
   const phoneVerified = Boolean(profile?.phoneVerifiedAt);
 
@@ -61,15 +59,13 @@ function AccountContent() {
     }
   };
 
-  const requestVerification = async (kind: "email" | "phone") => {
-    const mutation = kind === "email" ? sendEmail : sendPhone;
+  const verifyWithGoogle = async () => {
     try {
-      await mutation.mutateAsync();
-      toast.success("Verificación no disponible todavía", {
-        description: "El proveedor de verificación está pendiente de configuración.",
-      });
+      await verifyEmail.mutateAsync();
+      await utils.membership.me.invalidate();
+      toast.success("Correo verificado con tu cuenta de Google");
     } catch (error) {
-      toast.error("La verificación está pendiente", { description: errorText(error, "No hay un proveedor autorizado configurado.") });
+      toast.error("No se pudo verificar el correo", { description: errorText(error, "Inténtalo de nuevo.") });
     }
   };
 
@@ -113,10 +109,10 @@ function AccountContent() {
       <div className="member-grid member-grid--account">
         <section className="member-card">
           <div className="member-card-heading"><div><p className="member-eyebrow">PERFIL</p><h2>Datos de contacto</h2></div><UserRound size={22} aria-hidden="true" /></div>
-          <p className="member-muted">El correo y teléfono se guardan en tu perfil de CuadraZone. La sesión y la identidad provienen de OAuth real.</p>
+          <p className="member-muted">El correo y teléfono se guardan en tu perfil de CuadraZone. Tu sesión proviene de tu cuenta de Google.</p>
           <form className="member-form" onSubmit={save}>
             <label className="member-field"><span>Nombre completo</span><Input value={form.displayName} onChange={event => setForm({ ...form, displayName: event.target.value })} required minLength={2} maxLength={100} /></label>
-            <label className="member-field"><span>Correo electrónico</span><Input type="email" value={form.email} readOnly={contactLocked} onChange={event => setForm({ ...form, email: event.target.value })} required maxLength={320} /><small>{contactLocked ? "Bloqueado mientras la solicitud está pendiente o aprobada." : "Debe coincidir con tu contacto verificado antes de enviar."}</small></label>
+            <label className="member-field"><span>Correo electrónico</span><Input type="email" value={form.email} readOnly={contactLocked} onChange={event => setForm({ ...form, email: event.target.value })} required maxLength={320} /><small>{contactLocked ? "Bloqueado mientras la solicitud está pendiente o aprobada." : accountEmail ? `Usa ${accountEmail} (tu cuenta de Google) y quedará verificado al guardar.` : "Usa el correo de tu cuenta de Google para verificarlo automáticamente."}</small></label>
             <label className="member-field"><span>Teléfono de Panamá <small>(+507 y 8 dígitos)</small></span><Input value={form.phone} readOnly={contactLocked} onChange={event => setForm({ ...form, phone: event.target.value })} placeholder="+50760000000" pattern="^$|\+507\d{8}" /><small>Opcional para compradores; necesario para una solicitud de vendedor.</small></label>
             <div className="member-form-actions"><button className="member-button member-button--gold" type="submit" disabled={profileSave.isPending}><Save size={16} /> {profileSave.isPending ? "Guardando…" : "Guardar perfil"}</button></div>
           </form>
@@ -128,15 +124,21 @@ function AccountContent() {
             <div className="member-status-row"><span>Correo</span><strong className={emailVerified ? "member-status member-status--ok" : "member-status member-status--pending"}>{emailVerified ? "Verificado" : "Pendiente"}</strong></div>
             <div className="member-status-row"><span>Teléfono</span><strong className={phoneVerified ? "member-status member-status--ok" : "member-status member-status--pending"}>{phoneVerified ? "Verificado" : "Pendiente"}</strong></div>
           </div>
-          <p className="member-notice member-notice--warning">Los proveedores reales de correo y SMS están pendientes. No enviamos códigos simulados ni marcamos verificaciones desde aquí.</p>
-          <div className="member-actions member-actions--stack">
-            <button className="member-button member-button--outline" type="button" onClick={() => void requestVerification("email")} disabled={!providers?.emailReady || sendEmail.isPending}>{sendEmail.isPending ? "Solicitando…" : "Solicitar verificación de correo"}</button>
-            <button className="member-button member-button--outline" type="button" onClick={() => void requestVerification("phone")} disabled={!providers?.phoneReady || sendPhone.isPending}>{sendPhone.isPending ? "Solicitando…" : "Solicitar verificación de teléfono"}</button>
-          </div>
-          <div className="member-code-grid">
-            <label className="member-field"><span>Código de correo</span><Input inputMode="numeric" value={emailCode} onChange={event => setEmailCode(event.target.value)} placeholder="Disponible al activar proveedor" disabled /></label>
-            <label className="member-field"><span>Código de teléfono</span><Input inputMode="numeric" value={phoneCode} onChange={event => setPhoneCode(event.target.value)} placeholder="Disponible al activar proveedor" disabled /></label>
-          </div>
+          <p className="member-muted"><strong>Correo:</strong> se verifica con tu cuenta de Google. Debe ser el mismo correo con el que iniciaste sesión.</p>
+          {!emailVerified && (
+            profileMatchesAccount ? (
+              <div className="member-actions member-actions--stack">
+                <button className="member-button member-button--gold" type="button" onClick={() => void verifyWithGoogle()} disabled={verifyEmail.isPending}>
+                  {verifyEmail.isPending ? "Verificando…" : "Verificar con mi cuenta de Google"}
+                </button>
+              </div>
+            ) : (
+              <p className="member-notice member-notice--warning">
+                {profile ? `El correo del perfil (${profile.email}) no coincide con tu cuenta de Google${accountEmail ? ` (${accountEmail})` : ""}. Cámbialo y guarda el perfil para verificarlo.` : "Guarda tu perfil con el correo de tu cuenta de Google para verificarlo."}
+              </p>
+            )
+          )}
+          <p className="member-muted"><strong>Teléfono:</strong> lo confirma el equipo de CuadraZone por llamada o WhatsApp cuando revisa tu solicitud de vendedor. No necesitas hacer nada más que guardarlo correctamente.</p>
         </aside>
       </div>
 
