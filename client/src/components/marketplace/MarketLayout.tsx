@@ -116,7 +116,7 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
           <span className="utility-right">
             Panamá <span className="utility-dot" /> USD{" "}
             <span className="utility-dot" />{" "}
-            <strong>0% comisión CuadraZone</strong>
+            <strong>3 meses gratis para vendedores</strong>
           </span>
         </div>
       </div>

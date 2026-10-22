@@ -100,6 +100,9 @@
       "path": "/admin/verificaciones"
     },
     {
+      "path": "/admin/suscripciones"
+    },
+    {
       "path": "/admin/denominaciones"
     },
     {

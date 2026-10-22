@@ -15,7 +15,7 @@ describe("Oferta de dos planes", () => {
   });
   it("shows both plans with buyer free, links and honest pending benefits", () => {
     const html = renderPage("/suscripciones").html;
-    for (const value of ["Normal", "Mayor Visibilidad", "US$19.99", "US$39.99", "Gratis", "no se suman", "Destacado — ubicación de pago", "acreditación real", "Sin cobros activos", "/vendedor/plan?plan=normal", "/vendedor/plan?plan=mayor_visibilidad"]) expect(html).toContain(value);
+    for (const value of ["Normal", "Mayor Visibilidad", "US$19.99", "US$39.99", "Gratis", "no se suman", "Destacado — ubicación de pago", "acreditación real", "3 meses gratis", "/vendedor/plan?plan=normal", "/vendedor/plan?plan=mayor_visibilidad"]) expect(html).toContain(value);
     expect(html).not.toContain("US$59.98");
     expect(html).not.toContain("USD 2.99");
   });

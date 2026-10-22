@@ -1,5 +1,17 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { sellerPlanIds } from "@shared/pricing";
+import {
+  adminDeactivateSubscription,
+  adminListPayments,
+  adminListSubscriptions,
+  adminRecordPayment,
+  MAX_MONTHS_PER_PAYMENT,
+  PAYMENT_METHODS,
+  paymentContact,
+  subscriptionForUser,
+} from "../services/subscriptions";
+import { adminCommissionDetail, adminRecordCommissionPayment, commissionForSeller } from "../services/commissions";
 import {
   saveApplicationInput,
   splitApplicationSave,
@@ -153,6 +165,73 @@ export const membershipRouter = router({
       const user = realUser(ctx.user);
       return serviceCall(() => verifyEmailWithAccount(user as any));
     }),
+  }),
+  commission: router({
+    /** Comisión pendiente del propio vendedor. */
+    mine: protectedProcedure.query(({ ctx }) => commissionForSeller(realUser(ctx.user).id)),
+    detail: adminProcedure
+      .input(z.object({ applicationId: z.number().int().positive() }).strict())
+      .query(({ ctx, input }) => {
+        realUser(ctx.user);
+        return adminCommissionDetail(input.applicationId);
+      }),
+    recordPayment: adminProcedure
+      .input(
+        z.object({
+          applicationId: z.number().int().positive(),
+          amountCents: z.number().int().positive().max(100_000_000),
+          method: z.enum(PAYMENT_METHODS),
+          reference: z.string().max(120),
+          paidOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+          note: z.string().max(500),
+        }).strict()
+      )
+      .mutation(({ ctx, input }) => {
+        csrf(ctx);
+        return adminRecordCommissionPayment(realUser(ctx.user) as any, input);
+      }),
+  }),
+  subscription: router({
+    /** Estado de la suscripción del propio vendedor y a quién pagarle. */
+    mine: protectedProcedure.query(async ({ ctx }) => {
+      const user = realUser(ctx.user);
+      return { subscription: await subscriptionForUser(user.id), paymentContact: paymentContact() };
+    }),
+    list: adminProcedure.query(({ ctx }) => {
+      realUser(ctx.user);
+      return adminListSubscriptions();
+    }),
+    payments: adminProcedure
+      .input(z.object({ applicationId: z.number().int().positive() }).strict())
+      .query(({ ctx, input }) => {
+        realUser(ctx.user);
+        return adminListPayments(input.applicationId);
+      }),
+    recordPayment: adminProcedure
+      .input(
+        z.object({
+          applicationId: z.number().int().positive(),
+          planId: z.enum(sellerPlanIds),
+          months: z.number().int().min(1).max(MAX_MONTHS_PER_PAYMENT),
+          amountCents: z.number().int().positive().max(1_000_000),
+          method: z.enum(PAYMENT_METHODS),
+          reference: z.string().max(120),
+          paidOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+          note: z.string().max(500),
+        }).strict()
+      )
+      .mutation(({ ctx, input }) => {
+        csrf(ctx);
+        const admin = realUser(ctx.user);
+        return adminRecordPayment(admin as any, input);
+      }),
+    deactivate: adminProcedure
+      .input(z.object({ applicationId: z.number().int().positive(), reason: z.string().trim().min(5).max(500) }).strict())
+      .mutation(({ ctx, input }) => {
+        csrf(ctx);
+        const admin = realUser(ctx.user);
+        return adminDeactivateSubscription(admin as any, input.applicationId, input.reason);
+      }),
   }),
   admin: router({
     denominations: adminProcedure.query(({ ctx }) => {

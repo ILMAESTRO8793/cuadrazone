@@ -119,7 +119,7 @@ function CartContent() {
             <p>
               Artículos <strong>{usd(cart.data.subtotalCents)}</strong>
             </p>
-            <p>CuadraZone no cobra comisión propia por venta.</p>
+            <p>CuadraZone no te cobra recargos: pagas los artículos y el envío que define cada vendedor.</p>
             {cart.data.items.every(
               item => item.available && item.quantity <= item.stock
             ) ? (
@@ -444,7 +444,7 @@ function CheckoutContent() {
               <strong>{usd(estimate)}</strong>
             </p>
             <p>
-              CuadraZone <strong>US$0.00 comisión</strong>
+              Recargo de CuadraZone al comprador: <strong>US$0.00</strong>
             </p>
             <p className="live-muted">
               El total definitivo se calcula en servidor con la tarifa

@@ -29,6 +29,7 @@ El repositorio incluye `Dockerfile` y `railway.json`. Railway compila la imagen,
 | `GOOGLE_CLIENT_SECRET` | del paso 1 |
 | `ADMIN_EMAILS` | correos de Google con rol de administrador, separados por comas |
 | `STORAGE_DIR` | `/data/storage` |
+| `PAYMENT_CONTACT` | opcional: número de Yappy o WhatsApp al que pagan los vendedores, p. ej. `+507 6000-0000` |
 
 `PORT` y `NODE_ENV` ya los fija Railway y el Dockerfile.
 

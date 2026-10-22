@@ -1,6 +1,8 @@
 import { customType } from "drizzle-orm/mysql-core";
 import {
   foreignKey,
+  index,
+  uniqueIndex,
   int,
   json,
   mysqlEnum,
@@ -102,6 +104,12 @@ export const czApplications = mysqlTable("cz_membership_applications", {
   ])
     .notNull()
     .default("not_started"),
+  /** Plan pagado vigente ("normal" | "mayor_visibilidad"); null si nunca pagó. */
+  subscriptionPlanId: varchar("subscriptionPlanId", { length: 32 }),
+  /** Fin del período pagado. Al pasar esta fecha la tienda se oculta sola. */
+  subscriptionEndsAt: timestamp("subscriptionEndsAt"),
+  /** Fin de la prueba gratuita (3 meses desde la aprobación). Mientras no llegue, la comisión es 8%. */
+  trialEndsAt: timestamp("trialEndsAt"),
   details: json("details"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -153,3 +161,35 @@ export type MembershipProfile = typeof czMembershipProfiles.$inferSelect;
 export type Application = typeof czApplications.$inferSelect;
 export type VerificationDocument = typeof czVerificationDocuments.$inferSelect;
 export type PlanSelection = typeof czPlanSelections.$inferSelect;
+
+/**
+ * Pagos de suscripción registrados por un administrador (Yappy, transferencia,
+ * efectivo). Cada pago extiende el período desde el vencimiento vigente o desde
+ * la fecha de registro si ya había vencido.
+ */
+export const czSubscriptionPayments = mysqlTable(
+  "cz_subscription_payments",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    applicationId: int("applicationId").notNull(),
+    userId: int("userId").notNull(),
+    planId: varchar("planId", { length: 32 }).notNull(),
+    months: int("months").notNull(),
+    amountCents: int("amountCents").notNull(),
+    method: mysqlEnum("method", ["yappy", "transferencia", "efectivo", "otro"]).notNull(),
+    /** Número de comprobante; único por método para evitar registrar dos veces el mismo pago. */
+    reference: varchar("reference", { length: 120 }),
+    paidOn: varchar("paidOn", { length: 10 }).notNull(),
+    periodStart: timestamp("periodStart").notNull(),
+    periodEnd: timestamp("periodEnd").notNull(),
+    recordedBy: int("recordedBy").notNull(),
+    note: text("note"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => ({
+    byApplication: index("cz_subscription_payments_app_idx").on(table.applicationId, table.createdAt),
+    uniqueReference: uniqueIndex("cz_subscription_payments_reference_uq").on(table.method, table.reference),
+  })
+);
+
+export type SubscriptionPayment = typeof czSubscriptionPayments.$inferSelect;

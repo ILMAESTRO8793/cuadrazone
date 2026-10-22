@@ -60,3 +60,27 @@ El propietario decidió quitar Manus del proyecto y desplegarlo por su cuenta (R
 - **Reglas:** para enviar bastan el correo verificado y un teléfono de Panamá válido. Para aprobar, ambos deben estar verificados. Los contactos siguen bloqueados mientras la solicitud está pendiente o aprobada.
 - **Errores corregidos que venían de Manus:** (1) guardar la solicitud siempre fallaba con «Unrecognized key: consentVersion», porque la ruta pasaba campos de control a una validación estricta; (2) las categorías guardadas no se leían si la base devuelve JSON como texto (MariaDB). Ambos tienen prueba.
 - Si más adelante se contrata un proveedor de SMS, puede sustituir la verificación manual sin cambiar las reglas de aprobación.
+
+
+## Etapa 5, versión manual — 22 de octubre de 2026
+
+- **Activación por el administrador:** el vendedor aprobado paga por Yappy, transferencia o efectivo. El administrador confirma el dinero y lo registra en `/admin/suscripciones` (plan, meses, método, comprobante, fecha). La tienda queda activa hasta el fin del período.
+- **Reglas:** el monto debe coincidir exactamente con plan × meses (1 a 12). Un comprobante no puede registrarse dos veces con el mismo método. La fecha de pago no puede ser futura ni de hace más de 120 días. Si la suscripción sigue vigente, los meses se suman desde el vencimiento; si venció, empiezan el día del registro.
+- **Vencimiento automático:** al arrancar y cada 15 minutos, las suscripciones con período terminado pasan a «vencida» y la tienda y sus productos dejan de mostrarse.
+- **Desactivación anticipada:** con motivo obligatorio (pago revertido, falta grave).
+- **Historial:** tabla `cz_subscription_payments` y eventos `subscription_payment_recorded` / `subscription_deactivated` en la auditoría.
+- **Pendiente:** la pasarela automática (Yappy comercial, PagueloFácil o Tilopay) podrá registrar pagos por la misma vía. Los beneficios del plan Mayor Visibilidad (espacios destacados) aún no están implementados; hoy ambos planes publican igual.
+- **Corregido:** las imágenes y datos de libros guardados como JSON no se leían cuando la base los devuelve como texto (MariaDB); en MySQL 8 funcionaban.
+
+
+## Prueba gratis y comisión por venta — 22 de octubre de 2026
+
+Decisión del propietario: los primeros 3 meses son gratis con 8% de comisión por venta; después, mensualidad del plan y 5% de comisión.
+
+- **Prueba:** al aprobar por primera vez a un vendedor, su tienda se activa sola por 3 meses (`trialEndsAt`, plan `prueba`). Se registra `trial_started`.
+- **Tasa:** depende de la fecha (`commissionBpsAt`), no del pago: pagar la mensualidad por adelantado durante la prueba no baja la comisión a 5% antes de tiempo. Se fija al crear el pedido (`cz_orders.commissionBps`).
+- **Base:** solo el subtotal de productos; el envío no paga comisión. Se calcula al marcar el pedido como entregado (`commissionCents`, `deliveredAt`); los cancelados no generan comisión.
+- **Cobro:** el comprador paga directo al vendedor, así que la comisión es una deuda del vendedor. El administrador la registra en `/admin/suscripciones` cuando la recibe; el pago debe coincidir con el total pendiente y salda todos los pedidos entregados (`cz_commission_payments`, `commission_payment_recorded`). La deuda se conserva aunque la tienda se oculte.
+- **Supuestos que el propietario puede cambiar:** base sin envío; la prueba empieza al aprobar.
+- **Textos:** se reemplazaron todas las promesas de «0% de comisión». Al comprador se le indica que CuadraZone no le cobra recargos.
+- **Pendiente:** actualizar los términos y condiciones con este modelo antes de abrir al público.

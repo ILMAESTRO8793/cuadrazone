@@ -144,6 +144,9 @@ function Router() {
         <Route path="/admin/verificaciones">
           {() => <AdminVerificationPage />}
         </Route>
+        <Route path="/admin/suscripciones">
+          {() => <AdminVerificationPage key="suscripciones" initialTab="suscripciones" />}
+        </Route>
         <Route path="/admin/denominaciones">
           {() => (
             <AdminVerificationPage

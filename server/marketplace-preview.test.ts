@@ -55,8 +55,9 @@ describe("CuadraZone preview", () => {
     expect(result.html).toContain("Mayor Visibilidad");
     expect(result.html).toContain("Normal");
     expect(result.html).not.toContain("USD 10.00");
-    expect(result.html).toContain("0% de comisión propia de CuadraZone");
-    expect(result.html).toContain("sin cobros activos");
+    expect(result.html).toContain("Comisión de 5% por venta entregada");
+    expect(result.html).toContain("Los primeros 3 meses son gratis");
+    expect(result.html).not.toContain("0% de comisión");
   });
   it("uses the shared USD 19.99 seller fee without restoring a buyer subscription", () => {
     expect(SELLER_MONTHLY_FEE_CENTS).toBe(1999);

@@ -85,3 +85,21 @@ Evidencia de planes: migración aditiva 0004 aplicada, 39 rutas sincronizadas, p
 - [x] Corregido: lectura de categorías cuando la base devuelve JSON como texto.
 - [x] Probado de punta a punta con el servidor compilado y MySQL: 101 pruebas automáticas.
 - [ ] Probar en Railway con cuentas reales de Google cuando estén las variables configuradas.
+
+## Etapa 5, versión manual — 22 de octubre
+- [x] Registro de pagos por el administrador en `/admin/suscripciones`, con historial.
+- [x] Período por meses; renovación suma desde el vencimiento vigente.
+- [x] Vencimiento automático cada 15 minutos; desactivación anticipada con motivo.
+- [x] El vendedor ve su estado, vencimiento y cómo pagar (`PAYMENT_CONTACT`).
+- [x] Probado de punta a punta: tienda oculta antes de pagar, visible al pagar, producto con foto publicado, oculta al vencer.
+- [ ] Beneficios del plan Mayor Visibilidad (espacios destacados por categoría).
+- [ ] Pasarela de pago automática cuando exista la cuenta comercial.
+
+## Prueba gratis y comisión — 22 de octubre
+- [x] 3 meses gratis al aprobar, con 8% de comisión; después mensualidad y 5%.
+- [x] Comisión fijada al comprar, calculada al entregar, sin contar el envío.
+- [x] Registro de pagos de comisión por el administrador y deuda visible para el vendedor.
+- [x] Textos del sitio actualizados (ya no dicen «0% de comisión»).
+- [x] Probado de punta a punta con compras reales en el servidor.
+- [ ] Términos y condiciones con el modelo de comisión.
+- [ ] Recordatorio automático al vendedor cuando la prueba esté por terminar.

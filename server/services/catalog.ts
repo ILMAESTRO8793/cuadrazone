@@ -117,7 +117,16 @@ function iso(value: Date): string {
   return value.toISOString();
 }
 function jsonArray<T>(value: unknown, fallback: T[]): T[] {
+  // MySQL 8 entrega las columnas JSON como arreglo; MariaDB y otros, como texto.
+  if (typeof value === "string") {
+    try { value = JSON.parse(value); } catch { return fallback; }
+  }
   return Array.isArray(value) ? (value as T[]) : fallback;
+}
+/** Valor de una columna JSON, venga como objeto (MySQL 8) o como texto (MariaDB). */
+function jsonColumn(value: unknown): unknown {
+  if (typeof value !== "string") return value;
+  try { return JSON.parse(value); } catch { return null; }
 }
 function normalizeText(value: string | null | undefined): string | null {
   const trimmed = value?.trim();
@@ -272,9 +281,10 @@ function productDto(
 ): PublicProduct {
   const images = jsonArray<string>(row.imageUrls, []);
   const modes = jsonArray<DeliveryMode>(row.deliveryModes, []);
+  const bookValue = jsonColumn(row.bookMetadata);
   const book =
-    row.bookMetadata && typeof row.bookMetadata === "object"
-      ? (row.bookMetadata as BookMetadata)
+    bookValue && typeof bookValue === "object" && !Array.isArray(bookValue)
+      ? (bookValue as BookMetadata)
       : null;
   return {
     id: row.id,
@@ -1036,14 +1046,14 @@ export function validatePublishable(
   }
   if (
     product.kind === "book" &&
-    !bookInput.safeParse(product.bookMetadata).success
+    !bookInput.safeParse(jsonColumn(product.bookMetadata)).success
   ) {
     throw new CatalogError(
       "BAD_REQUEST",
       "Los libros requieren metadata completa y condición new o used"
     );
   }
-  if (product.kind === "product" && product.bookMetadata !== null) {
+  if (product.kind === "product" && jsonColumn(product.bookMetadata) !== null) {
     throw new CatalogError(
       "BAD_REQUEST",
       "Los productos no pueden tener metadata de libro"

@@ -36,6 +36,20 @@
       "when": 1791674557502,
       "tag": "0004_legal_starfox",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1792697721699,
+      "tag": "0005_subscription_payments",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1792702235817,
+      "tag": "0006_commissions",
+      "breakpoints": true
     }
   ]
 }

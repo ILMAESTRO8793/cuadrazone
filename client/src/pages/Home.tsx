@@ -97,7 +97,7 @@ export default function Home() {
                 <ShieldCheck size={16} /> Verificación de vendedores
               </span>
               <span>
-                <Check size={15} /> Sin comisión por venta
+                <Check size={15} /> 3 meses gratis para vendedores
               </span>
             </div>
           </div>
@@ -226,7 +226,7 @@ export default function Home() {
             <Store size={28} strokeWidth={1.4} />
             <span>
               <strong>Más para tu emprendimiento</strong>
-              <small>CuadraZone no cobra comisión por tus ventas.</small>
+              <small>Empieza con 3 meses sin mensualidad.</small>
             </span>
           </div>
           <div>
@@ -279,8 +279,8 @@ export default function Home() {
           <h2>Abre nuevas puertas para tu negocio.</h2>
           <p>
             Tu tienda por{" "}
-            <strong>Normal {sellerPlanLabel("normal")}/mes</strong> o <strong>Mayor Visibilidad {sellerPlanLabel("mayor_visibilidad")}/mes</strong>. Todos tus
-            productos y servicios, sin comisión propia por venta.
+            <strong>Normal {sellerPlanLabel("normal")}/mes</strong> o <strong>Mayor Visibilidad {sellerPlanLabel("mayor_visibilidad")}/mes</strong>. Los
+            primeros 3 meses son gratis con 8% de comisión por venta; después, 5%.
           </p>
         </div>
         <Link className="btn btn-gold" href="/vender">

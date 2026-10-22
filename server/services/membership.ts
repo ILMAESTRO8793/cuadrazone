@@ -1,4 +1,6 @@
 import { getPlanSelection } from "./sellerPlans";
+import { addMonths } from "./subscriptions";
+import { TRIAL_MONTHS, TRIAL_PLAN_ID } from "@shared/pricing";
 import { and, desc, eq, lt, or, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import {
@@ -921,13 +923,20 @@ export async function reviewApplication(
     if (decision === "approved")
       await ensureSubmissionGuards(tx, app, await profileFor(tx, app.userId), "approve");
     const nextRevision = app.revision + 1;
+    const now = new Date();
+    // Prueba gratuita: la primera aprobación activa la tienda 3 meses sin mensualidad (comisión 8%).
+    const startsTrial = decision === "approved" && app.subscriptionStatus === "not_started";
+    const trialEndsAt = startsTrial ? addMonths(now, TRIAL_MONTHS) : null;
     const updated = await tx
       .update(czApplications)
       .set({
         status: decision,
         revision: nextRevision,
-        reviewedAt: new Date(),
+        reviewedAt: now,
         reviewReason: decision === "rejected" ? reason.trim() : null,
+        ...(startsTrial
+          ? { subscriptionStatus: "active" as const, subscriptionPlanId: TRIAL_PLAN_ID, subscriptionEndsAt: trialEndsAt, trialEndsAt }
+          : {}),
       })
       .where(
         and(
@@ -950,6 +959,11 @@ export async function reviewApplication(
       reason.trim() || null,
       { documentsReviewed, revision: nextRevision }
     );
+    if (startsTrial)
+      await audit(tx, id, app.userId, admin.id, "trial_started", null, {
+        months: TRIAL_MONTHS,
+        endsAt: trialEndsAt!.toISOString(),
+      });
     return { status: decision };
   });
 }

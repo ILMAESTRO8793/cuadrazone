@@ -24,13 +24,14 @@ export function SubscriptionsPage() {
               Tú eliges cómo crecer.
             </h1>
             <p className="intro-copy">
-              Dos planes para vendedores. El Normal sigue disponible y los
-              compradores no pagan mensualidad.{" "}
-              <strong>0% de comisión propia de CuadraZone.</strong>
+              Dos planes para vendedores; los compradores no pagan nada.{" "}
+              <strong>Los primeros 3 meses son gratis</strong> con 8% de
+              comisión por venta. Después pagas la mensualidad del plan y la
+              comisión baja a 5%. Siempre sobre los productos, sin el envío.
             </p>
           </div>
           <span className="demo-badge">
-            Selección disponible · sin cobros activos
+            3 meses gratis al ser aprobado
           </span>
         </div>
         <SellerPlanCards />
@@ -54,10 +55,12 @@ export function SubscriptionsPage() {
         <div className="notice-panel">
           <Info size={20} aria-hidden="true" />
           <div>
-            <strong>Elegir no es pagar ni activar una tienda</strong>
+            <strong>Elegir no es pagar</strong>
             <p>
-              {PLAN_ACTIVATION_NOTICE} Primero debes completar la verificación;
-              la pasarela y la facturación recurrente siguen pendientes.
+              {PLAN_ACTIVATION_NOTICE} Primero debes completar la verificación.
+              Los pagos se hacen por Yappy, transferencia o efectivo y nuestro
+              equipo los confirma; el cobro automático en línea llegará más
+              adelante.
             </p>
           </div>
         </div>
@@ -74,8 +77,12 @@ export function SubscriptionsPage() {
               verificados.
             </li>
             <li>
-              Cuando la pasarela esté habilitada, confirma la contratación y el
-              pago para activar los beneficios disponibles.
+              Al ser aprobado, tu tienda se activa con 3 meses gratis (comisión
+              de 8% por venta).
+            </li>
+            <li>
+              Antes de que termine la prueba, paga tu primera mensualidad; desde
+              entonces la comisión baja a 5%.
             </li>
           </ol>
           <Link href="/solicitud-vendedor" className="text-link">

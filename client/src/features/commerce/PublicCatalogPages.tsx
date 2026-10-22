@@ -287,8 +287,8 @@ export function LiveCatalogPage() {
           ) : (
             <>
               <p className="live-count">
-                {products.length} publicaciones cargadas · sin comisión propia
-                por venta
+                {products.length} publicaciones cargadas · sin recargos para el
+                comprador
               </p>
               <div className="live-product-grid">
                 {products.map(p => (

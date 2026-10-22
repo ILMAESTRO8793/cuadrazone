@@ -61,10 +61,18 @@ export const czOrders = mysqlTable("cz_orders", {
   city: varchar("city", { length: 120 }).notNull(),
   address: varchar("address", { length: 500 }).notNull(),
   stockRestored: int("stockRestored").notNull().default(0),
+  /** Tasa de comisión fijada al crear el pedido (puntos básicos: 800 = 8%). */
+  commissionBps: int("commissionBps").notNull().default(0),
+  /** Comisión calculada al entregar, sobre el subtotal de productos. */
+  commissionCents: int("commissionCents").notNull().default(0),
+  deliveredAt: timestamp("deliveredAt"),
+  /** Pago de comisión que la saldó; null mientras esté pendiente. */
+  commissionPaymentId: int("commissionPaymentId"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, table => [
   uniqueIndex("cz_order_checkout_uq").on(table.userId, table.checkoutKey, table.storeId),
+  index("cz_order_commission_ix").on(table.storeId, table.status, table.commissionPaymentId),
   index("cz_order_user_ix").on(table.userId, table.createdAt),
   index("cz_order_store_ix").on(table.storeId, table.createdAt),
   index("cz_order_key_ix").on(table.userId, table.checkoutKey),
@@ -150,3 +158,20 @@ export type Question = typeof czQuestions.$inferSelect;
 export type Conversation = typeof czConversations.$inferSelect;
 export type Message = typeof czMessages.$inferSelect;
 export type Notification = typeof czNotifications.$inferSelect;
+
+/** Pagos de comisión que el vendedor hace a CuadraZone, registrados por un administrador. */
+export const czCommissionPayments = mysqlTable("cz_commission_payments", {
+  id: int("id").autoincrement().primaryKey(),
+  sellerUserId: int("sellerUserId").notNull().references(() => users.id),
+  amountCents: int("amountCents").notNull(),
+  orderCount: int("orderCount").notNull(),
+  method: mysqlEnum("method", ["yappy", "transferencia", "efectivo", "otro"]).notNull(),
+  reference: varchar("reference", { length: 120 }),
+  paidOn: varchar("paidOn", { length: 10 }).notNull(),
+  recordedBy: int("recordedBy").notNull().references(() => users.id),
+  note: text("note"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, table => [
+  uniqueIndex("cz_commission_payment_reference_uq").on(table.method, table.reference),
+  index("cz_commission_payment_seller_ix").on(table.sellerUserId, table.createdAt),
+]);

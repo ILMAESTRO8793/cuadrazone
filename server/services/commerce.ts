@@ -1,6 +1,8 @@
 import { and, asc, desc, eq, inArray, isNull, ne, or, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { getDb } from "../db";
+import { czApplications } from "../../drizzle/schema";
+import { commissionBpsAt, commissionCents } from "@shared/pricing";
 import { czProducts, czStores, czVariants } from "../../drizzle/catalog-schema";
 import {
   czCarts, czCartItems, czFavorites, czOrders, czOrderItems, czReviews,
@@ -62,7 +64,11 @@ function listInsertId(result: unknown): number {
   if (typeof resultAny?.insertId === "number" && Number.isSafeInteger(resultAny.insertId) && resultAny.insertId > 0) return resultAny.insertId;
   return idFromInsert(result);
 }
-function parseJsonArray(value: unknown): string[] { return Array.isArray(value) ? value.filter((x): x is string => typeof x === "string") : []; }
+// MySQL 8 entrega las columnas JSON como arreglo; MariaDB y otros, como texto.
+function parseJsonArray(value: unknown): string[] {
+  if (typeof value === "string") { try { value = JSON.parse(value); } catch { return []; } }
+  return Array.isArray(value) ? value.filter((x): x is string => typeof x === "string") : [];
+}
 function parseModes(value: unknown): DeliveryMode[] { return parseJsonArray(value).filter((x): x is DeliveryMode => x === "shipping" || x === "pickup" || x === "home"); }
 
 export function deliveryQuote(store: Pick<CatalogStore, "shippingFeeCents" | "homeFeeCents" | "deliveryProvinces">, mode: DeliveryMode, province: string): number {
@@ -309,8 +315,11 @@ export async function checkout(userId: number, input: { checkoutKey: string; exp
       const mode = modes.get(storeId)!;
       const totalCents = subtotalCents + group.deliveryFeeCents;
       if (!Number.isSafeInteger(totalCents) || totalCents > MAX_MONEY_CENTS) fail("BAD_REQUEST", "El total excede el límite permitido");
+      // La tasa de comisión del vendedor queda fijada al momento de la compra.
+      const sellerUserId = (await tx.select({ userId: czStores.userId }).from(czStores).where(eq(czStores.id, storeId)).limit(1))[0]!.userId;
+      const sellerTrialEndsAt = (await tx.select({ trialEndsAt: czApplications.trialEndsAt }).from(czApplications).where(eq(czApplications.userId, sellerUserId)).limit(1))[0]?.trialEndsAt ?? null;
       const result = await tx.insert(czOrders).values({ number: `CZ-${input.checkoutKey.slice(0, 8)}-${storeId}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`, userId, storeId, checkoutKey: input.checkoutKey,
-        status: "pending", paymentMethod: input.paymentMethod, paymentStatus: paymentStatusFor(input.paymentMethod), subtotalCents, deliveryFeeCents: group.deliveryFeeCents, totalCents, deliveryMode: mode,
+        status: "pending", paymentMethod: input.paymentMethod, paymentStatus: paymentStatusFor(input.paymentMethod), subtotalCents, deliveryFeeCents: group.deliveryFeeCents, totalCents, deliveryMode: mode, commissionBps: commissionBpsAt(sellerTrialEndsAt),
         recipientName: input.recipientName, phone: input.phone, province: input.province, city: input.city, address: input.address, stockRestored: 0 });
       const orderId = listInsertId(result); created.push(orderId);
       for (const line of lines) {
@@ -365,7 +374,11 @@ export async function transitionOrder(userId: number, id: number, next: Exclude<
       const changed = await tx.update(czOrders).set({ status: next, stockRestored: 1 }).where(and(eq(czOrders.id, id), eq(czOrders.stockRestored, 0)));
       if (affectedRows(changed) !== 1) fail("CONFLICT", "El inventario de este pedido ya fue restaurado");
     } else {
-      const changed = await tx.update(czOrders).set({ status: next }).where(eq(czOrders.id, id));
+      // Al entregar se calcula la comisión sobre los productos (sin envío) con la tasa fijada en la compra.
+      const delivery = next === "delivered"
+        ? { deliveredAt: new Date(), commissionCents: commissionCents(row.order.subtotalCents, row.order.commissionBps) }
+        : {};
+      const changed = await tx.update(czOrders).set({ status: next, ...delivery }).where(eq(czOrders.id, id));
       if (affectedRows(changed) !== 1) fail("CONFLICT", "El pedido cambió durante la transición");
     }
     const recipient = actor === "buyer" ? row.store.userId : row.order.userId;

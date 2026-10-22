@@ -7,6 +7,7 @@ import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { registerMediaRoutes } from "../storage";
 import { runMigrations } from "./migrate";
+import { startSubscriptionSweeper } from "../services/subscriptions";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
@@ -14,6 +15,7 @@ import { serveStatic, setupVite } from "./vite";
 async function startServer() {
   // Crea o actualiza las tablas al arrancar (local y producción).
   if (process.env.DATABASE_URL || process.env.NODE_ENV === "production") await runMigrations();
+  if (process.env.DATABASE_URL) startSubscriptionSweeper();
   const app = express();
   // Railway (y la mayoría de hostings) entregan HTTPS a través de un proxy.
   app.set("trust proxy", 1);

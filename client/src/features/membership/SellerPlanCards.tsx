@@ -108,9 +108,10 @@ export function PlanConditions() {
         primera posición permanente.
       </p>
       <p>
-        Servicios, citas y boletos siguen pendientes de sus fases. Tarifas de
-        pasarela, envío e impuestos aplicables se informarán por separado. No
-        hay cobros activos ni prioridad comercial habilitada todavía.
+        Servicios, citas y boletos siguen pendientes de sus fases. El envío e
+        impuestos aplicables se informan por separado. La comisión por venta se
+        calcula solo sobre los productos. Los espacios destacados todavía no
+        están habilitados.
       </p>
     </section>
   );
