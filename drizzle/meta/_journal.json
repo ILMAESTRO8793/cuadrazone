@@ -50,6 +50,20 @@
       "when": 1792702235817,
       "tag": "0006_commissions",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1792702983667,
+      "tag": "0007_abierto",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1792703828204,
+      "tag": "0008_yappy_vendedor",
+      "breakpoints": true
     }
   ]
 }

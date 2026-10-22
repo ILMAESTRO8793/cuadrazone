@@ -174,3 +174,6 @@
 .seller-classification li a { width: fit-content; color: #805d1e; font-size: 11px; font-weight: 750; text-decoration: underline; text-underline-offset: 2px; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 @media (max-width: 760px) { .business-category-picker__grid { grid-template-columns: 1fr; } }
+
+/* Nota que ocupa todo el ancho dentro de la grilla del formulario */
+.member-field--wide { grid-column: 1 / -1; margin: 4px 0 0; }

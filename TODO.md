@@ -103,3 +103,16 @@ Evidencia de planes: migración aditiva 0004 aplicada, 39 rutas sincronizadas, p
 - [x] Probado de punta a punta con compras reales en el servidor.
 - [ ] Términos y condiciones con el modelo de comisión.
 - [ ] Recordatorio automático al vendedor cuando la prueba esté por terminar.
+
+## Plataforma abierta — 22 de octubre
+- [x] Fe, iglesia, pastor, denominación y carta pastoral dejan de ser requisitos (quedan opcionales).
+- [x] Formulario, panel del administrador, requisitos públicos y página de la declaración de fe actualizados.
+- [x] Probado: solicitud sin datos de fe aprobada; migración aplicada sobre datos existentes sin pérdidas.
+- [ ] Decidir el texto de presentación del inicio («emprendedores evangélicos», «hermanos en Cristo»).
+
+## Pagos por Yappy — 22 de octubre
+- [x] Cada tienda registra su Yappy (celular y/o Directorio).
+- [x] El comprador ve dónde pagar y el número de pedido; compra con Yappy bloqueada si la tienda no lo tiene.
+- [x] Instrucciones de pago a CuadraZone para el vendedor (`PAYMENT_CONTACT`).
+- [ ] Abrir Yappy Comercial de CuadraZone (cuenta comercial en Banco General) y configurar `PAYMENT_CONTACT` en Railway.
+- [ ] Integrar el Botón de Pago de Yappy para confirmar mensualidades y comisiones automáticamente.

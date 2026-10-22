@@ -37,7 +37,7 @@ const emptyApplication: ApplicationInput = {
   documentExpiry: "",
   province: "",
   city: "",
-  denominationId: 0,
+  denominationId: null,
   churchName: "",
   pastorName: "",
   residenceConfirmed: false,
@@ -165,17 +165,12 @@ function SellerApplicationContent() {
       profile?.emailVerifiedAt &&
       /^\+507\d{8}$/.test(profile.phone) &&
       documentByKind("identity") &&
-      documentByKind("pastoral") &&
       form.residenceConfirmed &&
-      form.faithAccepted &&
       form.conductAccepted &&
       form.privacyAccepted &&
       form.identificationNumber.trim().length >= 4 &&
       form.province &&
       form.city &&
-      form.churchName.trim().length >= 2 &&
-      form.pastorName.trim().length >= 2 &&
-      form.denominationId > 0 &&
       validResidence &&
       (form.businessType !== "company" || form.businessName.trim().length > 0)
   );
@@ -472,16 +467,20 @@ function SellerApplicationContent() {
                 maxLength={100}
               />
             </label>
+            <p className="member-muted member-field--wide">
+              <strong>Iglesia (opcional).</strong> CuadraZone está abierto a
+              vendedores de cualquier creencia. Completa estos datos solo si
+              quieres mostrarlos; no afectan tu aprobación.
+            </p>
             <label className="member-field">
-              <span>Denominación activa</span>
+              <span>Denominación (opcional)</span>
               <select
-                value={form.denominationId || ""}
+                value={form.denominationId ?? ""}
                 onChange={event =>
-                  setField("denominationId", Number(event.target.value))
+                  setField("denominationId", event.target.value ? Number(event.target.value) : null)
                 }
-                required
               >
-                <option value="">Selecciona una denominación</option>
+                <option value="">Prefiero no indicarla</option>
                 {denominations.data?.map(denomination => (
                   <option key={denomination.id} value={denomination.id}>
                     {denomination.name}
@@ -493,22 +492,18 @@ function SellerApplicationContent() {
               )}
             </label>
             <label className="member-field">
-              <span>Iglesia local</span>
+              <span>Iglesia local (opcional)</span>
               <Input
                 value={form.churchName}
                 onChange={event => setField("churchName", event.target.value)}
-                required
-                minLength={2}
                 maxLength={160}
               />
             </label>
             <label className="member-field">
-              <span>Nombre del pastor</span>
+              <span>Nombre del pastor (opcional)</span>
               <Input
                 value={form.pastorName}
                 onChange={event => setField("pastorName", event.target.value)}
-                required
-                minLength={2}
                 maxLength={100}
               />
             </label>
@@ -598,20 +593,6 @@ function SellerApplicationContent() {
             <label>
               <input
                 type="checkbox"
-                checked={form.faithAccepted}
-                onChange={event =>
-                  setField("faithAccepted", event.target.checked)
-                }
-              />{" "}
-              Acepto la declaración de fe ·{" "}
-              <Link href="/legal/fe" target="_blank" rel="noopener noreferrer">
-                borrador {CONSENT_VERSION}
-              </Link>
-              .
-            </label>
-            <label>
-              <input
-                type="checkbox"
                 checked={form.conductAccepted}
                 onChange={event =>
                   setField("conductAccepted", event.target.checked)
@@ -647,9 +628,9 @@ function SellerApplicationContent() {
             </label>
           </div>
           <p className="member-legal-note" id="legal-fe">
-            <strong>Documentos legales:</strong> declaración de fe, conducta y
-            privacidad están identificados como borradores pendientes de
-            revisión jurídica/pastoral. No son una aprobación automática.{" "}
+            <strong>Documentos legales:</strong> conducta y privacidad están
+            identificados como borradores pendientes de revisión jurídica. No
+            son una aprobación automática.{" "}
             <span id="legal-conduct">Conducta</span> y{" "}
             <span id="legal-privacy">privacidad</span> usan la misma versión
             publicada arriba.
@@ -674,7 +655,7 @@ function SellerApplicationContent() {
         <div className="member-card-heading">
           <div>
             <p className="member-eyebrow">DOCUMENTOS PRIVADOS</p>
-            <h2>Identidad y carta pastoral</h2>
+            <h2>Documento de identidad</h2>
           </div>
           <ShieldCheck size={22} aria-hidden="true" />
         </div>
@@ -701,7 +682,7 @@ function SellerApplicationContent() {
           {(["identity", "pastoral"] as const).map(kind => {
             const document = documentByKind(kind);
             const label =
-              kind === "identity" ? "Documento de identidad" : "Carta pastoral";
+              kind === "identity" ? "Documento de identidad (obligatorio)" : "Carta pastoral (opcional)";
             return (
               <div className="member-document-card" key={kind}>
                 <div>
@@ -776,10 +757,10 @@ function SellerApplicationContent() {
             <ul>
               {!profile?.emailVerifiedAt && <li>Verificar tu correo con tu cuenta de Google (en Mi cuenta).</li>}
               {!/^\+507\d{8}$/.test(profile?.phone ?? "") && <li>Guardar un teléfono de Panamá (+507 y 8 dígitos) en Mi cuenta.</li>}
-              {(!documentByKind("identity") || !documentByKind("pastoral")) && <li>Cargar la identificación y la carta pastoral.</li>}
-              {!(form.residenceConfirmed && form.faithAccepted && form.conductAccepted && form.privacyAccepted) && <li>Aceptar residencia, fe, conducta y privacidad.</li>}
+              {!documentByKind("identity") && <li>Cargar tu documento de identidad.</li>}
+              {!(form.residenceConfirmed && form.conductAccepted && form.privacyAccepted) && <li>Aceptar residencia, conducta y privacidad.</li>}
               {hasUnsavedChanges && <li>Guardar los cambios del formulario.</li>}
-              {(!parsedForm.success || parsedForm.data.businessCategories.length === 0) && <li>Completar los datos obligatorios de negocio, identificación, iglesia y categoría.</li>}
+              {(!parsedForm.success || parsedForm.data.businessCategories.length === 0) && <li>Completar los datos obligatorios de negocio, identificación y categoría.</li>}
             </ul>
           </div>
         )}

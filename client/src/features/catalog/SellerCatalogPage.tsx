@@ -42,6 +42,15 @@ function validProvinces(values: string[]): Province[] {
 }
 type SellerCatalogTab = "products" | "store";
 
+/** Acepta "6123-4567", "+507 6123 4567" o "50761234567" y lo deja como "+50761234567". */
+function normalizePanamaPhone(value: string): string {
+  const digits = value.replace(/\D/g, "");
+  if (!digits) return "";
+  if (digits.length === 8) return `+507${digits}`;
+  if (digits.length === 11 && digits.startsWith("507")) return `+${digits}`;
+  return value.trim();
+}
+
 type StoreForm = {
   name: string;
   description: string;
@@ -50,6 +59,8 @@ type StoreForm = {
   shippingFee: string;
   homeFee: string;
   deliveryProvinces: Province[];
+  yappyPhone: string;
+  yappyDirectory: string;
 };
 
 type BookForm = {
@@ -95,6 +106,8 @@ type StoreSnapshot = {
     shippingFeeCents?: number | null;
     homeFeeCents?: number | null;
     deliveryProvinces?: string[];
+    yappyPhone?: string | null;
+    yappyDirectory?: string | null;
     churchName?: string;
     verified?: boolean;
   } | null;
@@ -110,6 +123,8 @@ const EMPTY_STORE: StoreForm = {
   shippingFee: "",
   homeFee: "",
   deliveryProvinces: [],
+  yappyPhone: "",
+  yappyDirectory: "",
 };
 const EMPTY_BOOK: BookForm = {
   author: "",
@@ -271,6 +286,8 @@ function SellerCatalogContent({
         homeFee:
           store.homeFeeCents == null ? "" : centsToDecimal(store.homeFeeCents),
         deliveryProvinces: validProvinces(store.deliveryProvinces ?? []),
+        yappyPhone: store.yappyPhone ?? "",
+        yappyDirectory: store.yappyDirectory ?? "",
       });
   }, [storeQuery.data, storeQuery.isLoading, storeSnapshot]);
 
@@ -323,6 +340,8 @@ function SellerCatalogContent({
         shippingFeeCents,
         homeFeeCents,
         deliveryProvinces: validProvinces(storeForm.deliveryProvinces),
+        yappyPhone: normalizePanamaPhone(storeForm.yappyPhone),
+        yappyDirectory: storeForm.yappyDirectory,
       });
       setStoreForm({
         name: saved.name,
@@ -336,6 +355,8 @@ function SellerCatalogContent({
         homeFee:
           saved.homeFeeCents == null ? "" : centsToDecimal(saved.homeFeeCents),
         deliveryProvinces: validProvinces(saved.deliveryProvinces ?? []),
+        yappyPhone: saved.yappyPhone ?? "",
+        yappyDirectory: saved.yappyDirectory ?? "",
       });
       setStoreDirty(false);
       await utils.catalog.myStore.invalidate();
@@ -364,6 +385,8 @@ function SellerCatalogContent({
         homeFee:
           store.homeFeeCents == null ? "" : centsToDecimal(store.homeFeeCents),
         deliveryProvinces: validProvinces(store.deliveryProvinces ?? []),
+        yappyPhone: store.yappyPhone ?? "",
+        yappyDirectory: store.yappyDirectory ?? "",
       });
     else setStoreForm(EMPTY_STORE);
     setStoreDirty(false);
@@ -761,6 +784,36 @@ function SellerCatalogContent({
                 />
               </label>
             </div>
+            <fieldset className="seller-catalog-subsection">
+              <legend>Cobros por Yappy</legend>
+              <p>
+                Tus compradores te pagan directo a ti. Registra tu Yappy para que
+                lo vean al comprar, junto con el número de pedido. Sin Yappy
+                registrado, solo podrán pagarte por transferencia o contra
+                entrega.
+              </p>
+              <div className="seller-catalog-form-grid">
+                <label>
+                  Celular de Yappy
+                  <Input
+                    inputMode="tel"
+                    value={storeForm.yappyPhone}
+                    onChange={e => updateStore("yappyPhone", e.target.value)}
+                    placeholder="+50760000000"
+                    maxLength={16}
+                  />
+                </label>
+                <label>
+                  Nombre en el Directorio Yappy (si tienes Yappy Comercial)
+                  <Input
+                    value={storeForm.yappyDirectory}
+                    onChange={e => updateStore("yappyDirectory", e.target.value)}
+                    placeholder="Opcional"
+                    maxLength={80}
+                  />
+                </label>
+              </div>
+            </fieldset>
             <fieldset className="seller-catalog-subsection">
               <legend>Tarifas y cobertura de entrega</legend>
               <p>

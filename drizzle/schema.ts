@@ -75,11 +75,10 @@ export const czApplications = mysqlTable("cz_membership_applications", {
     .default(""),
   province: varchar("province", { length: 60 }).notNull(),
   city: varchar("city", { length: 100 }).notNull(),
-  denominationId: int("denominationId")
-    .notNull()
-    .references(() => czDenominations.id),
-  churchName: varchar("churchName", { length: 160 }).notNull(),
-  pastorName: varchar("pastorName", { length: 100 }).notNull(),
+  /** Opcional desde el 22/10/2026: CuadraZone está abierto a vendedores de cualquier creencia. */
+  denominationId: int("denominationId").references(() => czDenominations.id),
+  churchName: varchar("churchName", { length: 160 }).notNull().default(""),
+  pastorName: varchar("pastorName", { length: 100 }).notNull().default(""),
   residenceConfirmed: int("residenceConfirmed").notNull().default(0),
   faithAccepted: int("faithAccepted").notNull().default(0),
   conductAccepted: int("conductAccepted").notNull().default(0),

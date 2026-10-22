@@ -26,6 +26,10 @@ export const czStores = mysqlTable(
     shippingFeeCents: int("shippingFeeCents"),
     homeFeeCents: int("homeFeeCents"),
     deliveryProvinces: json("deliveryProvinces").$type<string[]>(),
+    /** Yappy donde el vendedor recibe los pagos de sus compradores (celular +507). */
+    yappyPhone: varchar("yappyPhone", { length: 20 }),
+    /** Nombre en el Directorio de Yappy Comercial, si el vendedor tiene uno. */
+    yappyDirectory: varchar("yappyDirectory", { length: 80 }),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   },

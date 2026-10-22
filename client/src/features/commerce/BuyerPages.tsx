@@ -260,7 +260,7 @@ function CheckoutContent() {
     if (!attempt.current || attempt.current.fingerprint !== fingerprint)
       attempt.current = { fingerprint, key: crypto.randomUUID() };
     try {
-      await create.mutateAsync({
+      const result = await create.mutateAsync({
         ...payload,
         checkoutKey: attempt.current.key,
       });
@@ -271,9 +271,12 @@ function CheckoutContent() {
       ]);
       toast.success("Pedido registrado", {
         description:
-          "Pago pendiente. No se ha efectuado ningún cobro electrónico.",
+          payload.paymentMethod === "yappy"
+            ? "Ahora paga por Yappy al vendedor con los datos del pedido."
+            : "Pago pendiente. Coordina el pago con el vendedor.",
       });
-      navigate("/pedidos");
+      // Con un solo pedido vamos directo a su detalle, donde están los datos de pago.
+      navigate(result.orders.length === 1 ? `/pedidos/${result.orders[0]!.id}` : "/pedidos");
     } catch (error) {
       toast.error(
         error instanceof Error
@@ -417,10 +420,10 @@ function CheckoutContent() {
               </select>
             </label>
             <p className="live-muted">
-              Coordina los datos de pago por la mensajería privada del pedido.
-              No subas contraseñas ni datos de tarjeta. Las integraciones
-              electrónicas y el tratamiento fiscal completo se conectarán en la
-              etapa de pagos.
+              Le pagas directo a cada vendedor. Si eliges Yappy, al registrar el
+              pedido verás su Yappy y el número de pedido que debes escribir en
+              el mensaje del pago. Nunca compartas contraseñas ni datos de
+              tarjeta.
             </p>
           </section>
           <aside className="live-summary">
@@ -613,9 +616,19 @@ function OrderContent({ id }: { id: number }) {
         <p>Tarifa de entrega: {usd(o.deliveryFeeCents)}</p>
         <h3>Total {usd(o.totalCents)}</h3>
         <p>
-          Pago directo: {o.paymentMethod} · {o.paymentStatus}. El registro del
-          pedido no confirma un pago electrónico.
+          Pago directo al vendedor:{" "}
+          <strong>{o.paymentMethod === "yappy" ? "Yappy" : o.paymentMethod === "transfer" ? "Transferencia bancaria" : "Contra entrega"}</strong>
+          {o.status === "pending" && " · el vendedor confirmará el pedido al recibir tu pago"}
         </p>
+        {o.sellerYappy && o.viewerRole === "buyer" && o.status !== "cancelled" && (
+          <div className="member-notice">
+            <p><strong>Paga {usd(o.totalCents)} por Yappy a {o.storeName}</strong></p>
+            {o.sellerYappy.phone && <p>Celular: <strong>{o.sellerYappy.phone.replace(/^\+507(\d{4})(\d{4})$/, "+507 $1-$2")}</strong></p>}
+            {o.sellerYappy.directory && <p>Directorio Yappy: <strong>{o.sellerYappy.directory}</strong></p>}
+            <p>En el mensaje del Yappy escribe tu número de pedido: <strong>{o.number}</strong></p>
+            <p className="live-muted">Revisa que el nombre que te muestra Yappy sea el de la tienda antes de enviar.</p>
+          </div>
+        )}
         <h2>Entrega privada</h2>
         <p>
           {o.recipientName} · {o.phone}

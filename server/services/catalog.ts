@@ -327,6 +327,8 @@ function ownerProductDto(
       shippingFeeCents: dto.store.shippingFeeCents,
       homeFeeCents: dto.store.homeFeeCents,
       deliveryProvinces: dto.store.deliveryProvinces,
+      yappyPhone: store.yappyPhone ?? null,
+      yappyDirectory: store.yappyDirectory ?? null,
       verified,
     },
     status: row.status as ProductStatus,
@@ -798,6 +800,8 @@ export async function getMyStore(userId: number) {
           shippingFeeCents: store.shippingFeeCents ?? null,
           homeFeeCents: store.homeFeeCents ?? null,
           deliveryProvinces: jsonArray<string>(store.deliveryProvinces, []),
+          yappyPhone: store.yappyPhone ?? null,
+          yappyDirectory: store.yappyDirectory ?? null,
           verified: readiness.active,
         }
       : null,
@@ -814,6 +818,8 @@ export async function saveStore(userId: number, input: SaveStoreInput) {
     description: validated.description.trim(),
     province: validated.province.trim(),
     city: validated.city.trim(),
+    yappyPhone: validated.yappyPhone || null,
+    yappyDirectory: validated.yappyDirectory.trim() || null,
   };
   const db = await requireDb();
   const readiness = await sellerReadiness(db, userId);
@@ -858,6 +864,8 @@ export async function saveStore(userId: number, input: SaveStoreInput) {
         shippingFeeCents: fresh.shippingFeeCents ?? null,
         homeFeeCents: fresh.homeFeeCents ?? null,
         deliveryProvinces: jsonArray<string>(fresh.deliveryProvinces, []),
+        yappyPhone: fresh.yappyPhone ?? null,
+        yappyDirectory: fresh.yappyDirectory ?? null,
         verified: readiness.active,
       };
     }
@@ -886,6 +894,8 @@ export async function saveStore(userId: number, input: SaveStoreInput) {
       shippingFeeCents: fresh.shippingFeeCents ?? null,
       homeFeeCents: fresh.homeFeeCents ?? null,
       deliveryProvinces: jsonArray<string>(fresh.deliveryProvinces, []),
+      yappyPhone: fresh.yappyPhone ?? null,
+      yappyDirectory: fresh.yappyDirectory ?? null,
       verified: readiness.active,
     };
   });

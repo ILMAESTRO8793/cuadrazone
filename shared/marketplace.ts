@@ -91,6 +91,10 @@ export const saveStoreInput = z.object({
     .nullable()
     .default(null),
   deliveryProvinces: z.array(z.enum(provinceOptions)).default([]),
+  /** Celular de Yappy del vendedor (+507 y 8 dígitos) o vacío. */
+  yappyPhone: z.string().trim().regex(/^$|^\+507\d{8}$/, "Usa un celular de Panamá: +507 y 8 dígitos").default(""),
+  /** Nombre en el Directorio de Yappy Comercial o vacío. */
+  yappyDirectory: z.string().trim().max(80).default(""),
 });
 
 export const saveProductInput = z
@@ -197,7 +201,14 @@ export type OwnerStore = Omit<
   "verified" | "createdAt" | "updatedAt" | "churchName"
 > & {
   verified: boolean;
+  yappyPhone: string | null;
+  yappyDirectory: string | null;
 };
+
+/** El vendedor puede recibir pagos por Yappy si registró un celular o un nombre en el directorio. */
+export function storeAcceptsYappy(store: { yappyPhone?: string | null; yappyDirectory?: string | null }) {
+  return Boolean(store.yappyPhone || store.yappyDirectory);
+}
 
 export type PublicVariant = {
   id: number;

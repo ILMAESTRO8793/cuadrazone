@@ -1,3 +1,4 @@
+import { CONSENT_VERSION } from "../shared/membership";
 import { describe, expect, it } from "vitest";
 import {
   applicationInput,
@@ -29,7 +30,7 @@ const allFields = {
   privacyAccepted: true,
 };
 
-const saveFields = { ...allFields, consentVersion: "borrador-2026-10-07" as const };
+const saveFields = { ...allFields, consentVersion: CONSENT_VERSION };
 
 describe("business membership classification contract", () => {
   it("accepts a complete application and save DTO with business categories", () => {

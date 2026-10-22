@@ -15,6 +15,7 @@ import {
   type PaymentMethod, type PublicProductDTO,
 } from "@shared/commerce";
 import type { PublicProduct } from "@shared/marketplace";
+import { storeAcceptsYappy } from "@shared/marketplace";
 import { assertActiveStore, assertSellerOwner } from "./catalog";
 import { getPublicProduct } from "./catalog";
 
@@ -235,7 +236,8 @@ async function orderDto(tx: Db | Tx, orderId: number, viewerId: number): Promise
     totalCents: row.order.totalCents, deliveryFeeCents: row.order.deliveryFeeCents, paymentMethod: row.order.paymentMethod as PaymentMethod, paymentStatus: row.order.paymentStatus,
     createdAt: row.order.createdAt, recipientName: row.order.recipientName, phone: row.order.phone, province: row.order.province, city: row.order.city, address: row.order.address,
     deliveryMode: row.order.deliveryMode, items: items.map(i => ({ productId: i.productId, variantId: i.variantId, title: i.title, quantity: i.quantity, unitPriceCents: i.unitPriceCents, size: i.size, color: i.color })),
-    viewerRole: row.order.userId === viewerId ? "buyer" : "seller" };
+    viewerRole: row.order.userId === viewerId ? "buyer" : "seller",
+    sellerYappy: row.order.paymentMethod === "yappy" ? { phone: row.store.yappyPhone ?? null, directory: row.store.yappyDirectory ?? null } : null };
 }
 
 export async function checkout(userId: number, input: { checkoutKey: string; expectedTotalCents: number; recipientName: string; phone: string; province: string; city: string; address: string; deliveries: Array<{ storeId: number; mode: DeliveryMode }>; paymentMethod: PaymentMethod }): Promise<{ orders: OrderDTO[] }> {
@@ -293,6 +295,13 @@ export async function checkout(userId: number, input: { checkoutKey: string; exp
       const existing = groups.get(line.store.id);
       if (existing) existing.lines.push(line);
       else groups.set(line.store.id, { lines: [line], deliveryFeeCents: deliveryQuote(line.store, mode, input.province) });
+    }
+    // Con Yappy el comprador paga directo al vendedor: cada tienda debe tener su Yappy registrado.
+    if (input.paymentMethod === "yappy") {
+      for (const group of groups.values()) {
+        const store = group.lines[0]!.store;
+        if (!storeAcceptsYappy(store)) fail("PRECONDITION_FAILED", `${store.name} todavía no recibe pagos por Yappy. Elige transferencia o pago contra entrega.`);
+      }
     }
     let quotedTotal = 0;
     try {

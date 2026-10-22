@@ -82,6 +82,19 @@ describe("CuadraZone membership guards", () => {
     expect(applicationInput.safeParse(application).success).toBe(true);
   });
 
+  it("acepta solicitudes de vendedores sin iglesia, pastor, denominación ni declaración de fe", () => {
+    const open = applicationInput.safeParse({
+      businessType: "individual", businessName: "", businessCategories: [{ categoryId: "viajes-y-turismo", specialtyIds: [] }],
+      identificationType: "cedula", identificationNumber: "8-888-8888", documentExpiry: "", province: "Panamá", city: "Chilibre",
+      residenceConfirmed: true, conductAccepted: true, privacyAccepted: true,
+    });
+    expect(open.success).toBe(true);
+    if (open.success) expect(open.data).toMatchObject({ denominationId: null, churchName: "", pastorName: "", faithAccepted: false });
+    const withChurch = applicationInput.safeParse({ ...(open.success ? open.data : {}), denominationId: 1, churchName: "Iglesia Central", pastorName: "Pastor Prueba" });
+    expect(withChurch.success).toBe(true);
+    expect(applicationInput.safeParse({ ...(open.success ? open.data : {}), churchName: "X" }).success).toBe(false);
+  });
+
   it("declara correo verificable con Google y teléfono sin proveedor SMS", () => {
     expect(PROVIDERS).toEqual({ emailReady: true, phoneReady: false });
   });

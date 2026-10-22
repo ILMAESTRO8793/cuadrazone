@@ -127,6 +127,8 @@ export const orderDto = z.object({
   deliveryMode: z.enum(deliveryModes),
   items: z.array(orderItemDto),
   viewerRole: z.enum(["buyer", "seller"]),
+  /** Dónde pagar por Yappy; solo en pedidos con Yappy como método de pago. */
+  sellerYappy: z.object({ phone: z.string().nullable(), directory: z.string().nullable() }).nullable(),
 });
 export type OrderDTO = z.infer<typeof orderDto>;
 

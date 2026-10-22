@@ -383,43 +383,23 @@ async function ensureSubmissionGuards(
     );
   if (
     !bool(app.residenceConfirmed) ||
-    !bool(app.faithAccepted) ||
     !bool(app.conductAccepted) ||
     !bool(app.privacyAccepted)
   )
     throw new MembershipError(
       "PRECONDITION_FAILED",
-      "Debes aceptar residencia, fe, conducta y privacidad"
+      "Debes aceptar residencia, conducta y privacidad"
     );
   ensureCurrentExpiry(app);
-  const denomination = await db
-    .select({ id: czDenominations.id })
-    .from(czDenominations)
-    .where(
-      and(
-        eq(czDenominations.id, app.denominationId),
-        eq(czDenominations.active, 1)
-      )
-    )
-    .limit(1);
-  if (!denomination.length)
-    throw new MembershipError(
-      "PRECONDITION_FAILED",
-      "La denominación de la solicitud ya no está disponible"
-    );
   const docs = await documentsFor(db, app.id);
   const latestByKind = new Map<string, number>();
   for (const doc of docs)
     if (!latestByKind.has(doc.kind)) latestByKind.set(doc.kind, doc.id);
-  if (
-    !app.identityDocumentId ||
-    !app.pastoralDocumentId ||
-    latestByKind.get("identity") !== app.identityDocumentId ||
-    latestByKind.get("pastoral") !== app.pastoralDocumentId
-  )
+  // Solo la identificación es obligatoria; la carta pastoral es opcional.
+  if (!app.identityDocumentId || latestByKind.get("identity") !== app.identityDocumentId)
     throw new MembershipError(
       "PRECONDITION_FAILED",
-      "Debes cargar los dos documentos vigentes más recientes"
+      "Debes cargar tu documento de identidad vigente"
     );
 }
 
@@ -597,21 +577,24 @@ export async function saveApplication(
         "PRECONDITION_FAILED",
         "Guarda tu perfil antes de completar la solicitud"
       );
-    const denomination = await tx
-      .select()
-      .from(czDenominations)
-      .where(
-        and(
-          eq(czDenominations.id, input.denominationId),
-          eq(czDenominations.active, 1)
+    // La denominación es opcional; si se indica, debe existir y estar activa.
+    if (input.denominationId !== null) {
+      const denomination = await tx
+        .select()
+        .from(czDenominations)
+        .where(
+          and(
+            eq(czDenominations.id, input.denominationId),
+            eq(czDenominations.active, 1)
+          )
         )
-      )
-      .limit(1);
-    if (!denomination.length)
-      throw new MembershipError(
-        "BAD_REQUEST",
-        "La denominación no está activa o no existe"
-      );
+        .limit(1);
+      if (!denomination.length)
+        throw new MembershipError(
+          "BAD_REQUEST",
+          "La denominación no está activa o no existe"
+        );
+    }
     const existing = await applicationFor(tx, user.id);
     ensureEditable(existing?.status);
     assertDraftRevision(existing?.revision ?? null, expectedRevision);

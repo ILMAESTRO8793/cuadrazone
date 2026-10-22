@@ -84,3 +84,26 @@ Decisión del propietario: los primeros 3 meses son gratis con 8% de comisión p
 - **Supuestos que el propietario puede cambiar:** base sin envío; la prueba empieza al aprobar.
 - **Textos:** se reemplazaron todas las promesas de «0% de comisión». Al comprador se le indica que CuadraZone no le cobra recargos.
 - **Pendiente:** actualizar los términos y condiciones con este modelo antes de abrir al público.
+
+
+## Plataforma abierta a vendedores de cualquier creencia — 22 de octubre de 2026
+
+Decisión del propietario: CuadraZone ya no exige ser cristiano ni pertenecer a una iglesia para vender.
+
+- **Eliminado como requisito:** declaración de fe, denominación, iglesia local, nombre del pastor y carta pastoral.
+- **Se conservan como opcionales:** denominación (si se indica, debe existir y estar activa), iglesia, pastor y carta pastoral. Sirven a quien quiera mostrarlos o, más adelante, para los emblemas Cuadrangulares, que siguen requiriendo acreditación institucional.
+- **Requisitos vigentes:** residencia en Panamá, documento de identidad vigente, correo y teléfono verificados, datos y categoría del negocio, código de conducta y privacidad.
+- **Consentimiento:** nueva versión `borrador-2026-10-22-abierto`; los borradores anteriores deben guardarse de nuevo para enviarse.
+- **Base de datos:** migración 0007 vuelve opcionales `denominationId`, `churchName` y `pastorName`. Las solicitudes existentes conservan sus datos.
+- **Pendiente de decidir:** los textos de presentación del inicio todavía hablan de «emprendedores evangélicos» y «hermanos en Cristo».
+
+
+## Pagos por Yappy — 22 de octubre de 2026
+
+Decisión del propietario: los pagos se manejan con Yappy, porque la mayoría de los bancos ya lo usan.
+
+- **Comprador → vendedor:** el comprador sigue pagando directo al vendedor; CuadraZone no recibe ese dinero ni necesita pasarela. Cada tienda registra su celular de Yappy (+507) y, si tiene Yappy Comercial, su nombre en el Directorio (`cz_stores.yappyPhone`, `yappyDirectory`, migración 0008).
+- **Al comprar con Yappy:** solo se permite si todas las tiendas del carrito tienen Yappy registrado. El detalle del pedido muestra al comprador el Yappy del vendedor, el total y el número de pedido para escribirlo en el mensaje. Los pedidos por transferencia o contra entrega no exponen el Yappy del vendedor.
+- **Vendedor → CuadraZone:** mensualidad y comisión se pagan al Yappy Comercial de CuadraZone (variable `PAYMENT_CONTACT`), escribiendo el nombre de la tienda en el mensaje. El administrador lo registra manualmente en `/admin/suscripciones`.
+- **Costos de referencia (oct. 2026, confirmar al afiliarse):** Yappy Comercial cobra 1% + ITBMS por pago recibido, mínimo US$0.02. Una persona que recibe más de 50 pagos y más de US$10,000 al mes durante dos meses pasa a pagar esa misma comisión.
+- **Futuro:** con las credenciales del Botón de Pago de Yappy Comercial se podrá confirmar los pagos de mensualidad y comisión automáticamente, sin registro manual.

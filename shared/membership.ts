@@ -18,11 +18,14 @@ export const applicationInput = z.object({
   documentExpiry: z.string().regex(/^$|^\d{4}-\d{2}-\d{2}$/).default(""),
   province: z.string().trim().min(2).max(60),
   city: z.string().trim().min(2).max(100),
-  denominationId: z.number().int().positive(),
-  churchName: z.string().trim().min(2).max(160),
-  pastorName: z.string().trim().min(2).max(100),
+  // Iglesia, denominación y pastor son opcionales: la plataforma está abierta a
+  // vendedores de cualquier creencia. Solo los usa quien quiera mostrarlos.
+  denominationId: z.number().int().positive().nullable().default(null),
+  churchName: z.string().trim().max(160).default("").refine(value => value === "" || value.length >= 2, "Escribe el nombre completo de la iglesia o déjalo vacío"),
+  pastorName: z.string().trim().max(100).default("").refine(value => value === "" || value.length >= 2, "Escribe el nombre completo del pastor o déjalo vacío"),
   residenceConfirmed: z.boolean(),
-  faithAccepted: z.boolean(),
+  /** Ya no se exige; se conserva para solicitudes anteriores. */
+  faithAccepted: z.boolean().default(false),
   conductAccepted: z.boolean(),
   privacyAccepted: z.boolean(),
 }).strict();
@@ -47,7 +50,7 @@ export type Denomination = { id: number; name: string; active: boolean };
 export const provinceOptions = ["Panamá", "Panamá Oeste", "Colón", "Chiriquí", "Coclé", "Herrera", "Los Santos", "Veraguas", "Bocas del Toro", "Darién", "Guna Yala", "Emberá-Wounaan", "Ngäbe-Buglé"];
 export const documentKinds = ["identity", "pastoral"] as const;
 export const MAX_DOCUMENT_BYTES = 5 * 1024 * 1024;
-export const CONSENT_VERSION = "borrador-2026-10-07";
+export const CONSENT_VERSION = "borrador-2026-10-22-abierto";
 export const saveApplicationInput = applicationInput.extend({
   revision: z.number().int().positive().optional(),
   consentVersion: z.literal(CONSENT_VERSION),

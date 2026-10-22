@@ -88,3 +88,21 @@ describe("comisión por venta", () => {
     expect(subscriptionPlanName("desconocido")).toBe("Sin plan");
   });
 });
+
+import { saveStoreInput, storeAcceptsYappy } from "../shared/marketplace";
+
+describe("Yappy del vendedor", () => {
+  const base = { name: "Tienda", description: "", province: "Panamá", city: "Colón" };
+  it("acepta celular de Panamá o vacío y rechaza otros formatos", () => {
+    expect(saveStoreInput.parse({ ...base }).yappyPhone).toBe("");
+    expect(saveStoreInput.parse({ ...base, yappyPhone: "+50761234567" }).yappyPhone).toBe("+50761234567");
+    for (const bad of ["61234567", "+5076123456", "+50661234567", "+507 6123-4567"]) {
+      expect(saveStoreInput.safeParse({ ...base, yappyPhone: bad }).success).toBe(false);
+    }
+  });
+  it("solo recibe Yappy si registró celular o directorio", () => {
+    expect(storeAcceptsYappy({ yappyPhone: null, yappyDirectory: null })).toBe(false);
+    expect(storeAcceptsYappy({ yappyPhone: "+50761234567", yappyDirectory: null })).toBe(true);
+    expect(storeAcceptsYappy({ yappyPhone: null, yappyDirectory: "Mi Tienda" })).toBe(true);
+  });
+});
