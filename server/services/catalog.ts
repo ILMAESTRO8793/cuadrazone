@@ -329,6 +329,8 @@ function ownerProductDto(
       deliveryProvinces: dto.store.deliveryProvinces,
       yappyPhone: store.yappyPhone ?? null,
       yappyDirectory: store.yappyDirectory ?? null,
+      cardPaymentUrl: store.cardPaymentUrl ?? null,
+      cardOnDelivery: Boolean(store.cardOnDelivery),
       verified,
     },
     status: row.status as ProductStatus,
@@ -802,6 +804,8 @@ export async function getMyStore(userId: number) {
           deliveryProvinces: jsonArray<string>(store.deliveryProvinces, []),
           yappyPhone: store.yappyPhone ?? null,
           yappyDirectory: store.yappyDirectory ?? null,
+          cardPaymentUrl: store.cardPaymentUrl ?? null,
+          cardOnDelivery: Boolean(store.cardOnDelivery),
           verified: readiness.active,
         }
       : null,
@@ -820,6 +824,8 @@ export async function saveStore(userId: number, input: SaveStoreInput) {
     city: validated.city.trim(),
     yappyPhone: validated.yappyPhone || null,
     yappyDirectory: validated.yappyDirectory.trim() || null,
+    cardPaymentUrl: validated.cardPaymentUrl || null,
+    cardOnDelivery: validated.cardOnDelivery ? 1 : 0,
   };
   const db = await requireDb();
   const readiness = await sellerReadiness(db, userId);
@@ -866,6 +872,8 @@ export async function saveStore(userId: number, input: SaveStoreInput) {
         deliveryProvinces: jsonArray<string>(fresh.deliveryProvinces, []),
         yappyPhone: fresh.yappyPhone ?? null,
         yappyDirectory: fresh.yappyDirectory ?? null,
+        cardPaymentUrl: fresh.cardPaymentUrl ?? null,
+        cardOnDelivery: Boolean(fresh.cardOnDelivery),
         verified: readiness.active,
       };
     }
@@ -896,6 +904,8 @@ export async function saveStore(userId: number, input: SaveStoreInput) {
       deliveryProvinces: jsonArray<string>(fresh.deliveryProvinces, []),
       yappyPhone: fresh.yappyPhone ?? null,
       yappyDirectory: fresh.yappyDirectory ?? null,
+      cardPaymentUrl: fresh.cardPaymentUrl ?? null,
+      cardOnDelivery: Boolean(fresh.cardOnDelivery),
       verified: readiness.active,
     };
   });

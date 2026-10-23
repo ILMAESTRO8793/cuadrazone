@@ -30,6 +30,10 @@ export const czStores = mysqlTable(
     yappyPhone: varchar("yappyPhone", { length: 20 }),
     /** Nombre en el Directorio de Yappy Comercial, si el vendedor tiene uno. */
     yappyDirectory: varchar("yappyDirectory", { length: 80 }),
+    /** Link de pago con tarjeta (Tilopay, PagueloFácil, PayPal) del vendedor. */
+    cardPaymentUrl: varchar("cardPaymentUrl", { length: 500 }),
+    /** 1 si el vendedor cobra con datáfono al retirar o entregar. */
+    cardOnDelivery: int("cardOnDelivery").notNull().default(0),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   },

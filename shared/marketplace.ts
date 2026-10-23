@@ -95,6 +95,10 @@ export const saveStoreInput = z.object({
   yappyPhone: z.string().trim().regex(/^$|^\+507\d{8}$/, "Usa un celular de Panamá: +507 y 8 dígitos").default(""),
   /** Nombre en el Directorio de Yappy Comercial o vacío. */
   yappyDirectory: z.string().trim().max(80).default(""),
+  /** Link de pago con tarjeta de una plataforma reconocida, o vacío. */
+  cardPaymentUrl: z.string().trim().max(500).refine(value => value === "" || isAllowedCardLink(value), "Usa un link https de Tilopay, PagueloFácil o PayPal").default(""),
+  /** El vendedor cobra con datáfono al retirar o entregar. */
+  cardOnDelivery: z.boolean().default(false),
 });
 
 export const saveProductInput = z
@@ -203,7 +207,24 @@ export type OwnerStore = Omit<
   verified: boolean;
   yappyPhone: string | null;
   yappyDirectory: string | null;
+  cardPaymentUrl: string | null;
+  cardOnDelivery: boolean;
 };
+
+/**
+ * Plataformas de cobro con tarjeta aceptadas para el link de pago del vendedor.
+ * Se limita a dominios conocidos para que nadie pueda usar un link falso que
+ * robe datos de tarjeta. Agregar otras aquí si un vendedor lo necesita.
+ */
+export const CARD_LINK_HOSTS = ["tilopay.com", "paguelofacil.com", "paypal.com", "paypal.me"] as const;
+
+export function isAllowedCardLink(value: string): boolean {
+  let url: URL;
+  try { url = new URL(value); } catch { return false; }
+  if (url.protocol !== "https:" || url.username || url.password || url.port) return false;
+  const host = url.hostname.toLowerCase();
+  return CARD_LINK_HOSTS.some(allowed => host === allowed || host.endsWith(`.${allowed}`));
+}
 
 /** El vendedor puede recibir pagos por Yappy si registró un celular o un nombre en el directorio. */
 export function storeAcceptsYappy(store: { yappyPhone?: string | null; yappyDirectory?: string | null }) {

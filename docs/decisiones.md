@@ -107,3 +107,14 @@ Decisión del propietario: los pagos se manejan con Yappy, porque la mayoría de
 - **Vendedor → CuadraZone:** mensualidad y comisión se pagan al Yappy Comercial de CuadraZone (variable `PAYMENT_CONTACT`), escribiendo el nombre de la tienda en el mensaje. El administrador lo registra manualmente en `/admin/suscripciones`.
 - **Costos de referencia (oct. 2026, confirmar al afiliarse):** Yappy Comercial cobra 1% + ITBMS por pago recibido, mínimo US$0.02. Una persona que recibe más de 50 pagos y más de US$10,000 al mes durante dos meses pasa a pagar esa misma comisión.
 - **Futuro:** con las credenciales del Botón de Pago de Yappy Comercial se podrá confirmar los pagos de mensualidad y comisión automáticamente, sin registro manual.
+
+
+## Pagos con tarjeta de crédito y débito — 22 de octubre de 2026
+
+Se mantiene el pago directo al vendedor: CuadraZone no procesa tarjetas, no recibe ese dinero y no guarda datos de tarjeta.
+
+- **Link de pago (`card_link`):** el vendedor registra un link https de Tilopay, PagueloFácil o PayPal (`cz_stores.cardPaymentUrl`). Solo se aceptan esos dominios y sus subdominios, sin usuario, contraseña ni puerto, para impedir links falsos que roben datos. El comprador ve el link en el detalle del pedido, con el total y el número de pedido.
+- **Datáfono al recibir (`card_on_delivery`):** el vendedor lo activa (`cz_stores.cardOnDelivery`). Solo se permite con retiro o entrega a domicilio, no con envío por courier.
+- **Reglas al comprar:** cada tienda del carrito debe aceptar el método elegido. Si el vendedor retira su link, el pedido deja de mostrarlo.
+- **Costos:** los cobra la plataforma del vendedor (p. ej., Tilopay en Panamá 3.75% + US$0.50 según su publicación). La comisión de CuadraZone (8% o 5%) se calcula igual que con cualquier otro método.
+- **Migración 0009:** amplía `cz_orders.paymentMethod` y agrega los campos de tarjeta a `cz_stores`.

@@ -116,3 +116,9 @@ Evidencia de planes: migración aditiva 0004 aplicada, 39 rutas sincronizadas, p
 - [x] Instrucciones de pago a CuadraZone para el vendedor (`PAYMENT_CONTACT`).
 - [ ] Abrir Yappy Comercial de CuadraZone (cuenta comercial en Banco General) y configurar `PAYMENT_CONTACT` en Railway.
 - [ ] Integrar el Botón de Pago de Yappy para confirmar mensualidades y comisiones automáticamente.
+
+## Pagos con tarjeta — 22 de octubre
+- [x] Link de pago del vendedor (Tilopay, PagueloFácil, PayPal) con filtro de dominios.
+- [x] Tarjeta con datáfono al retirar o entregar a domicilio.
+- [x] Probado de punta a punta; migración aplicada sobre datos existentes.
+- [ ] Si un vendedor usa otra plataforma (p. ej., link de su banco), agregar su dominio a `CARD_LINK_HOSTS`.

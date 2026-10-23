@@ -15,7 +15,7 @@ import {
   type PaymentMethod, type PublicProductDTO,
 } from "@shared/commerce";
 import type { PublicProduct } from "@shared/marketplace";
-import { storeAcceptsYappy } from "@shared/marketplace";
+import { isAllowedCardLink, storeAcceptsYappy } from "@shared/marketplace";
 import { assertActiveStore, assertSellerOwner } from "./catalog";
 import { getPublicProduct } from "./catalog";
 
@@ -237,7 +237,9 @@ async function orderDto(tx: Db | Tx, orderId: number, viewerId: number): Promise
     createdAt: row.order.createdAt, recipientName: row.order.recipientName, phone: row.order.phone, province: row.order.province, city: row.order.city, address: row.order.address,
     deliveryMode: row.order.deliveryMode, items: items.map(i => ({ productId: i.productId, variantId: i.variantId, title: i.title, quantity: i.quantity, unitPriceCents: i.unitPriceCents, size: i.size, color: i.color })),
     viewerRole: row.order.userId === viewerId ? "buyer" : "seller",
-    sellerYappy: row.order.paymentMethod === "yappy" ? { phone: row.store.yappyPhone ?? null, directory: row.store.yappyDirectory ?? null } : null };
+    sellerYappy: row.order.paymentMethod === "yappy" ? { phone: row.store.yappyPhone ?? null, directory: row.store.yappyDirectory ?? null } : null,
+    // Solo se entrega si sigue siendo un link permitido, por si la lista de plataformas cambió.
+    sellerCardLink: row.order.paymentMethod === "card_link" && row.store.cardPaymentUrl && isAllowedCardLink(row.store.cardPaymentUrl) ? row.store.cardPaymentUrl : null };
 }
 
 export async function checkout(userId: number, input: { checkoutKey: string; expectedTotalCents: number; recipientName: string; phone: string; province: string; city: string; address: string; deliveries: Array<{ storeId: number; mode: DeliveryMode }>; paymentMethod: PaymentMethod }): Promise<{ orders: OrderDTO[] }> {
@@ -296,11 +298,17 @@ export async function checkout(userId: number, input: { checkoutKey: string; exp
       if (existing) existing.lines.push(line);
       else groups.set(line.store.id, { lines: [line], deliveryFeeCents: deliveryQuote(line.store, mode, input.province) });
     }
-    // Con Yappy el comprador paga directo al vendedor: cada tienda debe tener su Yappy registrado.
-    if (input.paymentMethod === "yappy") {
-      for (const group of groups.values()) {
-        const store = group.lines[0]!.store;
-        if (!storeAcceptsYappy(store)) fail("PRECONDITION_FAILED", `${store.name} todavía no recibe pagos por Yappy. Elige transferencia o pago contra entrega.`);
+    // El comprador paga directo a cada vendedor: cada tienda debe aceptar el método elegido.
+    for (const group of groups.values()) {
+      const store = group.lines[0]!.store;
+      const mode = modes.get(store.id);
+      if (input.paymentMethod === "yappy" && !storeAcceptsYappy(store))
+        fail("PRECONDITION_FAILED", `${store.name} todavía no recibe pagos por Yappy. Elige otro método.`);
+      if (input.paymentMethod === "card_link" && !(store.cardPaymentUrl && isAllowedCardLink(store.cardPaymentUrl)))
+        fail("PRECONDITION_FAILED", `${store.name} no tiene link de pago con tarjeta. Elige otro método.`);
+      if (input.paymentMethod === "card_on_delivery") {
+        if (!store.cardOnDelivery) fail("PRECONDITION_FAILED", `${store.name} no cobra con tarjeta al recibir. Elige otro método.`);
+        if (mode === "shipping") fail("PRECONDITION_FAILED", `El pago con tarjeta al recibir solo aplica a retiro o entrega a domicilio de ${store.name}, no a envíos.`);
       }
     }
     let quotedTotal = 0;

@@ -49,7 +49,7 @@ export const czOrders = mysqlTable("cz_orders", {
   storeId: int("storeId").notNull().references(() => czStores.id),
   checkoutKey: varchar("checkoutKey", { length: 36 }).notNull(),
   status: mysqlEnum("status", ["pending", "confirmed", "shipped", "delivered", "cancelled"]).notNull().default("pending"),
-  paymentMethod: mysqlEnum("paymentMethod", ["yappy", "transfer", "cod"]).notNull(),
+  paymentMethod: mysqlEnum("paymentMethod", ["yappy", "transfer", "cod", "card_link", "card_on_delivery"]).notNull(),
   paymentStatus: mysqlEnum("paymentStatus", ["awaiting_payment", "pending"]).notNull().default("awaiting_payment"),
   subtotalCents: int("subtotalCents").notNull(),
   deliveryFeeCents: int("deliveryFeeCents").notNull().default(0),

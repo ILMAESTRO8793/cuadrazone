@@ -2,7 +2,21 @@ import { z } from "zod";
 import { bookInput, deliveryModes as catalogDeliveryModes, productKinds, provinceOptions } from "./marketplace";
 
 export const deliveryModes = ["shipping", "pickup", "home"] as const;
-export const paymentMethods = ["yappy", "transfer", "cod"] as const;
+/**
+ * Métodos de pago directo al vendedor. CuadraZone no procesa tarjetas: con
+ * "card_link" el comprador paga en el link de pago del vendedor (Tilopay,
+ * PagueloFácil, PayPal); con "card_on_delivery" paga con el datáfono del
+ * vendedor al retirar o recibir el pedido.
+ */
+export const paymentMethods = ["yappy", "transfer", "cod", "card_link", "card_on_delivery"] as const;
+
+export const paymentMethodLabels: Record<(typeof paymentMethods)[number], string> = {
+  yappy: "Yappy",
+  transfer: "Transferencia bancaria",
+  cod: "Efectivo contra entrega",
+  card_link: "Tarjeta de crédito o débito (link de pago del vendedor)",
+  card_on_delivery: "Tarjeta de crédito o débito al recibir",
+};
 export const orderStatuses = ["pending", "confirmed", "shipped", "delivered", "cancelled"] as const;
 export const paymentStatuses = ["awaiting_payment", "pending"] as const;
 
@@ -129,6 +143,8 @@ export const orderDto = z.object({
   viewerRole: z.enum(["buyer", "seller"]),
   /** Dónde pagar por Yappy; solo en pedidos con Yappy como método de pago. */
   sellerYappy: z.object({ phone: z.string().nullable(), directory: z.string().nullable() }).nullable(),
+  /** Link de pago con tarjeta del vendedor; solo en pedidos con ese método. */
+  sellerCardLink: z.string().nullable(),
 });
 export type OrderDTO = z.infer<typeof orderDto>;
 
@@ -190,7 +206,7 @@ export function deriveReviewEligibility(ownsStore: boolean, hasDelivered: boolea
 }
 
 export function paymentStatusFor(method: PaymentMethod): "awaiting_payment" | "pending" {
-  return method === "cod" ? "pending" : "awaiting_payment";
+  return method === "cod" || method === "card_on_delivery" ? "pending" : "awaiting_payment";
 }
 
 export function canTransitionOrder(from: OrderStatus, to: OrderStatus, actor: "buyer" | "seller"): boolean {

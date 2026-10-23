@@ -1,4 +1,5 @@
 import type { CartItemDTO, DeliveryMode } from "@shared/commerce";
+import { paymentMethodLabels } from "@shared/commerce";
 import { useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Heart, Package, ShoppingBag, Trash2 } from "lucide-react";
@@ -251,7 +252,9 @@ function CheckoutContent() {
       paymentMethod: String(values.get("paymentMethod")) as
         | "yappy"
         | "transfer"
-        | "cod",
+        | "cod"
+        | "card_link"
+        | "card_on_delivery",
     };
     const fingerprint = JSON.stringify({
       ...payload,
@@ -414,16 +417,20 @@ function CheckoutContent() {
             <label>
               Método
               <select name="paymentMethod" defaultValue="cod">
-                <option value="cod">Contra entrega</option>
+                <option value="cod">Efectivo contra entrega</option>
                 <option value="yappy">Yappy directo al vendedor</option>
+                <option value="card_link">Tarjeta de crédito o débito (link de pago del vendedor)</option>
+                <option value="card_on_delivery">Tarjeta de crédito o débito al retirar o recibir</option>
                 <option value="transfer">Transferencia bancaria</option>
               </select>
             </label>
             <p className="live-muted">
-              Le pagas directo a cada vendedor. Si eliges Yappy, al registrar el
-              pedido verás su Yappy y el número de pedido que debes escribir en
-              el mensaje del pago. Nunca compartas contraseñas ni datos de
-              tarjeta.
+              Le pagas directo a cada vendedor. Con Yappy o con link de pago,
+              al registrar el pedido verás dónde pagar y el número de pedido.
+              Con tarjeta al recibir, el vendedor cobra con su datáfono (solo en
+              retiro o entrega a domicilio). Si una tienda no acepta el método
+              elegido, te avisaremos. Nunca escribas datos de tu tarjeta en
+              CuadraZone ni en mensajes.
             </p>
           </section>
           <aside className="live-summary">
@@ -617,7 +624,7 @@ function OrderContent({ id }: { id: number }) {
         <h3>Total {usd(o.totalCents)}</h3>
         <p>
           Pago directo al vendedor:{" "}
-          <strong>{o.paymentMethod === "yappy" ? "Yappy" : o.paymentMethod === "transfer" ? "Transferencia bancaria" : "Contra entrega"}</strong>
+          <strong>{paymentMethodLabels[o.paymentMethod]}</strong>
           {o.status === "pending" && " · el vendedor confirmará el pedido al recibir tu pago"}
         </p>
         {o.sellerYappy && o.viewerRole === "buyer" && o.status !== "cancelled" && (
@@ -628,6 +635,27 @@ function OrderContent({ id }: { id: number }) {
             <p>En el mensaje del Yappy escribe tu número de pedido: <strong>{o.number}</strong></p>
             <p className="live-muted">Revisa que el nombre que te muestra Yappy sea el de la tienda antes de enviar.</p>
           </div>
+        )}
+        {o.paymentMethod === "card_link" && o.viewerRole === "buyer" && o.status !== "cancelled" && (
+          <div className="member-notice">
+            <p><strong>Paga {usd(o.totalCents)} con tarjeta a {o.storeName}</strong></p>
+            {o.sellerCardLink ? (
+              <>
+                <p>
+                  <a className="btn btn-gold" href={o.sellerCardLink} target="_blank" rel="noopener noreferrer nofollow">
+                    Abrir el link de pago ({new URL(o.sellerCardLink).hostname.replace(/^www\./, "")})
+                  </a>
+                </p>
+                <p>Si el link te pide una descripción, escribe tu número de pedido: <strong>{o.number}</strong></p>
+                <p className="live-muted">El pago se hace en la plataforma del vendedor; CuadraZone no ve ni guarda los datos de tu tarjeta.</p>
+              </>
+            ) : (
+              <p>La tienda ya no tiene link de pago activo. Escríbele por la mensajería del pedido.</p>
+            )}
+          </div>
+        )}
+        {o.paymentMethod === "card_on_delivery" && o.viewerRole === "buyer" && o.status !== "cancelled" && (
+          <p className="member-notice">Pagarás {usd(o.totalCents)} con tarjeta de crédito o débito en el datáfono de {o.storeName} al retirar o recibir tu pedido.</p>
         )}
         <h2>Entrega privada</h2>
         <p>

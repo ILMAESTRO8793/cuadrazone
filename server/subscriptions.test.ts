@@ -106,3 +106,32 @@ describe("Yappy del vendedor", () => {
     expect(storeAcceptsYappy({ yappyPhone: null, yappyDirectory: "Mi Tienda" })).toBe(true);
   });
 });
+
+import { isAllowedCardLink } from "../shared/marketplace";
+import { paymentStatusFor } from "../shared/commerce";
+
+describe("pago con tarjeta", () => {
+  it("solo acepta links https de plataformas de pago conocidas", () => {
+    for (const ok of [
+      "https://tilopay.com/pagar/abc",
+      "https://app.tilopay.com/link/123",
+      "https://checkout.paguelofacil.com/LK-123",
+      "https://www.paypal.com/ncp/payment/XYZ",
+      "https://paypal.me/mitienda/25",
+    ]) expect(isAllowedCardLink(ok)).toBe(true);
+    for (const bad of [
+      "http://tilopay.com/pagar",
+      "https://tilopay.com.ladron.com/pagar",
+      "https://falsotilopay.com/pagar",
+      "https://usuario:clave@tilopay.com/pagar",
+      "https://tilopay.com:8443/pagar",
+      "javascript:alert(1)",
+      "https://bit.ly/abc",
+      "no es un link",
+    ]) expect(isAllowedCardLink(bad)).toBe(false);
+  });
+  it("tarjeta al recibir queda pendiente como el efectivo; el link espera el pago", () => {
+    expect(paymentStatusFor("card_on_delivery")).toBe("pending");
+    expect(paymentStatusFor("card_link")).toBe("awaiting_payment");
+  });
+});

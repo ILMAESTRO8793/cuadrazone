@@ -61,6 +61,8 @@ type StoreForm = {
   deliveryProvinces: Province[];
   yappyPhone: string;
   yappyDirectory: string;
+  cardPaymentUrl: string;
+  cardOnDelivery: boolean;
 };
 
 type BookForm = {
@@ -108,6 +110,8 @@ type StoreSnapshot = {
     deliveryProvinces?: string[];
     yappyPhone?: string | null;
     yappyDirectory?: string | null;
+    cardPaymentUrl?: string | null;
+    cardOnDelivery?: boolean;
     churchName?: string;
     verified?: boolean;
   } | null;
@@ -125,6 +129,8 @@ const EMPTY_STORE: StoreForm = {
   deliveryProvinces: [],
   yappyPhone: "",
   yappyDirectory: "",
+  cardPaymentUrl: "",
+  cardOnDelivery: false,
 };
 const EMPTY_BOOK: BookForm = {
   author: "",
@@ -288,6 +294,8 @@ function SellerCatalogContent({
         deliveryProvinces: validProvinces(store.deliveryProvinces ?? []),
         yappyPhone: store.yappyPhone ?? "",
         yappyDirectory: store.yappyDirectory ?? "",
+        cardPaymentUrl: store.cardPaymentUrl ?? "",
+        cardOnDelivery: Boolean(store.cardOnDelivery),
       });
   }, [storeQuery.data, storeQuery.isLoading, storeSnapshot]);
 
@@ -342,6 +350,8 @@ function SellerCatalogContent({
         deliveryProvinces: validProvinces(storeForm.deliveryProvinces),
         yappyPhone: normalizePanamaPhone(storeForm.yappyPhone),
         yappyDirectory: storeForm.yappyDirectory,
+        cardPaymentUrl: storeForm.cardPaymentUrl.trim(),
+        cardOnDelivery: storeForm.cardOnDelivery,
       });
       setStoreForm({
         name: saved.name,
@@ -357,6 +367,8 @@ function SellerCatalogContent({
         deliveryProvinces: validProvinces(saved.deliveryProvinces ?? []),
         yappyPhone: saved.yappyPhone ?? "",
         yappyDirectory: saved.yappyDirectory ?? "",
+        cardPaymentUrl: saved.cardPaymentUrl ?? "",
+        cardOnDelivery: Boolean(saved.cardOnDelivery),
       });
       setStoreDirty(false);
       await utils.catalog.myStore.invalidate();
@@ -387,6 +399,8 @@ function SellerCatalogContent({
         deliveryProvinces: validProvinces(store.deliveryProvinces ?? []),
         yappyPhone: store.yappyPhone ?? "",
         yappyDirectory: store.yappyDirectory ?? "",
+        cardPaymentUrl: store.cardPaymentUrl ?? "",
+        cardOnDelivery: Boolean(store.cardOnDelivery),
       });
     else setStoreForm(EMPTY_STORE);
     setStoreDirty(false);
@@ -785,11 +799,11 @@ function SellerCatalogContent({
               </label>
             </div>
             <fieldset className="seller-catalog-subsection">
-              <legend>Cobros por Yappy</legend>
+              <legend>Cómo te pagan tus compradores</legend>
               <p>
-                Tus compradores te pagan directo a ti. Registra tu Yappy para que
-                lo vean al comprar, junto con el número de pedido. Sin Yappy
-                registrado, solo podrán pagarte por transferencia o contra
+                Tus compradores te pagan directo a ti; CuadraZone no recibe ese
+                dinero ni guarda datos de tarjetas. Solo verán los métodos que
+                configures aquí, además de transferencia y efectivo contra
                 entrega.
               </p>
               <div className="seller-catalog-form-grid">
@@ -812,7 +826,26 @@ function SellerCatalogContent({
                     maxLength={80}
                   />
                 </label>
+                <label>
+                  Link de pago con tarjeta (Tilopay, PagueloFácil o PayPal)
+                  <Input
+                    type="url"
+                    inputMode="url"
+                    value={storeForm.cardPaymentUrl}
+                    onChange={e => updateStore("cardPaymentUrl", e.target.value)}
+                    placeholder="https://..."
+                    maxLength={500}
+                  />
+                </label>
               </div>
+              <label className="seller-catalog-inline-check">
+                <input
+                  type="checkbox"
+                  checked={storeForm.cardOnDelivery}
+                  onChange={e => updateStore("cardOnDelivery", e.target.checked)}
+                />{" "}
+                Cobro con tarjeta (datáfono) al retirar o entregar a domicilio
+              </label>
             </fieldset>
             <fieldset className="seller-catalog-subsection">
               <legend>Tarifas y cobertura de entrega</legend>
