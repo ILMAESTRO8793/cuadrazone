@@ -383,12 +383,18 @@ async function ensureSubmissionGuards(
     );
   if (
     !bool(app.residenceConfirmed) ||
+    !bool(app.faithAccepted) ||
     !bool(app.conductAccepted) ||
     !bool(app.privacyAccepted)
   )
     throw new MembershipError(
       "PRECONDITION_FAILED",
-      "Debes aceptar residencia, conducta y privacidad"
+      "Debes aceptar residencia, la confesión de fe, conducta y privacidad"
+    );
+  if (!app.churchName?.trim() || !app.pastorName?.trim())
+    throw new MembershipError(
+      "PRECONDITION_FAILED",
+      "Indica tu iglesia evangélica y el nombre de tu pastor"
     );
   ensureCurrentExpiry(app);
   const docs = await documentsFor(db, app.id);

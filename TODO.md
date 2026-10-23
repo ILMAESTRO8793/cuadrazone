@@ -122,3 +122,9 @@ Evidencia de planes: migración aditiva 0004 aplicada, 39 rutas sincronizadas, p
 - [x] Tarjeta con datáfono al retirar o entregar a domicilio.
 - [x] Probado de punta a punta; migración aplicada sobre datos existentes.
 - [ ] Si un vendedor usa otra plataforma (p. ej., link de su banco), agregar su dominio a `CARD_LINK_HOSTS`.
+
+## Solo vendedores evangélicos — 23 de octubre
+- [x] Iglesia evangélica y pastor obligatorios; confesión «Cristo es Rey y Jesús es Dios» obligatoria.
+- [x] Panel del administrador muestra iglesia, pastor y confesión; aprobación manual.
+- [x] Requisitos públicos y página de declaración de fe actualizados.
+- [x] La declaración de fe es definitiva; no requiere revisión pastoral (decisión del propietario, 23/10).

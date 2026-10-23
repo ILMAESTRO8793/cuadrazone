@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applicationInput, CONSENT_VERSION, saveApplicationInput, splitApplicationSave } from "../shared/membership";
+import { applicationInput, CONSENT_VERSION, FAITH_CONFESSION, saveApplicationInput, splitApplicationSave } from "../shared/membership";
 import {
   canEditApplication,
   accountEmailMatches,
@@ -82,17 +82,24 @@ describe("CuadraZone membership guards", () => {
     expect(applicationInput.safeParse(application).success).toBe(true);
   });
 
-  it("acepta solicitudes de vendedores sin iglesia, pastor, denominación ni declaración de fe", () => {
-    const open = applicationInput.safeParse({
+  it("exige iglesia evangélica y pastor; la denominación sigue opcional", () => {
+    const base = {
       businessType: "individual", businessName: "", businessCategories: [{ categoryId: "viajes-y-turismo", specialtyIds: [] }],
       identificationType: "cedula", identificationNumber: "8-888-8888", documentExpiry: "", province: "Panamá", city: "Chilibre",
       residenceConfirmed: true, conductAccepted: true, privacyAccepted: true,
-    });
-    expect(open.success).toBe(true);
-    if (open.success) expect(open.data).toMatchObject({ denominationId: null, churchName: "", pastorName: "", faithAccepted: false });
-    const withChurch = applicationInput.safeParse({ ...(open.success ? open.data : {}), denominationId: 1, churchName: "Iglesia Central", pastorName: "Pastor Prueba" });
-    expect(withChurch.success).toBe(true);
-    expect(applicationInput.safeParse({ ...(open.success ? open.data : {}), churchName: "X" }).success).toBe(false);
+    };
+    expect(applicationInput.safeParse(base).success).toBe(false);
+    expect(applicationInput.safeParse({ ...base, churchName: "Iglesia Central" }).success).toBe(false);
+    expect(applicationInput.safeParse({ ...base, churchName: "X", pastorName: "Pastor Prueba" }).success).toBe(false);
+    const ok = applicationInput.safeParse({ ...base, churchName: "Iglesia Central", pastorName: "Pastor Prueba" });
+    expect(ok.success).toBe(true);
+    if (ok.success) expect(ok.data.denominationId).toBeNull();
+  });
+
+  it("la confesión de fe dice que Cristo es Rey y Jesús es Dios", () => {
+    expect(FAITH_CONFESSION).toContain("Cristo es Rey");
+    expect(FAITH_CONFESSION).toContain("Jesús es Dios");
+    expect(FAITH_CONFESSION).toContain("iglesia evangélica");
   });
 
   it("declara correo verificable con Google y teléfono sin proveedor SMS", () => {

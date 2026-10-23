@@ -20,6 +20,8 @@ import { toast } from "sonner";
 import {
   MAX_DOCUMENT_BYTES,
   CONSENT_VERSION,
+  FAITH_CONFESSION,
+  REVIEW_RESPONSE_MESSAGE,
   applicationInput,
   provinceOptions,
   statusLabels,
@@ -165,7 +167,10 @@ function SellerApplicationContent() {
       profile?.emailVerifiedAt &&
       /^\+507\d{8}$/.test(profile.phone) &&
       documentByKind("identity") &&
+      form.churchName.trim().length >= 2 &&
+      form.pastorName.trim().length >= 2 &&
       form.residenceConfirmed &&
+      form.faithAccepted &&
       form.conductAccepted &&
       form.privacyAccepted &&
       form.identificationNumber.trim().length >= 4 &&
@@ -268,7 +273,10 @@ function SellerApplicationContent() {
     try {
       await submitApplication.mutateAsync({ revision: app.revision });
       await utils.membership.me.invalidate();
-      toast.success("Solicitud enviada a revisión");
+      toast.success("Solicitud enviada", {
+        description: REVIEW_RESPONSE_MESSAGE,
+        duration: 12000,
+      });
     } catch (error) {
       toast.error("No se pudo enviar la solicitud", {
         description: errorText(
@@ -339,10 +347,11 @@ function SellerApplicationContent() {
         >
           <strong>{statusLabels[app.status]}</strong> · Revisión: versión{" "}
           {app.revision}. Consentimiento: {app.consentVersion}.
-          {app.status === "pending" &&
-            " La solicitud está bloqueada mientras se revisa."}
+          {app.status === "pending" && (
+            <span> {REVIEW_RESPONSE_MESSAGE} La solicitud queda bloqueada mientras la revisamos.</span>
+          )}
           {app.status === "approved" &&
-            " La aprobación no activa una tienda ni cobra automáticamente."}
+            " Tu tienda se activó con 3 meses gratis. Revisa los detalles en Mi tienda."}
           {app.status === "rejected" && app.reviewReason && (
             <span> Motivo: {app.reviewReason}</span>
           )}
@@ -468,9 +477,10 @@ function SellerApplicationContent() {
               />
             </label>
             <p className="member-muted member-field--wide">
-              <strong>Iglesia (opcional).</strong> CuadraZone está abierto a
-              vendedores de cualquier creencia. Completa estos datos solo si
-              quieres mostrarlos; no afectan tu aprobación.
+              <strong>Tu iglesia.</strong> CuadraZone es para vendedores
+              cristianos evangélicos. Indica la iglesia a la que perteneces y el
+              nombre de tu pastor; el equipo de CuadraZone revisa cada solicitud
+              antes de aprobarla.
             </p>
             <label className="member-field">
               <span>Denominación (opcional)</span>
@@ -492,18 +502,22 @@ function SellerApplicationContent() {
               )}
             </label>
             <label className="member-field">
-              <span>Iglesia local (opcional)</span>
+              <span>Iglesia evangélica a la que perteneces</span>
               <Input
                 value={form.churchName}
                 onChange={event => setField("churchName", event.target.value)}
+                required
+                minLength={2}
                 maxLength={160}
               />
             </label>
             <label className="member-field">
-              <span>Nombre del pastor (opcional)</span>
+              <span>Nombre de tu pastor</span>
               <Input
                 value={form.pastorName}
                 onChange={event => setField("pastorName", event.target.value)}
+                required
+                minLength={2}
                 maxLength={100}
               />
             </label>
@@ -590,6 +604,19 @@ function SellerApplicationContent() {
               />{" "}
               Confirmo que resido en Panamá.
             </label>
+            <label className="member-confession">
+              <input
+                type="checkbox"
+                checked={form.faithAccepted}
+                onChange={event =>
+                  setField("faithAccepted", event.target.checked)
+                }
+              />{" "}
+              <strong>Confesión de fe:</strong> {FAITH_CONFESSION}{" "}
+              <Link href="/legal/fe" target="_blank" rel="noopener noreferrer">
+                Ver la declaración de fe
+              </Link>
+            </label>
             <label>
               <input
                 type="checkbox"
@@ -628,9 +655,10 @@ function SellerApplicationContent() {
             </label>
           </div>
           <p className="member-legal-note" id="legal-fe">
-            <strong>Documentos legales:</strong> conducta y privacidad están
-            identificados como borradores pendientes de revisión jurídica. No
-            son una aprobación automática.{" "}
+            <strong>Documentos legales:</strong> la conducta y la privacidad
+            son borradores pendientes de revisión jurídica. Aceptarlos no
+            aprueba la solicitud: cada una la revisa personalmente el equipo de
+            CuadraZone.{" "}
             <span id="legal-conduct">Conducta</span> y{" "}
             <span id="legal-privacy">privacidad</span> usan la misma versión
             publicada arriba.
@@ -758,9 +786,11 @@ function SellerApplicationContent() {
               {!profile?.emailVerifiedAt && <li>Verificar tu correo con tu cuenta de Google (en Mi cuenta).</li>}
               {!/^\+507\d{8}$/.test(profile?.phone ?? "") && <li>Guardar un teléfono de Panamá (+507 y 8 dígitos) en Mi cuenta.</li>}
               {!documentByKind("identity") && <li>Cargar tu documento de identidad.</li>}
+              {(form.churchName.trim().length < 2 || form.pastorName.trim().length < 2) && <li>Indicar tu iglesia evangélica y el nombre de tu pastor.</li>}
+              {!form.faithAccepted && <li>Aceptar la confesión de fe.</li>}
               {!(form.residenceConfirmed && form.conductAccepted && form.privacyAccepted) && <li>Aceptar residencia, conducta y privacidad.</li>}
               {hasUnsavedChanges && <li>Guardar los cambios del formulario.</li>}
-              {(!parsedForm.success || parsedForm.data.businessCategories.length === 0) && <li>Completar los datos obligatorios de negocio, identificación y categoría.</li>}
+              {(!parsedForm.success || parsedForm.data.businessCategories.length === 0) && <li>Completar los datos obligatorios de negocio, identificación, iglesia y categoría.</li>}
             </ul>
           </div>
         )}

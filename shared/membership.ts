@@ -18,13 +18,13 @@ export const applicationInput = z.object({
   documentExpiry: z.string().regex(/^$|^\d{4}-\d{2}-\d{2}$/).default(""),
   province: z.string().trim().min(2).max(60),
   city: z.string().trim().min(2).max(100),
-  // Iglesia, denominación y pastor son opcionales: la plataforma está abierta a
-  // vendedores de cualquier creencia. Solo los usa quien quiera mostrarlos.
+  // CuadraZone es para vendedores cristianos evangélicos (decisión del 23/10/2026):
+  // iglesia y pastor son obligatorios; la denominación sigue siendo opcional.
   denominationId: z.number().int().positive().nullable().default(null),
-  churchName: z.string().trim().max(160).default("").refine(value => value === "" || value.length >= 2, "Escribe el nombre completo de la iglesia o déjalo vacío"),
-  pastorName: z.string().trim().max(100).default("").refine(value => value === "" || value.length >= 2, "Escribe el nombre completo del pastor o déjalo vacío"),
+  churchName: z.string().trim().min(2, "Escribe el nombre de tu iglesia evangélica").max(160),
+  pastorName: z.string().trim().min(2, "Escribe el nombre de tu pastor").max(100),
   residenceConfirmed: z.boolean(),
-  /** Ya no se exige; se conserva para solicitudes anteriores. */
+  /** Confesión de fe obligatoria para enviar la solicitud (ver FAITH_CONFESSION). */
   faithAccepted: z.boolean().default(false),
   conductAccepted: z.boolean(),
   privacyAccepted: z.boolean(),
@@ -50,7 +50,11 @@ export type Denomination = { id: number; name: string; active: boolean };
 export const provinceOptions = ["Panamá", "Panamá Oeste", "Colón", "Chiriquí", "Coclé", "Herrera", "Los Santos", "Veraguas", "Bocas del Toro", "Darién", "Guna Yala", "Emberá-Wounaan", "Ngäbe-Buglé"];
 export const documentKinds = ["identity", "pastoral"] as const;
 export const MAX_DOCUMENT_BYTES = 5 * 1024 * 1024;
-export const CONSENT_VERSION = "borrador-2026-10-22-abierto";
+export const CONSENT_VERSION = "borrador-2026-10-23-confesion";
+
+/** Confesión que todo vendedor acepta; se registra con la versión del consentimiento. */
+export const FAITH_CONFESSION =
+  "Soy cristiano evangélico, pertenezco a la iglesia evangélica que indiqué y confieso que Cristo es Rey y que Jesús es Dios.";
 export const saveApplicationInput = applicationInput.extend({
   revision: z.number().int().positive().optional(),
   consentVersion: z.literal(CONSENT_VERSION),
@@ -62,3 +66,7 @@ export function splitApplicationSave(input: z.infer<typeof saveApplicationInput>
   const { revision, consentVersion, ...application } = input;
   return { revision, consentVersion, application: application as ApplicationInput };
 }
+
+/** Mensaje que ve el solicitante después de enviar su solicitud. */
+export const REVIEW_RESPONSE_MESSAGE =
+  "¡Gracias! Recibimos tu solicitud. En un plazo de 1 a 3 días te daremos respuesta para confirmarte si fue aprobada o rechazada. Mientras tanto puedes ver el estado en Mi tienda.";

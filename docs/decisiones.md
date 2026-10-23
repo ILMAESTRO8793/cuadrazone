@@ -118,3 +118,15 @@ Se mantiene el pago directo al vendedor: CuadraZone no procesa tarjetas, no reci
 - **Reglas al comprar:** cada tienda del carrito debe aceptar el método elegido. Si el vendedor retira su link, el pedido deja de mostrarlo.
 - **Costos:** los cobra la plataforma del vendedor (p. ej., Tilopay en Panamá 3.75% + US$0.50 según su publicación). La comisión de CuadraZone (8% o 5%) se calcula igual que con cualquier otro método.
 - **Migración 0009:** amplía `cz_orders.paymentMethod` y agrega los campos de tarjeta a `cz_stores`.
+
+
+## Solo vendedores cristianos evangélicos — 23 de octubre de 2026
+
+Decisión del propietario (revierte la apertura del 22 de octubre): CuadraZone es para vendedores cristianos evangélicos y la aprobación la hace personalmente el administrador.
+
+- **Obligatorio para enviar y aprobar:** nombre de la iglesia evangélica, nombre del pastor y la confesión de fe: «Soy cristiano evangélico, pertenezco a la iglesia evangélica que indiqué y confieso que Cristo es Rey y que Jesús es Dios» (`FAITH_CONFESSION`, registrada en `faithAccepted` con la versión `borrador-2026-10-23-confesion`).
+- **Sigue opcional:** denominación de la lista y carta pastoral (el propietario no las pidió como requisito).
+- **Aprobación:** manual por el administrador, quien puede confirmar con el pastor indicado. Sin cambios de base de datos (las columnas ya existían).
+- Los textos del inicio («emprendedores evangélicos», «hermanos en Cristo») vuelven a ser exactos; no requieren cambio.
+- Los borradores guardados con versiones anteriores deben guardarse de nuevo para aceptar la confesión.
+- La declaración de fe es definitiva: el propietario indicó que no necesita revisión de un pastor del Concilio. Conducta y privacidad siguen como borradores pendientes de revisión jurídica.

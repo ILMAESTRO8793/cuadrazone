@@ -177,3 +177,6 @@
 
 /* Nota que ocupa todo el ancho dentro de la grilla del formulario */
 .member-field--wide { grid-column: 1 / -1; margin: 4px 0 0; }
+
+/* Confesión de fe destacada en los consentimientos */
+.member-confession { padding: 10px 12px; border-left: 3px solid var(--cz-gold, #b58c3c); background: rgba(181,140,60,.08); border-radius: 6px; }

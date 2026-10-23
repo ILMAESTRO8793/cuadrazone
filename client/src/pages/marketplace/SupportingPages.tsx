@@ -241,7 +241,7 @@ export function StorePage({ slug }: { slug: string }) {
 export { SubscriptionsPage } from "./SubscriptionPlans";
 
 export function SellPage() {
-  const requirements = ["Residencia en Panamá", "Cédula o carné vigente", "Correo y teléfono verificados", "Datos de tu negocio y su categoría", "Aceptar el código de conducta y la política de privacidad", "Abierto a vendedores de cualquier creencia"];
+  const requirements = ["Ser cristiano evangélico y pertenecer a una iglesia evangélica", "Indicar tu iglesia y el nombre de tu pastor", "Confesar que Cristo es Rey y que Jesús es Dios", "Residencia en Panamá", "Cédula o carné vigente", "Correo y teléfono verificados", "Datos de tu negocio y su categoría", "Aprobación personal del equipo de CuadraZone"];
   return <div className="market-page"><div className="container"><Crumbs current="Vende en CuadraZone" /><Intro eyebrow="Para vendedores" title="Convierte tu propósito en una tienda" copy="Guarda tu solicitud y adjunta tus evidencias de forma privada. Tu correo se verifica con tu cuenta de Google y nuestro equipo confirma tu teléfono por llamada o WhatsApp." badge="3 meses gratis al ser aprobado" /><section className="sell-content"><div><p className="eyebrow">Tu recorrido</p><h2>Una comunidad con confianza</h2><ul className="check-list">{requirements.map(item => <li key={item}><Check size={17} />{item}</li>)}</ul></div><aside className="sell-callout"><FileText size={24} /><h3>Documentos privados</h3><p>Solo tú y los administradores autenticados pueden consultarlos. Durante esta vista previa utiliza archivos de prueba sin datos sensibles; los textos legales siguen en revisión.</p><Link href="/solicitud-vendedor" className="btn btn-gold btn-wide">Comenzar mi solicitud <ArrowRight size={16} /></Link><p>Normal {sellerPlanLabel("normal")}/mes o Mayor Visibilidad {sellerPlanLabel("mayor_visibilidad")}/mes después de 3 meses gratis · Comisión de 8% por venta en la prueba y 5% después, sin contar el envío.</p><Link href="/suscripciones" className="text-link">Comparar los dos planes</Link></aside></section></div></div>;
 }
 
@@ -715,19 +715,15 @@ const legalContent: Record<
 > = {
   fe: {
     title: "Declaración de fe",
-    intro: "Los valores que inspiran a CuadraZone. Bosquejo pendiente de revisión.",
+    intro: "La confesión de fe de los vendedores de CuadraZone.",
     sections: [
       [
         "Propósito",
-        "Borrador para revisión pastoral: confesamos a Jesucristo como Señor y Salvador y reconocemos la Biblia como referencia de nuestra fe cristiana. El texto definitivo deberá acordarse con el operador antes del lanzamiento público.",
+        "Confesamos que Cristo es Rey y que Jesús es Dios, nuestro Señor y Salvador, y reconocemos la Biblia como la Palabra de Dios y fundamento de nuestra fe. CuadraZone es un marketplace de y para la comunidad cristiana evangélica de Panamá.",
       ],
       [
-        "¿Es obligatoria?",
-        "Expresa los valores que inspiran a CuadraZone. No es un requisito para comprar ni para vender: la plataforma está abierta a vendedores de cualquier creencia que respeten el código de conducta.",
-      ],
-      [
-        "Estado",
-        "Este texto no es una declaración doctrinal final. Está pendiente de revisión pastoral y jurídica.",
+        "Aceptación",
+        "Todo vendedor confiesa que Cristo es Rey y que Jesús es Dios, y declara pertenecer a una iglesia evangélica. Su aceptación y la versión se registran en la solicitud, que el equipo de CuadraZone revisa personalmente. Los compradores no necesitan aceptarla.",
       ],
     ],
   },
@@ -781,7 +777,7 @@ const legalContent: Record<
       ],
       [
         "Estado del documento",
-        "Bosquejo no final, pendiente de revisión jurídica y pastoral.",
+        "Bosquejo no final, pendiente de revisión jurídica.",
       ],
     ],
   },
