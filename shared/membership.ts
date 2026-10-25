@@ -18,13 +18,14 @@ export const applicationInput = z.object({
   documentExpiry: z.string().regex(/^$|^\d{4}-\d{2}-\d{2}$/).default(""),
   province: z.string().trim().min(2).max(60),
   city: z.string().trim().min(2).max(100),
-  // CuadraZone es para vendedores cristianos evangélicos (decisión del 23/10/2026):
-  // iglesia y pastor son obligatorios; la denominación sigue siendo opcional.
+  // CuadraZone está abierto a vendedores cristianos y no cristianos (decisión del
+  // 24/10/2026): iglesia, pastor y denominación son opcionales. Lo obligatorio es
+  // aceptar los valores cristianos de la plataforma (faithAccepted).
   denominationId: z.number().int().positive().nullable().default(null),
-  churchName: z.string().trim().min(2, "Escribe el nombre de tu iglesia evangélica").max(160),
-  pastorName: z.string().trim().min(2, "Escribe el nombre de tu pastor").max(100),
+  churchName: z.string().trim().max(160).default("").refine(value => value === "" || value.length >= 2, "Escribe el nombre completo de la iglesia o déjalo vacío"),
+  pastorName: z.string().trim().max(100).default("").refine(value => value === "" || value.length >= 2, "Escribe el nombre completo del pastor o déjalo vacío"),
   residenceConfirmed: z.boolean(),
-  /** Confesión de fe obligatoria para enviar la solicitud (ver FAITH_CONFESSION). */
+  /** Compromiso obligatorio con los valores cristianos de CuadraZone (ver VALUES_COMMITMENT). */
   faithAccepted: z.boolean().default(false),
   conductAccepted: z.boolean(),
   privacyAccepted: z.boolean(),
@@ -50,11 +51,15 @@ export type Denomination = { id: number; name: string; active: boolean };
 export const provinceOptions = ["Panamá", "Panamá Oeste", "Colón", "Chiriquí", "Coclé", "Herrera", "Los Santos", "Veraguas", "Bocas del Toro", "Darién", "Guna Yala", "Emberá-Wounaan", "Ngäbe-Buglé"];
 export const documentKinds = ["identity", "pastoral"] as const;
 export const MAX_DOCUMENT_BYTES = 5 * 1024 * 1024;
-export const CONSENT_VERSION = "borrador-2026-10-23-confesion";
+export const CONSENT_VERSION = "2026-10-24";
 
 /** Confesión que todo vendedor acepta; se registra con la versión del consentimiento. */
-export const FAITH_CONFESSION =
-  "Soy cristiano evangélico, pertenezco a la iglesia evangélica que indiqué y confieso que Cristo es Rey y que Jesús es Dios.";
+/**
+ * Compromiso que todo vendedor acepta, sea o no cristiano. Los valores no se negocian:
+ * incumplirlos puede llevar a cerrar la tienda.
+ */
+export const VALUES_COMMITMENT =
+  "Acepto los valores cristianos de CuadraZone: honestidad, respeto, trato justo y no publicar nada contrario a la fe cristiana. Entiendo que estos valores no se negocian y que incumplirlos puede llevar al cierre de mi tienda.";
 export const saveApplicationInput = applicationInput.extend({
   revision: z.number().int().positive().optional(),
   consentVersion: z.literal(CONSENT_VERSION),
@@ -69,4 +74,4 @@ export function splitApplicationSave(input: z.infer<typeof saveApplicationInput>
 
 /** Mensaje que ve el solicitante después de enviar su solicitud. */
 export const REVIEW_RESPONSE_MESSAGE =
-  "¡Gracias! Recibimos tu solicitud. En un plazo de 1 a 3 días te daremos respuesta para confirmarte si fue aprobada o rechazada. Mientras tanto puedes ver el estado en Mi tienda.";
+  "¡Gracias! Recibimos tu solicitud. En un plazo de 1 a 3 días te daremos respuesta para confirmarte si fue aprobada o rechazada. Te avisaremos por correo y también puedes ver el estado en Mi tienda.";

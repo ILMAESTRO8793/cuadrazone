@@ -91,6 +91,9 @@
       "path": "/mi-cuenta"
     },
     {
+      "path": "/entrar"
+    },
+    {
       "path": "/solicitud-vendedor"
     },
     {

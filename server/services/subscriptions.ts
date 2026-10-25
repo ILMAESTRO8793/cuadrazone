@@ -5,7 +5,7 @@
 // registrar pagos por esta misma vía más adelante.
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, inArray, lt } from "drizzle-orm";
-import { getSellerPlan, sellerPlanIds, type SellerPlanId } from "@shared/pricing";
+import { getSellerPlan, sellerPlanIds, sellerPlanLabel, type SellerPlanId } from "@shared/pricing";
 import {
   czApplications,
   czMembershipAudit,
@@ -16,6 +16,8 @@ import {
   type User,
 } from "../../drizzle/schema";
 import { getDb } from "../db";
+import { queueEmail, recipientFor } from "./email";
+import { subscriptionEndingSoon, subscriptionExpired, subscriptionPaymentReceipt } from "./emailMessages";
 import { pendingTotalsBySeller } from "./commissions";
 
 export const PAYMENT_METHODS = ["yappy", "transferencia", "efectivo", "otro"] as const;
@@ -165,6 +167,8 @@ export async function adminRecordPayment(admin: User, raw: RecordPaymentInput) {
           periodEnd: period.end.toISOString(),
         },
       });
+      await queueEmail(tx, `sub-payment:${app.id}:${period.end.toISOString()}`, await recipientFor(tx, app.userId),
+        subscriptionPaymentReceipt(getSellerPlan(input.planId).name, input.months, input.amountCents, period.end));
       return { status: "active" as const, planId: input.planId, endsAt: period.end, periodStart: period.start };
     });
   } catch (error) {
@@ -197,16 +201,49 @@ export async function adminDeactivateSubscription(admin: User, applicationId: nu
   });
 }
 
-/** Marca como vencidas las suscripciones cuyo período terminó. Devuelve cuántas cambió. */
+export const REMINDER_DAYS = 7;
+
+/**
+ * Marca como vencidas las suscripciones cuyo período terminó y avisa por correo.
+ * También recuerda, 7 días antes, que la prueba o la mensualidad está por vencer.
+ * Devuelve cuántas venció.
+ */
 export async function sweepExpiredSubscriptions(now = new Date()): Promise<number> {
   const db = await getDb();
   if (!db) return 0;
-  const result: any = await db
-    .update(czApplications)
-    .set({ subscriptionStatus: "past_due" })
-    .where(and(eq(czApplications.subscriptionStatus, "active"), lt(czApplications.subscriptionEndsAt, now)));
-  const header = Array.isArray(result) ? result[0] : result;
-  return Number(header?.affectedRows ?? 0);
+  const expiring = await db
+    .select({ id: czApplications.id, userId: czApplications.userId, endsAt: czApplications.subscriptionEndsAt, trialEndsAt: czApplications.trialEndsAt, planId: czApplications.subscriptionPlanId })
+    .from(czApplications)
+    .where(and(
+      eq(czApplications.subscriptionStatus, "active"),
+      lt(czApplications.subscriptionEndsAt, new Date(now.getTime() + REMINDER_DAYS * 24 * 60 * 60 * 1000)),
+    ))
+    .limit(500);
+  let expired = 0;
+  for (const app of expiring) {
+    if (!app.endsAt) continue;
+    const endsAt = new Date(app.endsAt);
+    const endKey = endsAt.toISOString().slice(0, 10);
+    await db.transaction(async (tx: any) => {
+      if (endsAt < now) {
+        const result: any = await tx
+          .update(czApplications)
+          .set({ subscriptionStatus: "past_due" })
+          .where(and(eq(czApplications.id, app.id), eq(czApplications.subscriptionStatus, "active"), lt(czApplications.subscriptionEndsAt, now)));
+        const header = Array.isArray(result) ? result[0] : result;
+        if (Number(header?.affectedRows ?? 0) === 1) {
+          expired++;
+          await queueEmail(tx, `sub-expired:${app.id}:${endKey}`, await recipientFor(tx, app.userId), subscriptionExpired());
+        }
+      } else {
+        const inTrial = Boolean(app.trialEndsAt && new Date(app.trialEndsAt) > now);
+        const plan = (sellerPlanIds as readonly string[]).includes(app.planId ?? "") ? (app.planId as SellerPlanId) : "normal";
+        await queueEmail(tx, `sub-reminder:${app.id}:${endKey}`, await recipientFor(tx, app.userId),
+          subscriptionEndingSoon(endsAt, inTrial, sellerPlanLabel(plan)));
+      }
+    });
+  }
+  return expired;
 }
 
 /** Ejecuta el vencimiento al arrancar y cada 15 minutos (una sola instancia en Railway). */

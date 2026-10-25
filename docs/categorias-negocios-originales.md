@@ -68,15 +68,22 @@
 - Instalación de cámaras y alarmas
 - Paneles solares
 
-**Educación**
-- Tutorías escolares (matemáticas, ciencias, lectura)
-- Clases de idiomas (inglés, francés, portugués)
+**Educación, clases y cursos**
+- Tutorías escolares (primaria y secundaria: matemáticas, ciencias, lectura)
+- Tutorías universitarias
+- Clases de inglés (todas las edades y niveles)
+- Clases de francés
+- Español para extranjeros
+- Clases de otros idiomas (portugués, italiano, criollo haitiano y más)
+- Preparación para exámenes de idiomas (TOEFL, IELTS, DELF)
 - Preparación para exámenes de admisión
-- Escuelas, colegios y guarderías cristianas
 - Cursos técnicos y de oficios
 - Clases de computación y tecnología
+- Cursos en línea y talleres
+- Cursos de emprendimiento y finanzas personales
 - Educación especial y terapia de lenguaje
 - Homeschooling y materiales educativos
+- Escuelas, colegios y guarderías cristianas
 
 **Salud y bienestar**
 - Médicos generales y especialistas
@@ -115,3 +122,5 @@
 - Páginas web y apps para iglesias y ministerios
 - Organización de campañas, retiros y campamentos
 - Traducción e interpretación para predicaciones
+
+> Actualizado el 23/10/2026: la categoría Educación se amplió a «Educación, clases y cursos» (7 especialidades nuevas). Los identificadores originales se conservan.

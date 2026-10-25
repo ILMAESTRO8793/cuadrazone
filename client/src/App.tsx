@@ -46,6 +46,7 @@ import { getPageMeta } from "./lib/pageMeta";
 import { AccountPage } from "./features/membership/AccountPage";
 import { SellerApplicationPage } from "./features/membership/SellerApplicationPage";
 import { SellerPlanPage } from "./features/membership/SellerPlanPage";
+import { LoginPage } from "./features/membership/LoginPage";
 import { SellerStatusPage } from "./features/membership/SellerStatusPage";
 import { AdminVerificationPage } from "./features/membership/AdminVerificationPage";
 
@@ -139,6 +140,7 @@ function Router() {
         <Route path="/favoritos" component={WishlistPage} />
         <Route path="/checkout" component={CheckoutPage} />
         <Route path="/mi-cuenta" component={AccountPage} />
+        <Route path="/entrar" component={LoginPage} />
         <Route path="/solicitud-vendedor" component={SellerApplicationPage} />
         <Route path="/vendedor" component={SellerStatusPage} />
         <Route path="/admin/verificaciones">

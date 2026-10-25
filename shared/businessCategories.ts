@@ -270,40 +270,24 @@ export const businessCategories = [
   },
   {
     id: "educacion",
-    label: "Educación",
+    label: "Educación, clases y cursos",
+    // Los identificadores 01–08 se conservan para no alterar solicitudes guardadas.
     specialties: [
-      {
-        id: "educacion-01",
-        label: "Tutorías escolares (matemáticas, ciencias, lectura)",
-      },
-      {
-        id: "educacion-02",
-        label: "Clases de idiomas (inglés, francés, portugués)",
-      },
-      {
-        id: "educacion-03",
-        label: "Preparación para exámenes de admisión",
-      },
-      {
-        id: "educacion-04",
-        label: "Escuelas, colegios y guarderías cristianas",
-      },
-      {
-        id: "educacion-05",
-        label: "Cursos técnicos y de oficios",
-      },
-      {
-        id: "educacion-06",
-        label: "Clases de computación y tecnología",
-      },
-      {
-        id: "educacion-07",
-        label: "Educación especial y terapia de lenguaje",
-      },
-      {
-        id: "educacion-08",
-        label: "Homeschooling y materiales educativos",
-      },
+      { id: "educacion-01", label: "Tutorías escolares (primaria y secundaria: matemáticas, ciencias, lectura)" },
+      { id: "educacion-13", label: "Tutorías universitarias" },
+      { id: "educacion-09", label: "Clases de inglés (todas las edades y niveles)" },
+      { id: "educacion-10", label: "Clases de francés" },
+      { id: "educacion-11", label: "Español para extranjeros" },
+      { id: "educacion-02", label: "Clases de otros idiomas (portugués, italiano, criollo haitiano y más)" },
+      { id: "educacion-12", label: "Preparación para exámenes de idiomas (TOEFL, IELTS, DELF)" },
+      { id: "educacion-03", label: "Preparación para exámenes de admisión" },
+      { id: "educacion-05", label: "Cursos técnicos y de oficios" },
+      { id: "educacion-06", label: "Clases de computación y tecnología" },
+      { id: "educacion-14", label: "Cursos en línea y talleres" },
+      { id: "educacion-15", label: "Cursos de emprendimiento y finanzas personales" },
+      { id: "educacion-07", label: "Educación especial y terapia de lenguaje" },
+      { id: "educacion-08", label: "Homeschooling y materiales educativos" },
+      { id: "educacion-04", label: "Escuelas, colegios y guarderías cristianas" },
     ],
   },
   {

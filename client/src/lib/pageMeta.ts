@@ -36,6 +36,8 @@ export function getPageMeta(url: string, snapshot: PublicSnapshot = {}) {
     "/solicitud-vendedor": "Solicitud de vendedor",
     "/admin/verificaciones": "Revisión de vendedores",
     "/admin/denominaciones": "Administrar denominaciones",
+    "/admin/suscripciones": "Suscripciones y comisiones",
+    "/entrar": "Entrar o crear cuenta",
     "/ayuda": "Centro de ayuda",
   };
   if (titles[path]) title = `${titles[path]} | CuadraZone Panamá`;
@@ -71,9 +73,9 @@ export function getPageMeta(url: string, snapshot: PublicSnapshot = {}) {
   ) {
     status = 404;
   } else if (path.startsWith("/legal/")) {
-    title = "Borradores legales | CuadraZone Panamá";
+    title = "Documentos legales | CuadraZone Panamá";
     description =
-      "Estructura de documentos de CuadraZone, pendiente de revisión jurídica y pastoral. No constituye asesoría legal.";
+      "Fe y valores, código de conducta y política de privacidad de CuadraZone.";
   } else if (path !== "/") status = 404;
   if (snapshot.badRequest) status = 400;
   if (snapshot.failed) status = 503;
@@ -111,6 +113,8 @@ export function getPageMeta(url: string, snapshot: PublicSnapshot = {}) {
         "/solicitud-vendedor",
         "/admin/verificaciones",
         "/admin/denominaciones",
+        "/admin/suscripciones",
+        "/entrar",
       ].includes(path),
   };
 }

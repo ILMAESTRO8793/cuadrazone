@@ -12,7 +12,7 @@ export const SELLER_PLANS = {
     benefits: [
       "Tienda y directorio por categorías y especialidades",
       "Productos y libros con inventario y pedidos",
-      "Comisión de 5% por venta entregada (sin contar el envío)",
+      "Productos físicos: 5% de comisión por venta entregada (sin el envío). Servicios: sin comisión",
       "Sin prioridad comercial de pago",
     ],
   },
@@ -67,7 +67,9 @@ export const PLAN_ACTIVATION_NOTICE =
  * - Prueba: los primeros 3 meses desde la aprobación no pagan mensualidad y la
  *   comisión es de 8% por venta entregada.
  * - Después: mensualidad del plan y comisión de 5% por venta entregada.
- * La comisión se calcula solo sobre los productos (sin envío) y queda fijada
+ * La comisión aplica solo a la venta de productos físicos; los servicios (clases,
+ * cursos, trabajos a domicilio, consultas) no pagan comisión, solo la mensualidad
+ * (decisión del 23/10/2026). Se calcula solo sobre los productos (sin envío) y queda fijada
  * al crear el pedido, aunque se entregue cuando ya cambió la tasa.
  */
 export const TRIAL_PLAN_ID = "prueba";

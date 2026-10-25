@@ -180,3 +180,8 @@
 
 /* Confesión de fe destacada en los consentimientos */
 .member-confession { padding: 10px 12px; border-left: 3px solid var(--cz-gold, #b58c3c); background: rgba(181,140,60,.08); border-radius: 6px; }
+
+/* Página de entrada */
+.member-auth-card { max-width: 520px; margin: 32px auto; display: flex; flex-direction: column; gap: 16px; }
+.member-button--active { outline: 2px solid currentColor; outline-offset: 2px; }
+.member-actions--stack .member-button { justify-content: center; gap: 8px; }

@@ -130,3 +130,42 @@ Decisión del propietario (revierte la apertura del 22 de octubre): CuadraZone e
 - Los textos del inicio («emprendedores evangélicos», «hermanos en Cristo») vuelven a ser exactos; no requieren cambio.
 - Los borradores guardados con versiones anteriores deben guardarse de nuevo para aceptar la confesión.
 - La declaración de fe es definitiva: el propietario indicó que no necesita revisión de un pastor del Concilio. Conducta y privacidad siguen como borradores pendientes de revisión jurídica.
+
+## Conducta y privacidad definitivas — 23 de octubre de 2026
+
+- El propietario pidió que el código de conducta y la política de privacidad sean definitivos. Se redactaron completos a partir de lo que el sitio hace realmente (datos de Google, perfil, solicitud de vendedor, tienda, pedidos, pagos, cookies, proveedores Google y Railway, derechos de la Ley 81 de 2019). Rigen desde el 23/10/2026; versión de consentimiento `2026-10-23`.
+- Términos de uso y Reclamos siguen como borradores.
+- Pendiente: nombre legal del responsable y correo de contacto para ejercer derechos, que hoy remiten a la sección de Ayuda.
+
+## Los servicios no pagan comisión — 23 de octubre de 2026
+
+Decisión del propietario: la comisión (8% en la prueba, 5% después) aplica solo a las tiendas que venden productos físicos. Quienes ofrecen servicios (clases, cursos, trabajos a domicilio, consultas) no pagan comisión: solo la mensualidad del plan después de los 3 meses gratis. Textos del sitio actualizados. Al construir la etapa 4, los servicios no deben generar `commissionCents`.
+
+## Correos automáticos — 23 de octubre de 2026
+
+- **Proveedor:** Brevo por su API HTTPS (plan gratis: 300 correos al día). Railway no permite SMTP en el plan Hobby. Resend no se usa (rechazado el 7 de octubre). Variables: `BREVO_API_KEY`, `EMAIL_FROM`, `EMAIL_FROM_NAME`; sin ellas no se encola nada.
+- **Bandeja de salida (`cz_email_outbox`, migración 0010):** cada correo se guarda en la misma transacción del evento y se envía cada 30 segundos, con hasta 5 intentos y espera creciente. `dedupeKey` evita duplicados aunque el servidor se reinicie.
+- **Correos:** solicitud recibida (vendedor) y nueva solicitud (administradores); aprobación con prueba gratis o rechazo con motivo; pedido registrado (comprador, con datos de pago) y nuevo pedido (vendedor); cambio de estado del pedido; recibo de mensualidad y de comisión; recordatorio 7 días antes del vencimiento de la prueba o la mensualidad; aviso de tienda oculta al vencer.
+- **Seguridad:** todo el texto se escapa en el HTML y los enlaces solo apuntan a rutas del propio sitio.
+- **Privacidad:** se agregó Brevo a la lista de proveedores con los que se comparten datos.
+- **No incluido por ahora:** correo por cada mensaje del chat (se sigue avisando con la campana dentro del sitio).
+
+## Entrar con correo o celular — 24 de octubre de 2026
+
+Decisión del propietario: además de Google, poder entrar con cualquier correo o solo con el número de celular, porque hay personas sin Gmail.
+
+- **Página `/entrar`:** Continuar con Google, Entrar con mi correo (código por Brevo) y Entrar con mi celular (código por SMS). Cada opción aparece solo si está configurada (`/api/auth/methods`). Todas las pantallas que piden sesión llevan a `/entrar`.
+- **Códigos (`cz_auth_codes`, migración 0011):** 6 dígitos, 10 minutos, 5 intentos; un código por minuto, 5 por hora por destino y 20 por hora por conexión. Solo se guarda el HMAC con `SESSION_SECRET`. Solo celulares de Panamá (+507 6…).
+- **Una cuenta por persona:** el correo con código abre la cuenta de Google del mismo correo, y Google abre la cuenta creada antes con código. El celular verificado (`users.phone`, único) permite entrar con él. Los administradores siguen definidos por `ADMIN_EMAILS`.
+- **Verificación de contactos en Mi cuenta:** el vendedor verifica su celular con SMS y cualquier correo con un código; la verificación por el administrador queda como respaldo.
+- **SMS:** por defecto, un celular Android con la app gratuita SMS Gateway for Android en modo nube (`SMS_GATEWAY_USER`/`SMS_GATEWAY_PASSWORD`); se cambia a Twilio solo con variables (`SMS_PROVIDER=twilio`). Riesgos aceptados del modo Android: el teléfono debe estar encendido y con señal, y las operadoras pueden limitar envíos automáticos desde líneas personales.
+- **Corregido:** `/admin/suscripciones` daba 404 al abrirse directamente o al refrescar (faltaba en la lista de páginas del servidor).
+- Privacidad actualizada (métodos de entrada y proveedor de SMS).
+
+## Abierto a cristianos y no cristianos, con valores cristianos — 24 de octubre de 2026
+
+Decisión del propietario (reemplaza la del 23 de octubre): CuadraZone está abierto a vendedores y compradores cristianos y no cristianos, pero los valores cristianos no se negocian.
+
+- **Obligatorio:** aceptar el compromiso `VALUES_COMMITMENT` (honestidad, respeto, trato justo, nada contrario a la fe cristiana; incumplirlo puede cerrar la tienda), registrado en `faithAccepted` con la versión `2026-10-24`.
+- **Opcional:** iglesia, pastor, denominación y carta pastoral.
+- **Textos:** la página «Declaración de fe» pasa a «Nuestra fe y valores» (fe de CuadraZone, abierto a todos, valores que no se negocian, aceptación). El inicio dice «emprendedores en Panamá, en un espacio con valores cristianos». El código de conducta prohíbe además el ocultismo. Correos y metadatos ajustados.

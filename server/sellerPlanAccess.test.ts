@@ -7,7 +7,7 @@ const input: SelectSellerPlanInput = { planId: "normal" as const, catalogVersion
 function caller(user: TrpcContext["user"], headers: Record<string,string> = {}) {
   return appRouter.createCaller({ user, req: { headers } as TrpcContext["req"], res: {} as TrpcContext["res"] });
 }
-const baseUser = { id: 7, openId: "test-memory-only", role: "user" as const, name: "Prueba", email: null, loginMethod: null, createdAt: new Date(), updatedAt: new Date(), lastSignedIn: new Date() };
+const baseUser = { id: 7, openId: "test-memory-only", role: "user" as const, name: "Prueba", email: null, phone: null, loginMethod: null, createdAt: new Date(), updatedAt: new Date(), lastSignedIn: new Date() };
 describe("Permisos de selección de plan", () => {
   it("rejects anonymous reads and writes before database access", async () => {
     const api = caller(null);

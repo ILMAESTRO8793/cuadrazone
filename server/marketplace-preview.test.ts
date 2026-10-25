@@ -28,7 +28,7 @@ describe("CuadraZone preview", () => {
     expect(html).toContain("Habitar los hermanos juntos en armonía!");
     expect(html).toContain("Salmo 133:1");
     expect(html).not.toContain("Reina-Valera 1960");
-    expect(html).toContain("hacer crecer juntos nuestros emprendimientos");
+    expect(html).toContain("en un espacio con valores cristianos");
   });
   it("renders protected pages with no invented identity and one main region", () => {
     for (const path of ["/vendedor/plan", "/mi-cuenta", "/solicitud-vendedor", "/vendedor", "/admin", "/admin/verificaciones", "/admin/denominaciones"]) {
@@ -55,7 +55,8 @@ describe("CuadraZone preview", () => {
     expect(result.html).toContain("Mayor Visibilidad");
     expect(result.html).toContain("Normal");
     expect(result.html).not.toContain("USD 10.00");
-    expect(result.html).toContain("Comisión de 5% por venta entregada");
+    expect(result.html).toContain("Productos físicos: 5% de comisión por venta entregada");
+    expect(result.html).toContain("Los servicios no pagan comisión.");
     expect(result.html).toContain("Los primeros 3 meses son gratis");
     expect(result.html).not.toContain("0% de comisión");
   });

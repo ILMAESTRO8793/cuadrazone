@@ -81,8 +81,8 @@ export default function Home() {
             </h1>
             <p>
               Descubre productos, libros, eventos y servicios de emprendedores
-              evangélicos en Panamá. Un espacio para apoyarnos como hermanos en
-              Cristo y hacer crecer juntos nuestros emprendimientos.
+              en Panamá, en un espacio con valores cristianos. Compra con
+              confianza y haz crecer tu emprendimiento en comunidad.
             </p>
             <div className="hero-actions">
               <Link className="btn btn-gold" href="/mercado">
@@ -280,7 +280,9 @@ export default function Home() {
           <p>
             Tu tienda por{" "}
             <strong>Normal {sellerPlanLabel("normal")}/mes</strong> o <strong>Mayor Visibilidad {sellerPlanLabel("mayor_visibilidad")}/mes</strong>. Los
-            primeros 3 meses son gratis con 8% de comisión por venta; después, 5%.
+            primeros 3 meses son gratis. Los productos físicos pagan 8% de
+            comisión por venta en la prueba y 5% después; los servicios no pagan
+            comisión.
           </p>
         </div>
         <Link className="btn btn-gold" href="/vender">

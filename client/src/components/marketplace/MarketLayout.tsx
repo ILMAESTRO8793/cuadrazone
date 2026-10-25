@@ -435,7 +435,7 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
             <Link href="/legal/privacidad">Privacidad</Link>
             <Link href="/legal/conducta">Código de conducta</Link>
             <Link href="/legal/reclamos">Reclamos y devoluciones</Link>
-            <Link href="/legal/fe">Declaración de fe</Link>
+            <Link href="/legal/fe">Fe y valores</Link>
           </div>
         </div>
         <div className="container footer-bottom">

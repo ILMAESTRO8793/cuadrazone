@@ -12,10 +12,12 @@ import {
   assertCheckoutTotal, assertSafeQuantity, calculateSubtotal, canTransitionOrder, deriveReviewEligibility, paymentStatusFor,
   sameCheckoutPayload, stableVariantOrder,
   MAX_MONEY_CENTS, type CartDTO, type CartItemDTO, type DeliveryMode, type OrderDTO, type OrderStatus, type ReviewSafeDTO,
-  type PaymentMethod, type PublicProductDTO,
+  type PaymentMethod, type PublicProductDTO, paymentMethodLabels
 } from "@shared/commerce";
 import type { PublicProduct } from "@shared/marketplace";
 import { isAllowedCardLink, storeAcceptsYappy } from "@shared/marketplace";
+import { queueEmail, recipientFor } from "./email";
+import { orderPlacedBuyer, orderPlacedSeller, orderStatusChanged } from "./emailMessages";
 import { assertActiveStore, assertSellerOwner } from "./catalog";
 import { getPublicProduct } from "./catalog";
 
@@ -335,7 +337,8 @@ export async function checkout(userId: number, input: { checkoutKey: string; exp
       // La tasa de comisión del vendedor queda fijada al momento de la compra.
       const sellerUserId = (await tx.select({ userId: czStores.userId }).from(czStores).where(eq(czStores.id, storeId)).limit(1))[0]!.userId;
       const sellerTrialEndsAt = (await tx.select({ trialEndsAt: czApplications.trialEndsAt }).from(czApplications).where(eq(czApplications.userId, sellerUserId)).limit(1))[0]?.trialEndsAt ?? null;
-      const result = await tx.insert(czOrders).values({ number: `CZ-${input.checkoutKey.slice(0, 8)}-${storeId}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`, userId, storeId, checkoutKey: input.checkoutKey,
+      const orderNumber = `CZ-${input.checkoutKey.slice(0, 8)}-${storeId}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+      const result = await tx.insert(czOrders).values({ number: orderNumber, userId, storeId, checkoutKey: input.checkoutKey,
         status: "pending", paymentMethod: input.paymentMethod, paymentStatus: paymentStatusFor(input.paymentMethod), subtotalCents, deliveryFeeCents: group.deliveryFeeCents, totalCents, deliveryMode: mode, commissionBps: commissionBpsAt(sellerTrialEndsAt),
         recipientName: input.recipientName, phone: input.phone, province: input.province, city: input.city, address: input.address, stockRestored: 0 });
       const orderId = listInsertId(result); created.push(orderId);
@@ -345,6 +348,12 @@ export async function checkout(userId: number, input: { checkoutKey: string; exp
         if (affectedRows(changed) !== 1) fail("CONFLICT", "El inventario cambió durante el checkout");
       }
       await tx.insert(czNotifications).values({ userId: (await tx.select({ userId: czStores.userId }).from(czStores).where(eq(czStores.id, storeId)).limit(1))[0]!.userId, kind: "new_order", body: "Tienes un nuevo pedido pendiente", payload: { orderId } });
+      // Correos: al comprador con los datos de pago y al vendedor con el aviso del pedido.
+      const store = lines[0]!.store;
+      await queueEmail(tx, `order-buyer:${orderId}`, await recipientFor(tx, userId),
+        orderPlacedBuyer(orderNumber, store.name, totalCents, { method: input.paymentMethod, yappyPhone: store.yappyPhone, yappyDirectory: store.yappyDirectory, cardLink: store.cardPaymentUrl && isAllowedCardLink(store.cardPaymentUrl) ? store.cardPaymentUrl : null }, orderId));
+      await queueEmail(tx, `order-seller:${orderId}`, await recipientFor(tx, sellerUserId),
+        orderPlacedSeller(orderNumber, totalCents, paymentMethodLabels[input.paymentMethod], orderId));
     }
     for (const productId of lockedProducts.keys()) {
       const changed = await tx.update(czProducts).set({ revision: sql`${czProducts.revision} + 1` }).where(eq(czProducts.id, productId));
@@ -400,6 +409,8 @@ export async function transitionOrder(userId: number, id: number, next: Exclude<
     }
     const recipient = actor === "buyer" ? row.store.userId : row.order.userId;
     await tx.insert(czNotifications).values({ userId: recipient, kind: "order_status", body: `El pedido ${row.order.number} cambió a ${next}`, payload: { orderId: id } });
+    const statusEmail = orderStatusChanged(row.order.number, next, id);
+    if (statusEmail) await queueEmail(tx, `order-status:${id}:${next}`, await recipientFor(tx, recipient), statusEmail);
     return orderDto(tx, id, userId);
   });
 }

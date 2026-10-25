@@ -89,7 +89,12 @@ export function registerOAuthRoutes(app: Express) {
       const profile = await exchangeGoogleCode(code, `${publicOrigin(req)}${GOOGLE_CALLBACK_PATH}`);
       if (!profile.emailVerified) return loginError(res, "correo_no_verificado");
 
-      const openId = googleOpenId(profile.sub);
+      // Si esa persona ya entró antes con su correo (código), usa la misma cuenta.
+      let openId = googleOpenId(profile.sub);
+      if (!(await db.getUserByOpenId(openId))) {
+        const linked = await db.getUserByEmailLogin(profile.email);
+        if (linked) openId = linked.openId;
+      }
       await db.upsertUser({
         openId,
         name: profile.name,

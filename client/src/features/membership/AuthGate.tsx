@@ -54,9 +54,9 @@ export function AuthGate({
           <span className="member-state-icon" aria-hidden="true"><UserRound size={28} /></span>
           <p className="member-eyebrow">CUADRAZONE</p>
           <h1>Inicia sesión para continuar</h1>
-          <p>Entra con tu cuenta de Google. Si es tu primera vez, tu cuenta de comprador se crea gratis al instante, sin mensualidad.</p>
+          <p>Entra con Google, con tu correo o con tu celular. Si es tu primera vez, tu cuenta de comprador se crea gratis al instante, sin mensualidad.</p>
           <div className="member-actions member-actions--center">
-            <LoginAction label="Continuar con Google" />
+            <LoginAction label="Entrar o crear cuenta" />
           </div>
         </div>
       </Shell>

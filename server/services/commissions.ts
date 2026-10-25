@@ -10,6 +10,8 @@ import { czCommissionPayments, czOrders } from "../../drizzle/commerce-schema";
 import { czApplications, czMembershipAudit, users, type User } from "../../drizzle/schema";
 import { getDb } from "../db";
 import { isDuplicateKeyError, validateReceipt, type PaymentMethod } from "./subscriptions";
+import { queueEmail, recipientFor } from "./email";
+import { commissionPaymentReceipt } from "./emailMessages";
 
 function fail(code: TRPCError["code"], message: string): never {
   throw new TRPCError({ code, message });
@@ -167,6 +169,7 @@ export async function adminRecordCommissionPayment(admin: User, input: RecordCom
         reason: receipt.note || null,
         metadata: { amountCents: totalCents, orderCount, method: receipt.method, paymentId },
       });
+      await queueEmail(tx, `commission-payment:${paymentId}`, await recipientFor(tx, app.userId), commissionPaymentReceipt(totalCents, orderCount));
       return { paymentId, amountCents: totalCents, orderCount };
     });
   } catch (error) {

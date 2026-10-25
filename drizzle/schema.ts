@@ -19,12 +19,14 @@ const mediumBlob = customType<{ data: Buffer; driverData: Buffer }>({
     Buffer.isBuffer(value) ? value : Buffer.from(value as Uint8Array),
 });
 
-/** Usuarios; openId = "google_<sub>" para cuentas de Google. */
+/** Usuarios; openId = "google_<sub>", "email_<hash>" o "phone_<+507…>" según cómo se registró. */
 export const users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
   openId: varchar("openId", { length: 64 }).notNull().unique(),
   name: text("name"),
   email: varchar("email", { length: 320 }),
+  /** Celular verificado con código (+507…); permite entrar con el teléfono. */
+  phone: varchar("phone", { length: 20 }).unique(),
   loginMethod: varchar("loginMethod", { length: 64 }),
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -192,3 +194,56 @@ export const czSubscriptionPayments = mysqlTable(
 );
 
 export type SubscriptionPayment = typeof czSubscriptionPayments.$inferSelect;
+
+/**
+ * Bandeja de salida de correos. Cada correo se guarda en la misma transacción
+ * que el evento que lo origina y un proceso lo envía después, con reintentos.
+ * dedupeKey evita enviar dos veces el mismo aviso.
+ */
+export const czEmailOutbox = mysqlTable(
+  "cz_email_outbox",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    dedupeKey: varchar("dedupeKey", { length: 191 }).notNull(),
+    toEmail: varchar("toEmail", { length: 320 }).notNull(),
+    toName: varchar("toName", { length: 200 }),
+    subject: varchar("subject", { length: 300 }).notNull(),
+    html: text("html").notNull(),
+    textBody: text("textBody").notNull(),
+    status: mysqlEnum("status", ["pending", "sent", "failed"]).notNull().default("pending"),
+    attempts: int("attempts").notNull().default(0),
+    lastError: varchar("lastError", { length: 500 }),
+    sendAfter: timestamp("sendAfter").defaultNow().notNull(),
+    sentAt: timestamp("sentAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => ({
+    dedupe: uniqueIndex("cz_email_outbox_dedupe_uq").on(table.dedupeKey),
+    queue: index("cz_email_outbox_queue_idx").on(table.status, table.sendAfter),
+  })
+);
+
+/**
+ * Códigos de 6 dígitos para entrar con correo o celular, o para verificar un
+ * contacto del perfil. Solo se guarda el HMAC del código, nunca el código.
+ */
+export const czAuthCodes = mysqlTable(
+  "cz_auth_codes",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    purpose: mysqlEnum("purpose", ["login", "verify_contact"]).notNull(),
+    channel: mysqlEnum("channel", ["email", "phone"]).notNull(),
+    destination: varchar("destination", { length: 320 }).notNull(),
+    userId: int("userId"),
+    codeHash: varchar("codeHash", { length: 64 }).notNull(),
+    attempts: int("attempts").notNull().default(0),
+    expiresAt: timestamp("expiresAt").notNull(),
+    consumedAt: timestamp("consumedAt"),
+    ip: varchar("ip", { length: 64 }),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => ({
+    byDestination: index("cz_auth_codes_destination_idx").on(table.destination, table.createdAt),
+    byIp: index("cz_auth_codes_ip_idx").on(table.ip, table.createdAt),
+  })
+);

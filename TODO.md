@@ -128,3 +128,20 @@ Evidencia de planes: migración aditiva 0004 aplicada, 39 rutas sincronizadas, p
 - [x] Panel del administrador muestra iglesia, pastor y confesión; aprobación manual.
 - [x] Requisitos públicos y página de declaración de fe actualizados.
 - [x] La declaración de fe es definitiva; no requiere revisión pastoral (decisión del propietario, 23/10).
+
+## Documentos legales — 23 de octubre
+- [x] Declaración de fe, código de conducta y política de privacidad definitivos y vigentes.
+- [ ] Agregar a la privacidad el nombre legal del responsable y un correo de contacto.
+- [ ] Términos de uso y Reclamos (siguen como borradores).
+
+## Correos automáticos — 23 de octubre
+- [x] Bandeja de salida con reintentos y sin duplicados; envío por la API de Brevo.
+- [x] 11 avisos: solicitud, aprobación/rechazo, pedidos, estados, recibos, recordatorio y vencimiento.
+- [x] Probado con un Brevo de prueba local, incluida una caída y su reenvío automático.
+- [ ] Crear la cuenta de Brevo, verificar el remitente y configurar las 3 variables en Railway.
+
+## Entrar con correo o celular — 24 de octubre
+- [x] Página /entrar con Google, correo y celular; códigos seguros con límites.
+- [x] Cuentas unidas por correo y por celular; verificación de contactos con código en Mi cuenta.
+- [x] Probado de punta a punta con SMS y Brevo de prueba.
+- [ ] Instalar SMS Gateway for Android en un celular dedicado y configurar sus variables en Railway.

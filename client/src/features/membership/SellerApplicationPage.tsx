@@ -20,7 +20,7 @@ import { toast } from "sonner";
 import {
   MAX_DOCUMENT_BYTES,
   CONSENT_VERSION,
-  FAITH_CONFESSION,
+  VALUES_COMMITMENT,
   REVIEW_RESPONSE_MESSAGE,
   applicationInput,
   provinceOptions,
@@ -167,8 +167,6 @@ function SellerApplicationContent() {
       profile?.emailVerifiedAt &&
       /^\+507\d{8}$/.test(profile.phone) &&
       documentByKind("identity") &&
-      form.churchName.trim().length >= 2 &&
-      form.pastorName.trim().length >= 2 &&
       form.residenceConfirmed &&
       form.faithAccepted &&
       form.conductAccepted &&
@@ -477,10 +475,9 @@ function SellerApplicationContent() {
               />
             </label>
             <p className="member-muted member-field--wide">
-              <strong>Tu iglesia.</strong> CuadraZone es para vendedores
-              cristianos evangélicos. Indica la iglesia a la que perteneces y el
-              nombre de tu pastor; el equipo de CuadraZone revisa cada solicitud
-              antes de aprobarla.
+              <strong>Tu iglesia (opcional).</strong> CuadraZone está abierto a
+              vendedores cristianos y no cristianos que acepten nuestros valores.
+              Si perteneces a una iglesia, puedes indicarla junto con tu pastor.
             </p>
             <label className="member-field">
               <span>Denominación (opcional)</span>
@@ -502,22 +499,18 @@ function SellerApplicationContent() {
               )}
             </label>
             <label className="member-field">
-              <span>Iglesia evangélica a la que perteneces</span>
+              <span>Iglesia a la que perteneces (opcional)</span>
               <Input
                 value={form.churchName}
                 onChange={event => setField("churchName", event.target.value)}
-                required
-                minLength={2}
                 maxLength={160}
               />
             </label>
             <label className="member-field">
-              <span>Nombre de tu pastor</span>
+              <span>Nombre de tu pastor (opcional)</span>
               <Input
                 value={form.pastorName}
                 onChange={event => setField("pastorName", event.target.value)}
-                required
-                minLength={2}
                 maxLength={100}
               />
             </label>
@@ -583,11 +576,11 @@ function SellerApplicationContent() {
             </p>
           )}
           <p className="member-muted">
-            El correo se verifica con tu cuenta de Google desde{" "}
-            <Link className="member-inline-link" href="/mi-cuenta">Mi cuenta</Link>.
-            El teléfono lo confirma el equipo de CuadraZone por llamada o
-            WhatsApp durante la revisión; puedes enviar la solicitud con el
-            teléfono pendiente.
+            Verifica tu correo y tu celular desde{" "}
+            <Link className="member-inline-link" href="/mi-cuenta">Mi cuenta</Link>{" "}
+            con un código. Si no puedes recibir el SMS, puedes enviar la
+            solicitud con el teléfono pendiente y el equipo de CuadraZone lo
+            confirma por llamada o WhatsApp.
           </p>
         </section>
 
@@ -612,9 +605,9 @@ function SellerApplicationContent() {
                   setField("faithAccepted", event.target.checked)
                 }
               />{" "}
-              <strong>Confesión de fe:</strong> {FAITH_CONFESSION}{" "}
+              <strong>Valores de CuadraZone:</strong> {VALUES_COMMITMENT}{" "}
               <Link href="/legal/fe" target="_blank" rel="noopener noreferrer">
-                Ver la declaración de fe
+                Ver nuestra fe y valores
               </Link>
             </label>
             <label>
@@ -625,13 +618,13 @@ function SellerApplicationContent() {
                   setField("conductAccepted", event.target.checked)
                 }
               />{" "}
-              Acepto el código de conducta ·{" "}
+              Acepto el{" "}
               <Link
                 href="/legal/conducta"
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                borrador {CONSENT_VERSION}
+                código de conducta
               </Link>
               .
             </label>
@@ -643,25 +636,24 @@ function SellerApplicationContent() {
                   setField("privacyAccepted", event.target.checked)
                 }
               />{" "}
-              Acepto privacidad y tratamiento de datos ·{" "}
+              Acepto la{" "}
               <Link
                 href="/legal/privacidad"
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                borrador {CONSENT_VERSION}
-              </Link>
-              .
+                política de privacidad
+              </Link>{" "}
+              y el tratamiento de mis datos.
             </label>
           </div>
           <p className="member-legal-note" id="legal-fe">
-            <strong>Documentos legales:</strong> la conducta y la privacidad
-            son borradores pendientes de revisión jurídica. Aceptarlos no
+            <strong>Documentos vigentes:</strong> la declaración de fe, el{" "}
+            <span id="legal-conduct">código de conducta</span> y la{" "}
+            <span id="legal-privacy">política de privacidad</span> rigen desde
+            el 23 de octubre de 2026 (versión {CONSENT_VERSION}). Aceptarlos no
             aprueba la solicitud: cada una la revisa personalmente el equipo de
-            CuadraZone.{" "}
-            <span id="legal-conduct">Conducta</span> y{" "}
-            <span id="legal-privacy">privacidad</span> usan la misma versión
-            publicada arriba.
+            CuadraZone.
           </p>
         </fieldset>
 
@@ -783,14 +775,13 @@ function SellerApplicationContent() {
           <div className="member-notice member-notice--warning">
             <p>Para enviarla falta:</p>
             <ul>
-              {!profile?.emailVerifiedAt && <li>Verificar tu correo con tu cuenta de Google (en Mi cuenta).</li>}
+              {!profile?.emailVerifiedAt && <li>Verificar tu correo en Mi cuenta.</li>}
               {!/^\+507\d{8}$/.test(profile?.phone ?? "") && <li>Guardar un teléfono de Panamá (+507 y 8 dígitos) en Mi cuenta.</li>}
               {!documentByKind("identity") && <li>Cargar tu documento de identidad.</li>}
-              {(form.churchName.trim().length < 2 || form.pastorName.trim().length < 2) && <li>Indicar tu iglesia evangélica y el nombre de tu pastor.</li>}
-              {!form.faithAccepted && <li>Aceptar la confesión de fe.</li>}
+              {!form.faithAccepted && <li>Aceptar los valores cristianos de CuadraZone.</li>}
               {!(form.residenceConfirmed && form.conductAccepted && form.privacyAccepted) && <li>Aceptar residencia, conducta y privacidad.</li>}
               {hasUnsavedChanges && <li>Guardar los cambios del formulario.</li>}
-              {(!parsedForm.success || parsedForm.data.businessCategories.length === 0) && <li>Completar los datos obligatorios de negocio, identificación, iglesia y categoría.</li>}
+              {(!parsedForm.success || parsedForm.data.businessCategories.length === 0) && <li>Completar los datos obligatorios de negocio, identificación y categoría.</li>}
             </ul>
           </div>
         )}

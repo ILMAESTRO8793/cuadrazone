@@ -29,6 +29,11 @@ El repositorio incluye `Dockerfile` y `railway.json`. Railway compila la imagen,
 | `GOOGLE_CLIENT_SECRET` | del paso 1 |
 | `ADMIN_EMAILS` | correos de Google con rol de administrador, separados por comas |
 | `STORAGE_DIR` | `/data/storage` |
+| `BREVO_API_KEY` | opcional: clave de API de Brevo para los correos automáticos |
+| `EMAIL_FROM` | opcional: remitente verificado en Brevo, p. ej. `avisos@tudominio.com` |
+| `EMAIL_FROM_NAME` | opcional: nombre del remitente (por defecto CuadraZone) |
+| `SMS_GATEWAY_USER` y `SMS_GATEWAY_PASSWORD` | opcional: credenciales de la app SMS Gateway for Android (modo nube) para entrar con el celular |
+| `SMS_PROVIDER` + `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM` | opcional: usar Twilio en vez del celular Android (`SMS_PROVIDER=twilio`) |
 | `PAYMENT_CONTACT` | opcional: número de Yappy o WhatsApp al que pagan los vendedores, p. ej. `+507 6000-0000` |
 
 `PORT` y `NODE_ENV` ya los fija Railway y el Dockerfile.

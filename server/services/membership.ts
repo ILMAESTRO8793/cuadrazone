@@ -1,5 +1,7 @@
 import { getPlanSelection } from "./sellerPlans";
 import { addMonths } from "./subscriptions";
+import { queueAdminEmail, queueEmail, recipientFor } from "./email";
+import { applicationApproved, applicationReceived, applicationRejected, newApplicationForAdmin } from "./emailMessages";
 import { TRIAL_MONTHS, TRIAL_PLAN_ID } from "@shared/pricing";
 import { and, desc, eq, lt, or, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
@@ -72,7 +74,7 @@ export function accountEmailMatches(
   email: string
 ): boolean {
   return (
-    user.loginMethod === "google" &&
+    (user.loginMethod === "google" || user.loginMethod === "email") &&
     typeof user.email === "string" &&
     user.email.length > 0 &&
     user.email.trim().toLowerCase() === email.trim().toLowerCase()
@@ -389,12 +391,7 @@ async function ensureSubmissionGuards(
   )
     throw new MembershipError(
       "PRECONDITION_FAILED",
-      "Debes aceptar residencia, la confesión de fe, conducta y privacidad"
-    );
-  if (!app.churchName?.trim() || !app.pastorName?.trim())
-    throw new MembershipError(
-      "PRECONDITION_FAILED",
-      "Indica tu iglesia evangélica y el nombre de tu pastor"
+      "Debes aceptar residencia, los valores cristianos de CuadraZone, conducta y privacidad"
     );
   ensureCurrentExpiry(app);
   const docs = await documentsFor(db, app.id);
@@ -511,13 +508,15 @@ export async function saveProfile(
       email: input.email,
       phone: input.phone,
     };
-    // Google ya verificó el correo de la cuenta: si coincide, queda verificado.
+    // El correo de la cuenta ya está verificado (Google o código): si coincide, queda verificado.
     const googleVerified = accountEmailMatches(user, input.email);
+    // Igual con el celular con el que entra por código.
+    const phoneVerifiedByAccount = Boolean(user.phone && user.phone === input.phone);
     const verifyNow = googleVerified && (!existing || changedEmail || !existing.emailVerifiedAt);
     if (!existing)
       await tx
         .insert(czMembershipProfiles)
-        .values({ userId: user.id, ...values, emailVerifiedAt: googleVerified ? new Date() : null });
+        .values({ userId: user.id, ...values, emailVerifiedAt: googleVerified ? new Date() : null, phoneVerifiedAt: phoneVerifiedByAccount ? new Date() : null });
     else
       await tx
         .update(czMembershipProfiles)
@@ -525,7 +524,8 @@ export async function saveProfile(
           ...values,
           ...(changedEmail ? { emailVerifiedAt: verifyNow ? new Date() : null } : {}),
           ...(!changedEmail && verifyNow ? { emailVerifiedAt: new Date() } : {}),
-          ...(changedPhone ? { phoneVerifiedAt: null } : {}),
+          ...(changedPhone ? { phoneVerifiedAt: phoneVerifiedByAccount ? new Date() : null } : {}),
+          ...(!changedPhone && phoneVerifiedByAccount && !existing.phoneVerifiedAt ? { phoneVerifiedAt: new Date() } : {}),
         })
         .where(eq(czMembershipProfiles.userId, user.id));
     if (verifyNow)
@@ -709,6 +709,12 @@ export async function submitApplication(
       revision: nextRevision,
       consentVersion: CONSENT_VERSION,
     });
+    await queueEmail(tx, `app-submitted:${app.id}:${nextRevision}`, await recipientFor(tx, user.id), applicationReceived());
+    await queueAdminEmail(
+      tx,
+      `app-admin:${app.id}:${nextRevision}`,
+      newApplicationForAdmin(profile?.displayName || user.name || `Vendedor #${user.id}`, app.churchName ?? "")
+    );
     return { status: "pending" };
   });
 }
@@ -953,6 +959,12 @@ export async function reviewApplication(
         months: TRIAL_MONTHS,
         endsAt: trialEndsAt!.toISOString(),
       });
+    await queueEmail(
+      tx,
+      `app-review:${id}:${nextRevision}`,
+      await recipientFor(tx, app.userId),
+      decision === "approved" ? applicationApproved(trialEndsAt) : applicationRejected(reason.trim())
+    );
     return { status: decision };
   });
 }

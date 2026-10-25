@@ -71,6 +71,20 @@
       "when": 1792773072971,
       "tag": "0009_pago_tarjeta",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1792812957685,
+      "tag": "0010_correos",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "5",
+      "when": 1792860160990,
+      "tag": "0011_entrar_codigo",
+      "breakpoints": true
     }
   ]
 }

@@ -33,7 +33,7 @@ const specialty = category.specialties.find(
 const selection = [{ categoryId: category.id, specialtyIds: [specialty.id] }];
 
 describe("clasificación y directorio de negocios", () => {
-  it("conserva literalmente los 11 grupos y las 96 especialidades suministradas", () => {
+  it("conserva los 11 grupos y las 103 especialidades (96 originales + 7 de educación)", () => {
     const labels = source
       .split(/\r?\n/)
       .filter(line => line.startsWith("**"))
@@ -47,11 +47,11 @@ describe("clasificación y directorio de negocios", () => {
       businessCategories.flatMap(c => c.specialties.map(s => s.label))
     ).toEqual(specialties);
     expect(labels).toHaveLength(11);
-    expect(specialties).toHaveLength(96);
+    expect(specialties).toHaveLength(103);
     expect(
       new Set(businessCategories.flatMap(c => c.specialties.map(s => s.id)))
         .size
-    ).toBe(96);
+    ).toBe(103);
   });
   it("acepta varias categorías con sus especialidades y rechaza mezclas y repetidos", () => {
     const travel = businessCategories[0];
