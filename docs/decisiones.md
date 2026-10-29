@@ -169,3 +169,10 @@ Decisión del propietario (reemplaza la del 23 de octubre): CuadraZone está abi
 - **Obligatorio:** aceptar el compromiso `VALUES_COMMITMENT` (honestidad, respeto, trato justo, nada contrario a la fe cristiana; incumplirlo puede cerrar la tienda), registrado en `faithAccepted` con la versión `2026-10-24`.
 - **Opcional:** iglesia, pastor, denominación y carta pastoral.
 - **Textos:** la página «Declaración de fe» pasa a «Nuestra fe y valores» (fe de CuadraZone, abierto a todos, valores que no se negocian, aceptación). El inicio dice «emprendedores en Panamá, en un espacio con valores cristianos». El código de conducta prohíbe además el ocultismo. Correos y metadatos ajustados.
+
+## Portada: elegir Marketplace o Servicios — 28 de octubre de 2026
+
+- La portada pregunta «¿Qué estás buscando hoy?» con tres botones grandes apilados: **COMERCIOS** (antes «Marketplace») (productos físicos y libros) , **SERVICIOS** (clases, tutorías, trabajos a domicilio, consultas y eventos) y **CREAR TU TIENDA** (lleva a /vender). Los eventos van con Servicios porque son experiencias que se reservan, no productos físicos.
+- Debajo quedan las colecciones reales del Marketplace (solo productos y libros); se quitaron el feed de ejemplo que mezclaba todo y la sección de servicios.
+- El menú superior cambia según el mundo (`sectionFor`): en el Marketplace solo productos, libros y tiendas; en Servicios solo servicios y eventos; cada lado tiene un botón para pasar al otro. El catálogo de ejemplo filtra por mundo.
+- El directorio de tiendas sigue mostrando todos los negocios registrados.

@@ -15,7 +15,9 @@ import {
   serializeCatalogFilters,
   type CatalogFilters,
 } from "@/lib/catalogQuery";
-const kinds: ListingKind[] = ["producto", "libro", "evento", "servicio"];
+// Cada mundo muestra solo lo suyo: el Marketplace no muestra servicios y Servicios no muestra productos.
+const MARKET_KINDS: ListingKind[] = ["producto", "libro"];
+const SERVICE_KINDS: ListingKind[] = ["servicio", "evento"];
 export default function CatalogPage({
   initialKind,
 }: {
@@ -33,14 +35,19 @@ export default function CatalogPage({
   useEffect(() => {
     setDraftQ(filters.q);
   }, [filters.q, location]);
-  const results = useMemo(() => filterCatalog(filters), [filters]);
+  const isServices = initialKind === "servicio" || initialKind === "evento";
+  const kinds = isServices ? SERVICE_KINDS : MARKET_KINDS;
+  const results = useMemo(
+    () => filterCatalog(filters).filter(item => kinds.includes(item.kind)),
+    [filters, kinds]
+  );
   function updateFilters(patch: Partial<CatalogFilters>) {
     navigate(
       `${location}?${serializeCatalogFilters({ ...filters, q: draftQ, ...patch })}`
     );
   }
   function reset() {
-    navigate("/catalogo");
+    navigate(isServices ? "/servicios" : "/catalogo");
     setDraftQ("");
   }
   return (
@@ -49,7 +56,7 @@ export default function CatalogPage({
         <div className="breadcrumb">
           <Link href="/">Inicio</Link>
           <span>/</span>
-          <strong>Catálogo</strong>
+          <strong>{isServices ? "Servicios" : "Comercios"}</strong>
         </div>
         <div className="page-intro catalog-intro">
           <div>
@@ -61,11 +68,12 @@ export default function CatalogPage({
                   ? "Momentos en comunidad"
                   : initialKind === "servicio"
                     ? "Talento cerca de ti"
-                    : "Explora el catálogo"}
+                    : "Explora los comercios"}
             </h1>
             <p className="intro-copy">
-              Productos, libros, eventos y servicios de tiendas de ejemplo en
-              Panamá.
+              {isServices
+                ? "Clases, tutorías, trabajos a domicilio, consultas y eventos de ejemplo en Panamá."
+                : "Productos y libros de tiendas de ejemplo en Panamá."}
             </p>
           </div>
           <span className="demo-badge">Catálogo de demostración</span>

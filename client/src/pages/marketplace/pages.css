@@ -1813,3 +1813,36 @@
   .seller-plan-card { padding: 22px; }
   .plans-page .demo-badge { white-space: normal; }
 }
+
+/* ── Portada: elegir Marketplace o Servicios ── */
+.gate-band { background: linear-gradient(180deg, #EAF5F2 0%, #F3F6F5 100%); }
+.gate { padding: 56px 0 64px; display: flex; flex-direction: column; gap: 18px; }
+.gate h1 { margin: 0; font-size: clamp(34px, 5vw, 56px); line-height: 1.05; letter-spacing: -0.02em; color: #0B1F3B; }
+.gate-copy { margin: 0; max-width: 640px; font-size: 18px; line-height: 1.6; color: #4A5568; }
+.gate-choices { display: flex; flex-direction: column; gap: 18px; margin-top: 12px; max-width: 920px; }
+.gate-choice { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 24px; min-height: 132px; padding: 26px 30px; border-radius: 22px; text-decoration: none; transition: transform .15s ease, box-shadow .15s ease; box-shadow: 0 10px 30px rgba(11, 31, 59, .12); }
+.gate-choice:hover, .gate-choice:focus-visible { transform: translateY(-3px); box-shadow: 0 16px 40px rgba(11, 31, 59, .2); }
+.gate-choice:focus-visible { outline: 3px solid #B58C3C; outline-offset: 4px; }
+.gate-text { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.gate-choice strong { font-size: clamp(28px, 4vw, 44px); line-height: 1; letter-spacing: .02em; font-weight: 800; }
+.gate-detail { font-size: 16px; line-height: 1.5; }
+.gate-icon { display: inline-flex; width: 72px; height: 72px; align-items: center; justify-content: center; border-radius: 20px; }
+.gate-arrow { display: inline-flex; width: 52px; height: 52px; align-items: center; justify-content: center; border-radius: 999px; }
+.gate-choice--market { background: #0B1F3B; color: #FFFFFF; }
+.gate-choice--market .gate-icon { background: rgba(226, 184, 102, .18); color: #E2B866; }
+.gate-choice--market .gate-detail { color: #D5DCE6; }
+.gate-choice--market .gate-arrow { background: #B58C3C; color: #0B1F3B; }
+.gate-choice--services { background: #FFFFFF; color: #0B1F3B; border: 2px solid #0B1F3B; }
+.gate-choice--services .gate-icon { background: #E3EAF2; color: #0B1F3B; }
+.gate-choice--services .gate-detail { color: #4A5568; }
+.gate-choice--services .gate-arrow { background: #0B1F3B; color: #FFFFFF; }
+.gate-choice--store { background: #B58C3C; color: #0B1F3B; }
+.gate-choice--store .gate-icon { background: rgba(11, 31, 59, .12); color: #0B1F3B; }
+.gate-choice--store .gate-detail { color: #2B2414; }
+.gate-choice--store .gate-arrow { background: #0B1F3B; color: #E2B866; }
+.gate-small { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; margin-top: 6px; }
+@media (max-width: 640px) { .gate { padding: 36px 0 44px; } .gate-choice { grid-template-columns: auto minmax(0, 1fr); gap: 16px; min-height: 0; padding: 22px 20px; } .gate-icon { width: 56px; height: 56px; border-radius: 16px; } .gate-arrow { display: none; } .gate-detail { font-size: 15px; } .gate-choice strong { font-size: 24px; letter-spacing: .01em; } }
+
+/* Cambiar entre Marketplace y Servicios desde el menú */
+.section-switch { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; margin-right: 12px; padding: 6px 14px; border: 1px solid #E2B866; border-radius: 999px; color: #E2B866; font-size: 13px; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.section-switch:hover, .section-switch:focus-visible { background: #E2B866; color: #0B1F3B; }

@@ -13,6 +13,7 @@ import {
   HeartHandshake,
   Package,
   ShieldCheck,
+  ShoppingBag,
   Sparkles,
   Store,
   Truck,
@@ -66,152 +67,54 @@ export default function Home() {
       : ordered.filter(item => item.kind === kind);
   return (
     <>
-      <div className="hero-band">
-        <section className="hero container">
-          <div className="hero-copy">
-            <div className="eyebrow">
-              <span className="tiny-gold-dot" /> EL MARKETPLACE DE NUESTRA
-              COMUNIDAD
-            </div>
-            <h1>
-              Lo que buscas,
-              <br />
-              más cerca de
-              <br /> <span>tu comunidad.</span>
-            </h1>
-            <p>
-              Descubre productos, libros, eventos y servicios de emprendedores
-              en Panamá, en un espacio con valores cristianos. Compra con
-              confianza y haz crecer tu emprendimiento en comunidad.
-            </p>
-            <div className="hero-actions">
-              <Link className="btn btn-gold" href="/mercado">
-                Explorar el marketplace <ArrowRight size={17} />
-              </Link>
-              <Link className="text-link" href="/vender">
-                Quiero vender <ArrowUpRight size={16} />
-              </Link>
-            </div>
-            <div className="hero-small">
-              <span>
-                <ShieldCheck size={16} /> Verificación de vendedores
-              </span>
-              <span>
-                <Check size={15} /> 3 meses gratis para vendedores
-              </span>
-            </div>
+      <div className="gate-band">
+        <section className="gate container" aria-labelledby="gate-title">
+          <div className="eyebrow">
+            <span className="tiny-gold-dot" /> BIENVENIDO A CUADRAZONE
           </div>
-          <div className="hero-visual">
-            <img
-              src={assets.hero}
-              alt="Mercado al aire libre lleno de puestos y compradores"
-              fetchPriority="high"
-            />
-            <div className="hero-label">
-              <span className="hero-label-icon">
-                <HeartHandshake size={23} />
+          <h1 id="gate-title">¿Qué estás buscando hoy?</h1>
+          <p className="gate-copy">
+            Emprendedores de Panamá en un espacio con valores cristianos. Elige
+            por dónde quieres empezar.
+          </p>
+          <div className="gate-choices">
+            <Link href="/mercado" className="gate-choice gate-choice--market">
+              <span className="gate-icon" aria-hidden="true"><ShoppingBag size={34} strokeWidth={1.6} /></span>
+              <span className="gate-text">
+                <strong>COMERCIOS</strong>
+                <span className="gate-detail">Productos, artesanías, ropa, tecnología y libros cristianos de tiendas verificadas.</span>
               </span>
-              <div>
-                <strong>Talento que nos une</strong>
-                <small>Descubre. Conecta. Apoya.</small>
-              </div>
-            </div>
-            <div className="hero-edition">
-              PANAMÁ <span>01 / COMUNIDAD</span>
-            </div>
+              <span className="gate-arrow" aria-hidden="true"><ArrowRight size={26} /></span>
+            </Link>
+            <Link href="/servicios" className="gate-choice gate-choice--services">
+              <span className="gate-icon" aria-hidden="true"><Wrench size={34} strokeWidth={1.6} /></span>
+              <span className="gate-text">
+                <strong>SERVICIOS</strong>
+                <span className="gate-detail">Clases, tutorías, trabajos a domicilio, consultas profesionales y eventos.</span>
+              </span>
+              <span className="gate-arrow" aria-hidden="true"><ArrowRight size={26} /></span>
+            </Link>
+            <Link href="/vender" className="gate-choice gate-choice--store">
+              <span className="gate-icon" aria-hidden="true"><Store size={34} strokeWidth={1.6} /></span>
+              <span className="gate-text">
+                <strong>CREAR TU TIENDA</strong>
+                <span className="gate-detail">Vende tus productos u ofrece tus servicios. Los primeros 3 meses son gratis.</span>
+              </span>
+              <span className="gate-arrow" aria-hidden="true"><ArrowRight size={26} /></span>
+            </Link>
+          </div>
+          <div className="hero-small gate-small">
+            <span>
+              <ShieldCheck size={16} /> Verificación de vendedores
+            </span>
+            <span>
+              <Check size={15} /> 3 meses gratis para vendedores
+            </span>
           </div>
         </section>
-      </div>
-      <div className="category-band">
-        <section
-          className="category-section container"
-          aria-label="Explora por tipo"
-        >
-          <div className="category-links">
-            {categoryLinks.map(({ title, subtitle, href, Icon, color }) => (
-              <Link href={href} key={href} className="category-tile">
-                <span className={`category-icon ${color}`}>
-                  <Icon size={24} strokeWidth={1.5} />
-                </span>
-                <div>
-                  <strong>{title}</strong>
-                  <small>{subtitle}</small>
-                </div>
-                <ChevronRight size={16} />
-              </Link>
-            ))}
-          </div>
-        </section>
-      </div>
-      <div className="business-browse-band">
-        <div className="container">
-          <BusinessCategoryBrowse compact />
-        </div>
       </div>
       <div className="featured-band">
         <LiveFeatured />
-        <section className="featured-section container">
-          <div className="section-heading">
-            <div>
-              <span className="eyebrow">UNA SELECCIÓN PARA TI</span>
-              <h2 className="section-title">
-                {collection === "novedades"
-                  ? "Novedades para explorar"
-                  : collection === "vendidos"
-                    ? "Más vendidos · ejemplo"
-                    : "Descubrimientos con propósito"}
-              </h2>
-            </div>
-            <div className="feature-tools">
-              <select
-                aria-label="Colección de demostración"
-                value={collection}
-                onChange={event => setCollection(event.target.value)}
-              >
-                <option value="destacados">Destacados</option>
-                <option value="novedades">Novedades · ejemplo</option>
-                <option value="vendidos">Más vendidos · ejemplo</option>
-              </select>
-              <Link className="text-link" href="/catalogo">
-                Ver todo <ArrowRight size={15} />
-              </Link>
-            </div>
-          </div>
-          <div
-            className="filter-tabs"
-            role="tablist"
-            aria-label="Tipo de publicaciones destacadas"
-          >
-            {(
-              [
-                ["todo", "Todo"],
-                ["producto", "Productos"],
-                ["libro", "Libros"],
-                ["evento", "Eventos"],
-                ["servicio", "Servicios"],
-              ] as const
-            ).map(([value, label]) => (
-              <button
-                key={value}
-                role="tab"
-                aria-selected={kind === value}
-                onClick={() => setKind(value)}
-                className={kind === value ? "selected" : ""}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-          <div className="product-grid">
-            {featured.map(item => (
-              <ProductCard item={item} key={item.id} />
-            ))}
-          </div>
-          <p className="demo-caption">
-            Selección ilustrativa para revisar el diseño. Precios, tiendas y
-            opiniones de ejemplo.
-          </p>
-        </section>
       </div>
       <section className="community-values">
         <div className="container values-inner">
@@ -236,37 +139,6 @@ export default function Home() {
               <small>Envío, retiro o servicio a domicilio.</small>
             </span>
           </div>
-        </div>
-      </section>
-      <section className="service-discovery container">
-        <div className="service-photo">
-          <img
-            src={assets.service}
-            alt="Herramientas de trabajo para servicios del hogar"
-            loading="lazy"
-          />
-          <span>OFICIOS CON PROPÓSITO</span>
-        </div>
-        <div className="service-copy">
-          <span className="eyebrow">TALENTO CERCA DE TI</span>
-          <h2>
-            Hay alguien en nuestra
-            <br />
-            comunidad que puede ayudar.
-          </h2>
-          <p>
-            Encuentra profesionales y oficios para lo que necesitas. Consulta,
-            solicita una cotización o elige una cita a tu medida.
-          </p>
-          <div className="service-topics">
-            <span>Hogar y mantenimiento</span>
-            <span>Educación</span>
-            <span>Tecnología</span>
-            <span>Bienestar</span>
-          </div>
-          <Link href="/tiendas" className="btn btn-outline">
-            Encontrar un servicio <ArrowUpRight size={16} />
-          </Link>
         </div>
       </section>
       <section className="seller-invite container">

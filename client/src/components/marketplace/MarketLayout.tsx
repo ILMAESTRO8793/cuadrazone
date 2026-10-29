@@ -28,14 +28,36 @@ import {
 } from "@/data/catalog";
 import { useMarket } from "@/contexts/MarketContext";
 
-const nav = [
-  { title: "Todas las categorías", href: "/mercado" },
-  { title: "Productos", href: "/mercado?kind=product" },
-  { title: "Libros cristianos", href: "/mercado?kind=book" },
-  { title: "Eventos y conciertos", href: "/eventos" },
-  { title: "Tiendas y negocios", href: "/tiendas" },
-  { title: "Servicios", href: "/servicios" },
-];
+/*
+ * La portada separa dos mundos: el Marketplace (productos físicos y libros) y
+ * los Servicios (clases, trabajos a domicilio, consultas y eventos). El menú
+ * muestra solo lo del mundo en el que está el comprador.
+ */
+type Section = "market" | "services" | "home";
+const SERVICES_PATH = /^\/(servicios|servicio|eventos|evento)(\/|$)/;
+const MARKET_PATH = /^\/(mercado|articulo|catalogo|libros|producto|tiendas|tienda)(\/|$)/;
+export function sectionFor(path: string): Section {
+  if (SERVICES_PATH.test(path)) return "services";
+  if (MARKET_PATH.test(path)) return "market";
+  return "home";
+}
+const navBySection: Record<Section, { title: string; href: string }[]> = {
+  market: [
+    { title: "Todos los comercios", href: "/mercado" },
+    { title: "Productos", href: "/mercado?kind=product" },
+    { title: "Libros cristianos", href: "/mercado?kind=book" },
+    { title: "Tiendas", href: "/tiendas" },
+  ],
+  services: [
+    { title: "Todos los servicios", href: "/servicios" },
+    { title: "Eventos y conciertos", href: "/eventos" },
+  ],
+  home: [
+    { title: "Inicio", href: "/" },
+    { title: "Comercios", href: "/mercado" },
+    { title: "Servicios", href: "/servicios" },
+  ],
+};
 export default function MarketLayout({ children }: { children: ReactNode }) {
   const { province, setProvince } = useMarket();
   const auth = useAuth();
@@ -49,6 +71,8 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
     savedCart.data?.items.reduce((sum, line) => sum + line.quantity, 0) ?? 0;
   const favorites = savedFavorites.data?.items ?? [];
   const [location, navigate] = useLocation();
+  const section = sectionFor(location);
+  const nav = navBySection[section];
   const currentSearch = useSearch();
   const [query, setQuery] = useState("");
   const [scope, setScope] = useState<"all" | "stores" | "products">(
@@ -346,6 +370,11 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
                 </Link>
               ))}
             </nav>
+            {section !== "home" && (
+              <Link className="section-switch" href={section === "market" ? "/servicios" : "/mercado"}>
+                {section === "market" ? "Ir a Servicios" : "Ir a Comercios"} <ArrowRight size={14} />
+              </Link>
+            )}
             <Link className="sell-nav" href="/vender">
               Vende en CuadraZone <ArrowRight size={15} />
             </Link>

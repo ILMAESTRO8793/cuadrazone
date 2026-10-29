@@ -14,7 +14,13 @@ describe("CuadraZone preview", () => {
   it("renders meaningful home content and the gold logo without a browser", () => {
     const result = renderPage("/");
     expect(result.meta.status).toBe(200);
-    expect(result.html).toContain("tu comunidad.");
+    expect(result.html).toContain("¿Qué estás buscando hoy?");
+    expect(result.html).toContain(">COMERCIOS<");
+    expect(result.html).toContain(">CREAR TU TIENDA<");
+    expect(result.html).toContain('href="/vender" class="gate-choice');
+    expect(result.html).toContain(">SERVICIOS<");
+    expect(result.html).toContain('href="/mercado" class="gate-choice');
+    expect(result.html).toContain('href="/servicios" class="gate-choice');
     expect(result.html).toContain("/assets/logo-carrito-blanco.png");
     expect(result.html).toContain("No se procesan pagos");
   });
