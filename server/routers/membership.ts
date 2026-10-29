@@ -29,6 +29,7 @@ import {
 import {
   adminDetail,
   adminSetPhoneVerification,
+  runAutoChecks,
   verifyEmailWithAccount,
   getMembership,
   listApplications,
@@ -157,6 +158,11 @@ export const membershipRouter = router({
           submitApplication(realUser(ctx.user) as any, input.revision)
         );
       }),
+    /** Lee la cédula y la captura de Yappy o banco y devuelve ✓ o ✗ con el motivo. */
+    autoCheck: protectedProcedure.mutation(({ ctx }) => {
+      csrf(ctx);
+      return serviceCall(() => runAutoChecks(realUser(ctx.user) as any));
+    }),
   }),
   verification: router({
     /** Verifica el correo del perfil con la cuenta de Google de la sesión. */

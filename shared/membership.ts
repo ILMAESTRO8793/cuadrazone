@@ -1,3 +1,4 @@
+import { activeCountryCodes } from "./countries";
 import type { PlanSelectionSnapshot } from "./pricing";
 import { z } from "zod";
 import { businessSelectionsInput, type BusinessSelection } from "@shared/businessCategories";
@@ -24,6 +25,11 @@ export const applicationInput = z.object({
   denominationId: z.number().int().positive().nullable().default(null),
   churchName: z.string().trim().max(160).default("").refine(value => value === "" || value.length >= 2, "Escribe el nombre completo de la iglesia o déjalo vacío"),
   pastorName: z.string().trim().max(100).default("").refine(value => value === "" || value.length >= 2, "Escribe el nombre completo del pastor o déjalo vacío"),
+  /** Nombres y apellidos exactamente como en la cédula; se comparan con las imágenes. */
+  legalGivenNames: z.string().trim().min(2, "Escribe tus nombres como en tu cédula").max(120).default(""),
+  legalSurnames: z.string().trim().min(2, "Escribe tus apellidos como en tu cédula").max(120).default(""),
+  /** País donde vende. Elegirlo reemplaza el documento de residencia. */
+  country: z.enum(activeCountryCodes).default("PA"),
   residenceConfirmed: z.boolean(),
   /** Compromiso obligatorio con los valores cristianos de CuadraZone (ver VALUES_COMMITMENT). */
   faithAccepted: z.boolean().default(false),
@@ -38,8 +44,19 @@ export type ApplicationSnapshot = ApplicationInput & {
   id: number; status: ApplicationStatus; revision: number; consentVersion: string; reviewReason: string | null;
   submittedAt: string | null; reviewedAt: string | null; contactEmail: string; contactPhone: string;
   storeStatus: "inactive" | "awaiting_payment" | "active";
+  /** Última verificación automática de documentos; null si falta o quedó desactualizada. */
+  autoChecks: AutoChecksSnapshot | null;
 };
-export type DocumentSnapshot = { id: number; kind: "identity" | "pastoral"; fileName: string; mimeType: string; size: number; createdAt: string };
+export type CheckSnapshot = { status: "ok" | "fail" | "manual"; reasons: string[] };
+export type AutoChecksSnapshot = {
+  identity: CheckSnapshot;
+  payout: CheckSnapshot;
+  checkedAt: string;
+  identityDocumentId: number | null;
+  payoutDocumentId: number | null;
+  nameKey: string;
+};
+export type DocumentSnapshot = { id: number; kind: "identity" | "pastoral" | "payout"; fileName: string; mimeType: string; size: number; createdAt: string };
 export type ProviderReadiness = { emailReady: boolean; phoneReady: boolean };
 export type MembershipSnapshot = {
   profile: ProfileSnapshot | null; application: ApplicationSnapshot | null; documents: DocumentSnapshot[];
@@ -49,7 +66,7 @@ export type MembershipSnapshot = {
 };
 export type Denomination = { id: number; name: string; active: boolean };
 export const provinceOptions = ["Panamá", "Panamá Oeste", "Colón", "Chiriquí", "Coclé", "Herrera", "Los Santos", "Veraguas", "Bocas del Toro", "Darién", "Guna Yala", "Emberá-Wounaan", "Ngäbe-Buglé"];
-export const documentKinds = ["identity", "pastoral"] as const;
+export const documentKinds = ["identity", "pastoral", "payout"] as const;
 export const MAX_DOCUMENT_BYTES = 5 * 1024 * 1024;
 export const CONSENT_VERSION = "2026-10-24";
 

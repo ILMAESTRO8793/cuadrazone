@@ -3,6 +3,7 @@ import { addMonths } from "./subscriptions";
 import { queueAdminEmail, queueEmail, recipientFor } from "./email";
 import { applicationApproved, applicationReceived, applicationRejected, newApplicationForAdmin } from "./emailMessages";
 import { TRIAL_MONTHS, TRIAL_PLAN_ID } from "@shared/pricing";
+import { evaluateDocuments, nameKeyOf, type AutoChecks } from "./idVerification";
 import { and, desc, eq, lt, or, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import {
@@ -162,7 +163,7 @@ function mapProfile(
 
 function mapDocument(row: {
   id: number;
-  kind: "identity" | "pastoral";
+  kind: "identity" | "pastoral" | "payout";
   fileName: string;
   mimeType: string;
   size: number;
@@ -178,6 +179,43 @@ function mapDocument(row: {
   };
 }
 
+/** El resultado guardado solo vale si corresponde a los documentos y datos actuales. */
+function currentAutoChecks(row: Application): AutoChecks | null {
+  let value: unknown = row.autoChecks;
+  if (typeof value === "string") { try { value = JSON.parse(value); } catch { return null; } }
+  const checks = value as AutoChecks | null;
+  if (!checks || typeof checks !== "object") return null;
+  if (checks.nameKey !== nameKeyOf(row.legalGivenNames ?? "", row.legalSurnames ?? "", row.identificationNumber)) return null;
+  if (checks.identityDocumentId !== (row.identityDocumentId ?? null) || checks.payoutDocumentId !== (row.payoutDocumentId ?? null)) return null;
+  return checks;
+}
+
+async function loadDocument(db: any, id: number | null) {
+  if (!id) return null;
+  const rows = await db
+    .select({ id: czVerificationDocuments.id, mimeType: czVerificationDocuments.mimeType, bytes: czVerificationDocuments.bytes })
+    .from(czVerificationDocuments)
+    .where(eq(czVerificationDocuments.id, id))
+    .limit(1);
+  return rows[0] ? { id: rows[0].id, mimeType: rows[0].mimeType, bytes: Buffer.from(rows[0].bytes) } : null;
+}
+
+/** Lee la cédula y la captura con OCR y guarda el resultado. Se usa para mostrar ✓ o ✗. */
+export async function runAutoChecks(user: User): Promise<AutoChecks> {
+  const db = await requireDb();
+  const app = await applicationFor(db, user.id);
+  if (!app) throw new MembershipError("PRECONDITION_FAILED", "Guarda tu solicitud primero");
+  const checks = await evaluateDocuments({
+    givenNames: app.legalGivenNames ?? "",
+    surnames: app.legalSurnames ?? "",
+    idNumber: app.identificationNumber,
+    identity: await loadDocument(db, app.identityDocumentId),
+    payout: await loadDocument(db, app.payoutDocumentId ?? null),
+  });
+  await db.update(czApplications).set({ autoChecks: checks }).where(and(eq(czApplications.id, app.id), eq(czApplications.revision, app.revision)));
+  return checks;
+}
+
 function mapApplication(row: Application): ApplicationSnapshot {
   return {
     businessType: row.businessType,
@@ -191,6 +229,10 @@ function mapApplication(row: Application): ApplicationSnapshot {
     denominationId: row.denominationId,
     churchName: row.churchName,
     pastorName: row.pastorName,
+    legalGivenNames: row.legalGivenNames ?? "",
+    legalSurnames: row.legalSurnames ?? "",
+    country: (row.country ?? "PA") as ApplicationSnapshot["country"],
+    autoChecks: currentAutoChecks(row),
     residenceConfirmed: bool(row.residenceConfirmed),
     faithAccepted: bool(row.faithAccepted),
     conductAccepted: bool(row.conductAccepted),
@@ -391,7 +433,7 @@ async function ensureSubmissionGuards(
   )
     throw new MembershipError(
       "PRECONDITION_FAILED",
-      "Debes aceptar residencia, los valores cristianos de CuadraZone, conducta y privacidad"
+      "Debes elegir tu país y aceptar los valores cristianos de CuadraZone, conducta y privacidad"
     );
   ensureCurrentExpiry(app);
   const docs = await documentsFor(db, app.id);
@@ -616,7 +658,10 @@ export async function saveApplication(
       denominationId: input.denominationId,
       churchName: input.churchName,
       pastorName: input.pastorName,
-      residenceConfirmed: input.residenceConfirmed ? 1 : 0,
+      legalGivenNames: input.legalGivenNames,
+      legalSurnames: input.legalSurnames,
+      country: input.country,
+      residenceConfirmed: input.country ? 1 : 0,
       faithAccepted: input.faithAccepted ? 1 : 0,
       conductAccepted: input.conductAccepted ? 1 : 0,
       privacyAccepted: input.privacyAccepted ? 1 : 0,
@@ -672,8 +717,20 @@ export async function saveApplication(
 export async function submitApplication(
   user: User,
   revision: number
-): Promise<{ status: "pending" }> {
+): Promise<{ status: "pending" | "approved"; autoChecks: AutoChecks | null }> {
   const db = await requireDb();
+  // La lectura con OCR es lenta: se hace antes de la transacción y se vuelve a
+  // comprobar dentro que los documentos y datos no hayan cambiado.
+  const before = await applicationFor(db, user.id);
+  const checks = before
+    ? await evaluateDocuments({
+        givenNames: before.legalGivenNames ?? "",
+        surnames: before.legalSurnames ?? "",
+        idNumber: before.identificationNumber,
+        identity: await loadDocument(db, before.identityDocumentId),
+        payout: await loadDocument(db, before.payoutDocumentId ?? null),
+      })
+    : null;
   return await db.transaction(async (tx: any) => {
     const app = await applicationFor(tx, user.id);
     const profile = await profileFor(tx, user.id);
@@ -683,15 +740,37 @@ export async function submitApplication(
         "La solicitud cambió o ya no está editable"
       );
     await ensureSubmissionGuards(tx, app, profile, "submit");
+    const sameInputs = Boolean(
+      checks &&
+        checks.nameKey === nameKeyOf(app.legalGivenNames ?? "", app.legalSurnames ?? "", app.identificationNumber) &&
+        checks.identityDocumentId === (app.identityDocumentId ?? null) &&
+        checks.payoutDocumentId === (app.payoutDocumentId ?? null)
+    );
+    // Verificación inmediata: documentos coinciden y correo y celular verificados.
+    const instant = Boolean(
+      sameInputs &&
+        checks!.identity.status === "ok" &&
+        checks!.payout.status === "ok" &&
+        profile?.emailVerifiedAt &&
+        profile?.phoneVerifiedAt
+    );
     const nextRevision = app.revision + 1;
+    const now = new Date();
+    const startsTrial = instant && app.subscriptionStatus === "not_started";
+    const trialEndsAt = startsTrial ? addMonths(now, TRIAL_MONTHS) : null;
     const updated = await tx
       .update(czApplications)
       .set({
-        status: "pending",
+        status: instant ? "approved" : "pending",
         revision: nextRevision,
-        submittedAt: new Date(),
+        submittedAt: now,
+        ...(instant ? { reviewedAt: now } : {}),
         reviewReason: null,
         consentVersion: CONSENT_VERSION,
+        autoChecks: sameInputs ? checks : null,
+        ...(startsTrial
+          ? { subscriptionStatus: "active" as const, subscriptionPlanId: TRIAL_PLAN_ID, subscriptionEndsAt: trialEndsAt, trialEndsAt }
+          : {}),
       })
       .where(
         and(
@@ -708,14 +787,23 @@ export async function submitApplication(
     await audit(tx, app.id, user.id, user.id, "application_submitted", null, {
       revision: nextRevision,
       consentVersion: CONSENT_VERSION,
+      identityCheck: checks?.identity.status ?? null,
+      payoutCheck: checks?.payout.status ?? null,
     });
+    if (instant) {
+      await audit(tx, app.id, user.id, user.id, "auto_approved", null, { method: "ocr_name_match" });
+      if (startsTrial)
+        await audit(tx, app.id, user.id, user.id, "trial_started", null, { months: TRIAL_MONTHS, endsAt: trialEndsAt!.toISOString() });
+      await queueEmail(tx, `app-review:${app.id}:${nextRevision}`, await recipientFor(tx, user.id), applicationApproved(trialEndsAt));
+      return { status: "approved" as const, autoChecks: checks };
+    }
     await queueEmail(tx, `app-submitted:${app.id}:${nextRevision}`, await recipientFor(tx, user.id), applicationReceived());
     await queueAdminEmail(
       tx,
       `app-admin:${app.id}:${nextRevision}`,
       newApplicationForAdmin(profile?.displayName || user.name || `Vendedor #${user.id}`, app.churchName ?? "")
     );
-    return { status: "pending" };
+    return { status: "pending" as const, autoChecks: sameInputs ? checks : null };
   });
 }
 

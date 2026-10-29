@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { DocumentViewer } from "@/features/membership/DocumentViewer";
 import { BusinessCategoryPicker } from "@/features/membership/BusinessCategoryPicker";
 import { Link } from "wouter";
+import { countries } from "@shared/countries";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   LoaderCircle,
@@ -42,7 +43,10 @@ const emptyApplication: ApplicationInput = {
   denominationId: null,
   churchName: "",
   pastorName: "",
-  residenceConfirmed: false,
+  legalGivenNames: "",
+  legalSurnames: "",
+  country: "PA",
+  residenceConfirmed: true,
   faithAccepted: false,
   conductAccepted: false,
   privacyAccepted: false,
@@ -96,7 +100,7 @@ function SellerApplicationContent() {
   const [form, setForm] = useState<ApplicationInput>(emptyApplication);
   const initialized = useRef(false);
   const [editingRevision, setEditingRevision] = useState<number>();
-  const [uploading, setUploading] = useState<"identity" | "pastoral" | null>(
+  const [uploading, setUploading] = useState<"identity" | "pastoral" | "payout" | null>(
     null
   );
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -123,7 +127,10 @@ function SellerApplicationContent() {
         denominationId: app.denominationId,
         churchName: app.churchName,
         pastorName: app.pastorName,
-        residenceConfirmed: app.residenceConfirmed,
+        legalGivenNames: app.legalGivenNames ?? "",
+        legalSurnames: app.legalSurnames ?? "",
+        country: app.country ?? "PA",
+        residenceConfirmed: true,
         faithAccepted:
           app.consentVersion === CONSENT_VERSION && app.faithAccepted,
         conductAccepted:
@@ -143,7 +150,7 @@ function SellerApplicationContent() {
       denominations.data?.find(item => item.id === form.denominationId)?.name,
     [denominations.data, form.denominationId]
   );
-  const documentByKind = (kind: "identity" | "pastoral") =>
+  const documentByKind = (kind: "identity" | "pastoral" | "payout") =>
     documents.find(document => document.kind === kind);
   const parsedForm = applicationInput.safeParse(form);
   const parsedCategories = businessSelectionsInput.safeParse(
@@ -172,6 +179,8 @@ function SellerApplicationContent() {
       form.conductAccepted &&
       form.privacyAccepted &&
       form.identificationNumber.trim().length >= 4 &&
+      form.legalGivenNames.trim().length >= 2 &&
+      form.legalSurnames.trim().length >= 2 &&
       form.province &&
       form.city &&
       validResidence &&
@@ -199,7 +208,7 @@ function SellerApplicationContent() {
   };
 
   const uploadDocument = async (
-    kind: "identity" | "pastoral",
+    kind: "identity" | "pastoral" | "payout",
     file: File | undefined
   ) => {
     if (!file) return;
@@ -254,9 +263,13 @@ function SellerApplicationContent() {
       await utils.membership.me.invalidate();
       toast.success(
         kind === "identity"
-          ? "Documento de identidad guardado"
-          : "Carta pastoral guardada"
+          ? "Cédula guardada"
+          : kind === "payout"
+            ? "Captura de Yappy o banco guardada"
+            : "Carta pastoral guardada"
       );
+      // Al subir la cédula o la captura, se verifican al momento.
+      if (kind !== "pastoral") void runChecks();
     } catch (error) {
       const message = errorText(error, "No se pudo cargar el documento.");
       setUploadError(message);
@@ -266,15 +279,35 @@ function SellerApplicationContent() {
     }
   };
 
+  const autoCheck = trpc.membership.application.autoCheck.useMutation();
+  const runChecks = async () => {
+    try {
+      await autoCheck.mutateAsync();
+      await utils.membership.me.invalidate();
+    } catch (error) {
+      toast.error("No se pudo verificar", { description: errorText(error, "Inténtalo de nuevo.") });
+    }
+  };
+  const checks = app?.autoChecks ?? null;
+  const allGreen = Boolean(
+    checks?.identity.status === "ok" && checks?.payout.status === "ok" && profile?.emailVerifiedAt && profile?.phoneVerifiedAt
+  );
+
   const submit = async () => {
     if (!app || !completeForSubmit) return;
     try {
-      await submitApplication.mutateAsync({ revision: app.revision });
+      const result = await submitApplication.mutateAsync({ revision: app.revision });
       await utils.membership.me.invalidate();
-      toast.success("Solicitud enviada", {
-        description: REVIEW_RESPONSE_MESSAGE,
-        duration: 12000,
-      });
+      if (result.status === "approved")
+        toast.success("¡Tu tienda fue aprobada!", {
+          description: "Todo coincide. Ya tienes tus 3 meses gratis: prepara tu tienda.",
+          duration: 12000,
+        });
+      else
+        toast.success("Solicitud enviada", {
+          description: REVIEW_RESPONSE_MESSAGE,
+          duration: 12000,
+        });
     } catch (error) {
       toast.error("No se pudo enviar la solicitud", {
         description: errorText(
@@ -418,6 +451,30 @@ function SellerApplicationContent() {
                 <option value="cedula">Cédula</option>
                 <option value="residencia">Carné de residencia</option>
               </select>
+            </label>
+            <label className="member-field">
+              <span>Nombres (como en tu cédula)</span>
+              <Input
+                value={form.legalGivenNames}
+                onChange={event => setField("legalGivenNames", event.target.value)}
+                required
+                minLength={2}
+                maxLength={120}
+                placeholder="Ej.: Salem Jean"
+                autoComplete="given-name"
+              />
+            </label>
+            <label className="member-field">
+              <span>Apellidos (como en tu cédula)</span>
+              <Input
+                value={form.legalSurnames}
+                onChange={event => setField("legalSurnames", event.target.value)}
+                required
+                minLength={2}
+                maxLength={120}
+                placeholder="Ej.: Pierre Dupont"
+                autoComplete="family-name"
+              />
             </label>
             <label className="member-field">
               <span>Número de identificación</span>
@@ -587,15 +644,18 @@ function SellerApplicationContent() {
         <fieldset disabled={!editable}>
           <legend className="member-section-title">Consentimientos</legend>
           <div className="member-check-list">
-            <label>
-              <input
-                type="checkbox"
-                checked={form.residenceConfirmed}
-                onChange={event =>
-                  setField("residenceConfirmed", event.target.checked)
-                }
-              />{" "}
-              Confirmo que resido en Panamá.
+            <label className="member-field">
+              <span>País donde vendes</span>
+              <select
+                value={form.country}
+                onChange={event => setField("country", event.target.value as ApplicationInput["country"])}
+              >
+                {countries.map(c => (
+                  <option key={c.code} value={c.code} disabled={!c.active}>
+                    {c.name}{c.active ? "" : " · Próximamente"}
+                  </option>
+                ))}
+              </select>
             </label>
             <label className="member-confession">
               <input
@@ -675,13 +735,15 @@ function SellerApplicationContent() {
         <div className="member-card-heading">
           <div>
             <p className="member-eyebrow">DOCUMENTOS PRIVADOS</p>
-            <h2>Documento de identidad</h2>
+            <h2>Verificación inmediata</h2>
           </div>
           <ShieldCheck size={22} aria-hidden="true" />
         </div>
         <p className="member-muted">
-          Carga raw privada (PDF, PNG, JPEG o WEBP, máximo 5 MiB). El servidor
-          valida MIME, firma binaria, permisos y privacidad.
+          Sube una foto clara de tu cédula y una captura de pantalla de tu
+          Yappy o de tu banco donde se vea tu nombre. Las leemos en nuestro
+          propio servidor y comparamos los nombres al instante; nunca se
+          publican. Usa JPG o PNG (máximo 5 MiB).
         </p>
         {!app && (
           <p className="member-notice member-notice--warning">
@@ -699,10 +761,14 @@ function SellerApplicationContent() {
           </p>
         )}
         <div className="member-document-grid">
-          {(["identity", "pastoral"] as const).map(kind => {
+          {(["identity", "payout", "pastoral"] as const).map(kind => {
             const document = documentByKind(kind);
             const label =
-              kind === "identity" ? "Documento de identidad (obligatorio)" : "Carta pastoral (opcional)";
+              kind === "identity"
+                ? "Foto de tu cédula (obligatoria)"
+                : kind === "payout"
+                  ? "Captura de tu Yappy o banco con tu nombre"
+                  : "Carta pastoral (opcional)";
             return (
               <div className="member-document-card" key={kind}>
                 <div>
@@ -748,10 +814,42 @@ function SellerApplicationContent() {
         </div>
       </section>
 
+      {app && (
+        <section className="member-card" aria-labelledby="checks-title">
+          <div className="member-section-heading">
+            <div>
+              <p className="member-eyebrow">VERIFICACIÓN</p>
+              <h2 id="checks-title">Tu verificación</h2>
+            </div>
+            <button
+              type="button"
+              className="member-button member-button--outline"
+              disabled={autoCheck.isPending || !editable}
+              onClick={() => void runChecks()}
+            >
+              {autoCheck.isPending ? "Verificando…" : "Verificar de nuevo"}
+            </button>
+          </div>
+          <ul className="cz-checklist">
+            <CheckRow label="Correo verificado" status={profile?.emailVerifiedAt ? "ok" : "fail"} reasons={profile?.emailVerifiedAt ? [] : ["Verifícalo en Mi cuenta."]} />
+            <CheckRow label="Celular verificado" status={profile?.phoneVerifiedAt ? "ok" : "fail"} reasons={profile?.phoneVerifiedAt ? [] : ["Verifícalo con el código por SMS en Mi cuenta."]} />
+            <CheckRow compares label="Cédula: número y nombre coinciden" status={autoCheck.isPending ? "checking" : checks?.identity.status ?? "waiting"} reasons={checks?.identity.reasons ?? []} />
+            <CheckRow compares label="Yappy o banco a tu nombre" status={autoCheck.isPending ? "checking" : checks?.payout.status ?? "waiting"} reasons={checks?.payout.reasons ?? []} />
+            <CheckRow label="Valores, conducta y privacidad aceptados" status={form.faithAccepted && form.conductAccepted && form.privacyAccepted ? "ok" : "fail"} reasons={[]} />
+            <CheckRow label={`País: ${countries.find(c => c.code === form.country)?.name ?? "Panamá"}`} status="ok" reasons={[]} />
+          </ul>
+          <p className="member-muted">
+            {allGreen
+              ? "¡Todo coincide! Al enviar, tu tienda se aprueba al instante."
+              : "Corrige lo que está en rojo y vuelve a verificar. Si no logras que coincida, igual puedes enviar tu solicitud y la revisamos en 1 a 3 días."}
+          </p>
+        </section>
+      )}
+
       <section className="member-card member-submit-card">
         <div>
           <p className="member-eyebrow">ENVÍO</p>
-          <h2>Enviar a revisión</h2>
+          <h2>{allGreen ? "Abrir mi tienda" : "Enviar mi solicitud"}</h2>
           <p className="member-muted">
             El servidor volverá a comprobar perfil, contactos, consentimientos,
             vigencia y documentos usando la revisión más reciente.
@@ -779,7 +877,8 @@ function SellerApplicationContent() {
               {!/^\+507\d{8}$/.test(profile?.phone ?? "") && <li>Guardar un teléfono de Panamá (+507 y 8 dígitos) en Mi cuenta.</li>}
               {!documentByKind("identity") && <li>Cargar tu documento de identidad.</li>}
               {!form.faithAccepted && <li>Aceptar los valores cristianos de CuadraZone.</li>}
-              {!(form.residenceConfirmed && form.conductAccepted && form.privacyAccepted) && <li>Aceptar residencia, conducta y privacidad.</li>}
+              {!(form.legalGivenNames.trim().length >= 2 && form.legalSurnames.trim().length >= 2) && <li>Escribir tus nombres y apellidos como en tu cédula.</li>}
+              {!(form.conductAccepted && form.privacyAccepted) && <li>Aceptar conducta y privacidad.</li>}
               {hasUnsavedChanges && <li>Guardar los cambios del formulario.</li>}
               {(!parsedForm.success || parsedForm.data.businessCategories.length === 0) && <li>Completar los datos obligatorios de negocio, identificación y categoría.</li>}
             </ul>
@@ -795,5 +894,22 @@ export function SellerApplicationPage() {
     <AuthGate>
       <SellerApplicationContent />
     </AuthGate>
+  );
+}
+
+type RowStatus = "ok" | "fail" | "manual" | "waiting" | "checking";
+/** Fila de la verificación: ✓ verde o ✗ roja que parpadean, ! ámbar si va a revisión. */
+function CheckRow({ label, status, reasons, compares = false }: { label: string; status: RowStatus; reasons: string[]; compares?: boolean }) {
+  const icon = status === "ok" ? "✓" : status === "fail" ? "✗" : status === "manual" ? "!" : status === "checking" ? "…" : "•";
+  const text =
+    status === "ok" ? (compares ? "Coincide" : "Listo") : status === "fail" ? (compares ? "No coincide" : "Falta") : status === "manual" ? "Irá a revisión" : status === "checking" ? "Verificando" : "Pendiente";
+  return (
+    <li className={`cz-check cz-check--${status}`}>
+      <span className="cz-check-icon" aria-hidden="true">{icon}</span>
+      <span className="cz-check-body">
+        <strong>{label}</strong> <span className="cz-check-state">· {text}</span>
+        {reasons.map(r => <small key={r}>{r}</small>)}
+      </span>
+    </li>
   );
 }

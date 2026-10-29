@@ -3,6 +3,7 @@ import { LiveFeatured } from "@/features/commerce/LiveFeatured";
 import { sellerPlanLabel } from "@shared/pricing";
 import { useState } from "react";
 import { Link } from "wouter";
+import { countries, type CountryCode } from "@shared/countries";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -77,6 +78,7 @@ export default function Home() {
             Emprendedores de Panamá en un espacio con valores cristianos. Elige
             por dónde quieres empezar.
           </p>
+          <CountryPicker />
           <div className="gate-choices">
             <Link href="/mercado" className="gate-choice gate-choice--market">
               <span className="gate-icon" aria-hidden="true"><ShoppingBag size={34} strokeWidth={1.6} /></span>
@@ -197,5 +199,63 @@ export default function Home() {
         </div>
       </section>
     </>
+  );
+}
+
+/** Elegir país: Panamá entra directo; en los demás se deja el correo para el aviso. */
+function CountryPicker() {
+  const [country, setCountry] = useState<CountryCode>("PA");
+  const [email, setEmail] = useState("");
+  const [state, setState] = useState<"idle" | "sending" | "done" | "error">("idle");
+  const [message, setMessage] = useState("");
+  const selected = countries.find(c => c.code === country)!;
+  async function join(event: React.FormEvent) {
+    event.preventDefault();
+    setState("sending");
+    try {
+      const response = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-cz-request": "1" },
+        body: JSON.stringify({ email, country }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "No se pudo guardar.");
+      setState("done");
+      setMessage(`¡Listo! Te avisaremos cuando CuadraZone llegue a ${data.country}.`);
+    } catch (error) {
+      setState("error");
+      setMessage(error instanceof Error ? error.message : "No se pudo guardar.");
+    }
+  }
+  return (
+    <div className="country-picker">
+      <label className="country-select">
+        <span>¿En qué país estás?</span>
+        <select
+          value={country}
+          onChange={event => { setCountry(event.target.value as CountryCode); setState("idle"); setMessage(""); }}
+          aria-label="Elige tu país"
+        >
+          {countries.map(c => (
+            <option key={c.code} value={c.code}>{c.name}{c.active ? "" : " · Próximamente"}</option>
+          ))}
+        </select>
+      </label>
+      {!selected.active && (
+        <div className="country-waitlist" role="region" aria-label={`Aviso para ${selected.name}`}>
+          <p><strong>CuadraZone todavía no está en {selected.name}.</strong> Déjanos tu correo y te avisamos cuando abra.</p>
+          {state === "done" ? (
+            <p className="country-done" role="status">{message}</p>
+          ) : (
+            <form onSubmit={join}>
+              <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="tu@correo.com" aria-label="Tu correo" autoComplete="email" />
+              <button className="btn btn-gold" type="submit" disabled={state === "sending"}>{state === "sending" ? "Enviando…" : "Avísame"}</button>
+            </form>
+          )}
+          {state === "error" && <p className="country-error" role="alert">{message}</p>}
+          <p className="country-note">Mientras tanto puedes ver lo que hay en Panamá.</p>
+        </div>
+      )}
+    </div>
   );
 }

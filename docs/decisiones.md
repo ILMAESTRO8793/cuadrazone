@@ -176,3 +176,15 @@ Decisión del propietario (reemplaza la del 23 de octubre): CuadraZone está abi
 - Debajo quedan las colecciones reales del Marketplace (solo productos y libros); se quitaron el feed de ejemplo que mezclaba todo y la sección de servicios.
 - El menú superior cambia según el mundo (`sectionFor`): en el Marketplace solo productos, libros y tiendas; en Servicios solo servicios y eventos; cada lado tiene un botón para pasar al otro. El catálogo de ejemplo filtra por mundo.
 - El directorio de tiendas sigue mostrando todos los negocios registrados.
+
+## Verificación inmediata y países — 29 de octubre de 2026
+
+Decisión del propietario: aprobar al instante si los documentos coinciden, sin costo; residencia = elegir el país; selector de país en la portada.
+
+- **OCR gratuito y local:** Tesseract (`tesseract.js` + `@tesseract.js-data/spa`) corre en el propio servidor; las imágenes no salen de CuadraZone. Se rechazó una IA de pago (Claude API) por costo.
+- **Cómo compara:** el vendedor escribe nombres, apellidos y número tal como en su cédula; se buscan en el texto leído (tolera tildes y un error de lectura en palabras de 5+ letras). En la captura de Yappy o banco debe haber una línea que empiece con el primer nombre, contenga el primer apellido (completo o inicial) y no tenga palabras ajenas: acepta «SALEM J PIERRE D», rechaza otro nombre o un apellido extra.
+- **Aprobación inmediata:** al enviar, si cédula ✓, Yappy/banco ✓, correo y celular verificados y consentimientos aceptados, la solicitud queda aprobada y arranca la prueba (`auto_approved`). Si algo no coincide, el vendedor ve ✗ roja con el motivo, puede corregir y reintentar; si envía igual, queda pendiente para revisión del administrador. Los PDF van a revisión manual.
+- **Formulario:** nombres y apellidos legales, país (solo Panamá activo), captura de Yappy o banco (`payout`), lista de verificación con ✓ verde y ✗ roja que parpadean (sin animación si el sistema pide reducir movimiento).
+- **Países:** 18 países en `shared/countries.ts`; solo Panamá activo. En la portada, «¿En qué país estás?»; en los demás se deja el correo (`cz_country_waitlist`, migración 0013, límite por IP).
+- **Requisitos públicos:** se quitó «Aprobación personal del equipo de CuadraZone» y «Residencia en Panamá».
+- **Riesgo aceptado:** una captura editada podría pasar la comparación; lo mitigan el celular verificado por SMS, el historial y la posibilidad de cerrar tiendas.

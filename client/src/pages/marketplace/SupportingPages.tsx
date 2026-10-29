@@ -241,7 +241,7 @@ export function StorePage({ slug }: { slug: string }) {
 export { SubscriptionsPage } from "./SubscriptionPlans";
 
 export function SellPage() {
-  const requirements = ["Aceptar los valores cristianos de CuadraZone (no se negocian)", "Abierto a vendedores cristianos y no cristianos", "Residencia en Panamá", "Cédula o carné vigente", "Correo y teléfono verificados", "Datos de tu negocio y su categoría", "Aprobación personal del equipo de CuadraZone"];
+  const requirements = ["Aceptar los valores cristianos de CuadraZone (no se negocian)", "Elegir tu país (por ahora, Panamá)", "Cédula o carné vigente", "Una cuenta de Yappy o de banco a tu nombre", "Correo y celular verificados con un código", "Datos de tu negocio y su categoría", "Verificación inmediata: si todo coincide, tu tienda se abre al instante"];
   return <div className="market-page"><div className="container"><Crumbs current="Vende en CuadraZone" /><Intro eyebrow="Para vendedores" title="Convierte tu propósito en una tienda" copy="Guarda tu solicitud y adjunta tus evidencias de forma privada. Verificas tu correo y tu celular con un código, y nuestro equipo revisa cada solicitud." badge="3 meses gratis al ser aprobado" /><section className="sell-content"><div><p className="eyebrow">Tu recorrido</p><h2>Una comunidad con confianza</h2><ul className="check-list">{requirements.map(item => <li key={item}><Check size={17} />{item}</li>)}</ul></div><aside className="sell-callout"><FileText size={24} /><h3>Documentos privados</h3><p>Solo tú y los administradores autenticados pueden consultarlos. Durante esta vista previa utiliza archivos de prueba sin datos sensibles; los textos legales siguen en revisión.</p><Link href="/solicitud-vendedor" className="btn btn-gold btn-wide">Comenzar mi solicitud <ArrowRight size={16} /></Link><p>Normal {sellerPlanLabel("normal")}/mes o Mayor Visibilidad {sellerPlanLabel("mayor_visibilidad")}/mes después de 3 meses gratis · Productos físicos: comisión de 8% por venta en la prueba y 5% después, sin contar el envío. Servicios: sin comisión.</p><Link href="/suscripciones" className="text-link">Comparar los dos planes</Link></aside></section></div></div>;
 }
 
@@ -793,7 +793,7 @@ const legalContent: Record<
       ],
       [
         "Datos de los vendedores",
-        "Para revisar una solicitud de vendedor guardamos el tipo y nombre del negocio, sus categorías, el tipo y número de identificación y su vencimiento, provincia y ciudad, la iglesia, el pastor y la denominación si los indicas, la aceptación de los valores cristianos de CuadraZone, el código de conducta y esta política, y los documentos que subes: identificación y, si la agregas, carta pastoral. De tu tienda guardamos su descripción, fotos, tarifas de entrega, tu Yappy y tu link de pago con tarjeta.",
+        "Para revisar una solicitud de vendedor guardamos el tipo y nombre del negocio, sus categorías, el tipo y número de identificación, tus nombres y apellidos como aparecen en ella y su vencimiento, el país, provincia y ciudad, la iglesia, el pastor y la denominación si los indicas, la aceptación de los valores cristianos de CuadraZone, el código de conducta y esta política, y los documentos que subes: foto de tu cédula, captura de tu Yappy o banco con tu nombre y, si la agregas, carta pastoral. Para la verificación inmediata, un programa de lectura de texto que corre en nuestros propios servidores compara los nombres de esas imágenes; no se envían a terceros. De tu tienda guardamos su descripción, fotos, tarifas de entrega, tu Yappy y tu link de pago con tarjeta.",
       ],
       [
         "Datos de compras",
@@ -805,7 +805,7 @@ const legalContent: Record<
       ],
       [
         "Qué es público",
-        "El nombre de la tienda, su descripción, provincia y ciudad, sus publicaciones con fotos y precios, y las reseñas. El Yappy o el link de pago del vendedor solo lo ven los compradores con un pedido pagado por ese método. Los documentos de identidad y la carta pastoral nunca son públicos: solo los ve el equipo de CuadraZone para revisar la solicitud.",
+        "El nombre de la tienda, su descripción, provincia y ciudad, sus publicaciones con fotos y precios, y las reseñas. El Yappy o el link de pago del vendedor solo lo ven los compradores con un pedido pagado por ese método. Los documentos de identidad, la captura de Yappy o banco y la carta pastoral nunca son públicos: solo los ve el equipo de CuadraZone cuando una solicitud necesita revisión.",
       ],
       [
         "Con quién compartimos datos",

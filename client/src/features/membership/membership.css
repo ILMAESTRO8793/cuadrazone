@@ -185,3 +185,24 @@
 .member-auth-card { max-width: 520px; margin: 32px auto; display: flex; flex-direction: column; gap: 16px; }
 .member-button--active { outline: 2px solid currentColor; outline-offset: 2px; }
 .member-actions--stack .member-button { justify-content: center; gap: 8px; }
+
+/* ── Lista de verificación con ✓ verde y ✗ roja que parpadean ── */
+.cz-checklist { list-style: none; margin: 8px 0 12px; padding: 0; display: grid; gap: 10px; }
+.cz-check { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: 12px; border: 1px solid #DCE3E1; background: #fff; }
+.cz-check-icon { flex: 0 0 auto; display: inline-flex; width: 32px; height: 32px; align-items: center; justify-content: center; border-radius: 999px; font-size: 18px; font-weight: 900; line-height: 1; }
+.cz-check-body { display: flex; flex-direction: column; gap: 4px; font-size: 15px; }
+.cz-check-body small { color: #4A5568; font-size: 13px; line-height: 1.45; }
+.cz-check-state { font-weight: 600; }
+.cz-check--ok { border-color: #A7D7BE; background: #F1FAF5; }
+.cz-check--ok .cz-check-icon { background: #12823F; color: #fff; animation: cz-blink-ok 1.2s ease-in-out infinite; }
+.cz-check--ok .cz-check-state { color: #0F6B34; }
+.cz-check--fail { border-color: #F0B4B4; background: #FFF5F5; }
+.cz-check--fail .cz-check-icon { background: #C62828; color: #fff; animation: cz-blink-fail 0.9s ease-in-out infinite; }
+.cz-check--fail .cz-check-state { color: #A61B1B; }
+.cz-check--manual .cz-check-icon { background: #B58C3C; color: #0B1F3B; }
+.cz-check--manual .cz-check-state { color: #7A5A1C; }
+.cz-check--waiting .cz-check-icon, .cz-check--checking .cz-check-icon { background: #E7ECEA; color: #4A5568; }
+@keyframes cz-blink-ok { 0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(18, 130, 63, .45); } 50% { opacity: .55; box-shadow: 0 0 0 7px rgba(18, 130, 63, 0); } }
+@keyframes cz-blink-fail { 0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(198, 40, 40, .45); } 50% { opacity: .5; box-shadow: 0 0 0 7px rgba(198, 40, 40, 0); } }
+@media (prefers-reduced-motion: reduce) { .cz-check-icon { animation: none !important; } }
+.member-section-heading { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }

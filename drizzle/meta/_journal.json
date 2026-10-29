@@ -85,6 +85,20 @@
       "when": 1792860160990,
       "tag": "0011_entrar_codigo",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "5",
+      "when": 1793312061570,
+      "tag": "0012_verificacion_auto",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "5",
+      "when": 1793312342241,
+      "tag": "0013_lista_paises",
+      "breakpoints": true
     }
   ]
 }

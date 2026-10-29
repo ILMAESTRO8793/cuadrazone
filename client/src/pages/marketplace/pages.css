@@ -1846,3 +1846,15 @@
 /* Cambiar entre Marketplace y Servicios desde el menú */
 .section-switch { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; margin-right: 12px; padding: 6px 14px; border: 1px solid #E2B866; border-radius: 999px; color: #E2B866; font-size: 13px; font-weight: 700; text-decoration: none; white-space: nowrap; }
 .section-switch:hover, .section-switch:focus-visible { background: #E2B866; color: #0B1F3B; }
+
+/* ── Selector de país en la portada ── */
+.country-picker { display: flex; flex-direction: column; gap: 12px; max-width: 920px; }
+.country-select { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 12px; font-size: 16px; font-weight: 700; color: #0B1F3B; }
+.country-select select { min-height: 46px; min-width: 240px; padding: 0 14px; border: 2px solid #0B1F3B; border-radius: 12px; background: #fff; color: #0B1F3B; font: inherit; font-weight: 600; }
+.country-waitlist { display: flex; flex-direction: column; gap: 10px; padding: 16px 18px; border-radius: 14px; background: #FFFFFF; border: 1px solid #DCE3E1; }
+.country-waitlist p { margin: 0; font-size: 15px; line-height: 1.5; }
+.country-waitlist form { display: flex; flex-wrap: wrap; gap: 10px; }
+.country-waitlist input { flex: 1 1 240px; min-height: 46px; padding: 0 14px; border: 1px solid #9AA8A5; border-radius: 10px; font: inherit; }
+.country-done { color: #0F6B34; font-weight: 700; }
+.country-error { color: #A61B1B; font-weight: 600; }
+.country-note { color: #4A5568; font-size: 13px !important; }

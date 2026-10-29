@@ -73,6 +73,7 @@ describe("CuadraZone membership guards", () => {
       businessType: "individual", businessName: "", businessCategories: [{ categoryId: "viajes-y-turismo", specialtyIds: [] }],
       identificationType: "cedula", identificationNumber: "8-888-8888", documentExpiry: "", province: "Panamá", city: "Chilibre",
       denominationId: 1, churchName: "Iglesia Central", pastorName: "Pastor Prueba",
+      legalGivenNames: "Salem Jean", legalSurnames: "Pierre Dupont",
       residenceConfirmed: true, faithAccepted: true, conductAccepted: true, privacyAccepted: true,
       revision: 3, consentVersion: CONSENT_VERSION,
     });
@@ -87,10 +88,13 @@ describe("CuadraZone membership guards", () => {
       businessType: "individual", businessName: "", businessCategories: [{ categoryId: "viajes-y-turismo", specialtyIds: [] }],
       identificationType: "cedula", identificationNumber: "8-888-8888", documentExpiry: "", province: "Panamá", city: "Chilibre",
       residenceConfirmed: true, conductAccepted: true, privacyAccepted: true,
+      legalGivenNames: "Salem", legalSurnames: "Pierre",
     };
     const open = applicationInput.safeParse(base);
     expect(open.success).toBe(true);
-    if (open.success) expect(open.data).toMatchObject({ churchName: "", pastorName: "", denominationId: null, faithAccepted: false });
+    if (open.success) expect(open.data).toMatchObject({ churchName: "", pastorName: "", denominationId: null, faithAccepted: false, country: "PA" });
+    expect(applicationInput.safeParse({ ...base, country: "CO" }).success).toBe(false);
+    expect(applicationInput.safeParse({ ...base, legalGivenNames: "" }).success).toBe(false);
     expect(applicationInput.safeParse({ ...base, churchName: "Iglesia Central", pastorName: "Pastor Prueba" }).success).toBe(true);
     expect(applicationInput.safeParse({ ...base, churchName: "X" }).success).toBe(false);
   });

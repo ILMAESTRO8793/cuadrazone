@@ -94,7 +94,7 @@ export function nextApplicationRevision(revision: number): number {
 
 function snapshot(row: {
   id: number;
-  kind: "identity" | "pastoral";
+  kind: "identity" | "pastoral" | "payout";
   fileName: string;
   mimeType: string;
   size: number;
@@ -151,7 +151,7 @@ async function upload(req: Request, res: Response) {
   try {
     requireHeader(req);
     const user = await auth(req);
-    const kind = req.params.kind as "identity" | "pastoral";
+    const kind = req.params.kind as "identity" | "pastoral" | "payout";
     if (!KIND_SET.has(kind))
       throw new MembershipError("BAD_REQUEST", "Tipo de documento inválido");
     const mimeType = String(req.headers["content-type"] ?? "")
@@ -216,7 +216,9 @@ async function upload(req: Request, res: Response) {
       const pointer =
         kind === "identity"
           ? { identityDocumentId: id }
-          : { pastoralDocumentId: id };
+          : kind === "payout"
+            ? { payoutDocumentId: id }
+            : { pastoralDocumentId: id };
       const pointerUpdate = await tx
         .update(czApplications)
         .set({ ...pointer, revision: nextApplicationRevision(app.revision) })

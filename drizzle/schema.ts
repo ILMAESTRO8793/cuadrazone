@@ -88,6 +88,15 @@ export const czApplications = mysqlTable("cz_membership_applications", {
   consentVersion: varchar("consentVersion", { length: 64 }).notNull(),
   identityDocumentId: int("identityDocumentId"),
   pastoralDocumentId: int("pastoralDocumentId"),
+  /** Captura de Yappy o del banco donde se ve el nombre del titular. */
+  payoutDocumentId: int("payoutDocumentId"),
+  /** Nombres y apellidos tal como aparecen en el documento de identidad. */
+  legalGivenNames: varchar("legalGivenNames", { length: 120 }).notNull().default(""),
+  legalSurnames: varchar("legalSurnames", { length: 120 }).notNull().default(""),
+  /** País donde vende (ISO 3166-1, p. ej. PA). */
+  country: varchar("country", { length: 2 }).notNull().default("PA"),
+  /** Resultado de la última verificación automática de documentos. */
+  autoChecks: json("autoChecks"),
   status: mysqlEnum("status", ["draft", "pending", "approved", "rejected"])
     .notNull()
     .default("draft"),
@@ -122,7 +131,7 @@ export const czVerificationDocuments = mysqlTable("cz_verification_documents", {
   userId: int("userId")
     .notNull()
     .references(() => users.id),
-  kind: mysqlEnum("kind", ["identity", "pastoral"]).notNull(),
+  kind: mysqlEnum("kind", ["identity", "pastoral", "payout"]).notNull(),
   fileName: varchar("fileName", { length: 200 }).notNull(),
   mimeType: varchar("mimeType", { length: 80 }).notNull(),
   size: int("size").notNull(),
@@ -245,5 +254,21 @@ export const czAuthCodes = mysqlTable(
   table => ({
     byDestination: index("cz_auth_codes_destination_idx").on(table.destination, table.createdAt),
     byIp: index("cz_auth_codes_ip_idx").on(table.ip, table.createdAt),
+  })
+);
+
+/** Personas que quieren saber cuándo abre CuadraZone en su país. */
+export const czCountryWaitlist = mysqlTable(
+  "cz_country_waitlist",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    email: varchar("email", { length: 254 }).notNull(),
+    country: varchar("country", { length: 2 }).notNull(),
+    ip: varchar("ip", { length: 64 }),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => ({
+    uniqueEmailCountry: uniqueIndex("cz_country_waitlist_uq").on(table.email, table.country),
+    byIp: index("cz_country_waitlist_ip_idx").on(table.ip, table.createdAt),
   })
 );

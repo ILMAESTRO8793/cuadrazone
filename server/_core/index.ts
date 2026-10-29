@@ -10,6 +10,7 @@ import { runMigrations } from "./migrate";
 import { startSubscriptionSweeper } from "../services/subscriptions";
 import { startEmailWorker } from "../services/email";
 import { registerCodeAuthRoutes } from "./codeAuth";
+import { registerWaitlistRoutes } from "./waitlist";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
@@ -35,6 +36,7 @@ async function startServer() {
   app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
   registerOAuthRoutes(app);
   registerCodeAuthRoutes(app);
+  registerWaitlistRoutes(app);
   // tRPC API
   app.use("/api/trpc", (_req, res, next) => { res.setHeader("Cache-Control", "private, no-store"); next(); });
   app.use(
