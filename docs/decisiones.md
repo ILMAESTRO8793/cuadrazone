@@ -193,3 +193,9 @@ Decisión del propietario: aprobar al instante si los documentos coinciden, sin 
 
 - Logo original del propietario (letras blancas «Cuadra», «Zone» dorado y carrito dorado con cruz). En el encabezado azul se usa sin el fondo (`logo-cuadrazone.png`, recortado y con el fondo azul vuelto transparente, sin alterar el diseño); en el pie claro, con su fondo azul original (`logo-cuadrazone-fondo.png`).
 - Favicon: el carrito con la cruz sobre azul. Imagen para redes (`og-image.png`) a partir del original.
+
+## Portada cinematográfica — 30 de octubre de 2026
+
+- Portada en dos columnas en escritorio: botones a la izquierda y un mosaico de fotos a la derecha (una grande y dos chicas). Cada foto hace un zoom lento («Ken Burns») y se funde con otra a su propio ritmo; marco azul con brillo dorado y el Salmo 133:1 flotando. Fotos de Unsplash (licencia libre): mercado, bolso artesanal, clase, herramientas, alabanza y Biblia.
+- En celular el mosaico va debajo de los botones, más bajo y sin el versículo. Sin animación si el sistema pide reducir movimiento.
+- Para usar fotos reales de CuadraZone, cambiar las URLs de `mosaicTiles` en `client/src/pages/Home.tsx`.

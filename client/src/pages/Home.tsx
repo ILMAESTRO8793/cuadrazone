@@ -70,48 +70,53 @@ export default function Home() {
     <>
       <div className="gate-band">
         <section className="gate container" aria-labelledby="gate-title">
-          <div className="eyebrow">
-            <span className="tiny-gold-dot" /> BIENVENIDO A CUADRAZONE
-          </div>
-          <h1 id="gate-title">¿Qué estás buscando hoy?</h1>
-          <p className="gate-copy">
-            Emprendedores de Panamá en un espacio con valores cristianos. Elige
-            por dónde quieres empezar.
-          </p>
-          <CountryPicker />
-          <div className="gate-choices">
-            <Link href="/mercado" className="gate-choice gate-choice--market">
-              <span className="gate-icon" aria-hidden="true"><ShoppingBag size={34} strokeWidth={1.6} /></span>
-              <span className="gate-text">
-                <strong>COMERCIOS</strong>
-                <span className="gate-detail">Productos, artesanías, ropa, tecnología y libros cristianos de tiendas verificadas.</span>
-              </span>
-              <span className="gate-arrow" aria-hidden="true"><ArrowRight size={26} /></span>
-            </Link>
-            <Link href="/servicios" className="gate-choice gate-choice--services">
-              <span className="gate-icon" aria-hidden="true"><Wrench size={34} strokeWidth={1.6} /></span>
-              <span className="gate-text">
-                <strong>SERVICIOS</strong>
-                <span className="gate-detail">Clases, tutorías, trabajos a domicilio, consultas profesionales y eventos.</span>
-              </span>
-              <span className="gate-arrow" aria-hidden="true"><ArrowRight size={26} /></span>
-            </Link>
-            <Link href="/vender" className="gate-choice gate-choice--store">
-              <span className="gate-icon" aria-hidden="true"><Store size={34} strokeWidth={1.6} /></span>
-              <span className="gate-text">
-                <strong>CREAR TU TIENDA</strong>
-                <span className="gate-detail">Vende tus productos u ofrece tus servicios. Los primeros 3 meses son gratis.</span>
-              </span>
-              <span className="gate-arrow" aria-hidden="true"><ArrowRight size={26} /></span>
-            </Link>
-          </div>
-          <div className="hero-small gate-small">
-            <span>
-              <ShieldCheck size={16} /> Verificación de vendedores
-            </span>
-            <span>
-              <Check size={15} /> 3 meses gratis para vendedores
-            </span>
+          <div className="gate-grid">
+            <div className="gate-main">
+              <div className="eyebrow">
+                <span className="tiny-gold-dot" /> BIENVENIDO A CUADRAZONE
+              </div>
+              <h1 id="gate-title">¿Qué estás buscando hoy?</h1>
+              <p className="gate-copy">
+                Emprendedores de Panamá en un espacio con valores cristianos. Elige
+                por dónde quieres empezar.
+              </p>
+              <CountryPicker />
+              <div className="gate-choices">
+                <Link href="/mercado" className="gate-choice gate-choice--market">
+                  <span className="gate-icon" aria-hidden="true"><ShoppingBag size={34} strokeWidth={1.6} /></span>
+                  <span className="gate-text">
+                    <strong>COMERCIOS</strong>
+                    <span className="gate-detail">Productos, artesanías, ropa, tecnología y libros cristianos de tiendas verificadas.</span>
+                  </span>
+                  <span className="gate-arrow" aria-hidden="true"><ArrowRight size={26} /></span>
+                </Link>
+                <Link href="/servicios" className="gate-choice gate-choice--services">
+                  <span className="gate-icon" aria-hidden="true"><Wrench size={34} strokeWidth={1.6} /></span>
+                  <span className="gate-text">
+                    <strong>SERVICIOS</strong>
+                    <span className="gate-detail">Clases, tutorías, trabajos a domicilio, consultas profesionales y eventos.</span>
+                  </span>
+                  <span className="gate-arrow" aria-hidden="true"><ArrowRight size={26} /></span>
+                </Link>
+                <Link href="/vender" className="gate-choice gate-choice--store">
+                  <span className="gate-icon" aria-hidden="true"><Store size={34} strokeWidth={1.6} /></span>
+                  <span className="gate-text">
+                    <strong>CREAR TU TIENDA</strong>
+                    <span className="gate-detail">Vende tus productos u ofrece tus servicios. Los primeros 3 meses son gratis.</span>
+                  </span>
+                  <span className="gate-arrow" aria-hidden="true"><ArrowRight size={26} /></span>
+                </Link>
+              </div>
+              <div className="hero-small gate-small">
+                <span>
+                  <ShieldCheck size={16} /> Verificación de vendedores
+                </span>
+                <span>
+                  <Check size={15} /> 3 meses gratis para vendedores
+                </span>
+              </div>
+            </div>
+            <GateMosaic />
           </div>
         </section>
       </div>
@@ -256,6 +261,38 @@ function CountryPicker() {
           <p className="country-note">Mientras tanto puedes ver lo que hay en Panamá.</p>
         </div>
       )}
+    </div>
+  );
+}
+
+/*
+ * Mosaico cinematográfico de la portada: cada foto hace un zoom lento («Ken
+ * Burns») y se funde con otra, cada una a su ritmo. Fotos con licencia de
+ * Unsplash (uso comercial libre). Sin animación si el sistema pide reducir movimiento.
+ */
+const mosaicTiles = [
+  { label: "Comercios", className: "mosaic-tile--big", photos: ["https://images.unsplash.com/photo-1770129157442-5f080cacf11c?auto=format&fit=crop&w=1200&q=70", "https://images.unsplash.com/photo-1766634001794-b3003f486954?auto=format&fit=crop&w=900&q=70"] },
+  { label: "Servicios", className: "mosaic-tile--top", photos: ["https://images.unsplash.com/photo-1758270704925-fa59d93119c1?auto=format&fit=crop&w=900&q=70", "https://images.unsplash.com/photo-1645651964715-d200ce0939cc?auto=format&fit=crop&w=900&q=70"] },
+  { label: "Eventos y libros", className: "mosaic-tile--bottom", photos: ["https://images.unsplash.com/photo-1724885794747-f4fb4dd8d0f2?auto=format&fit=crop&w=900&q=70", "https://images.unsplash.com/photo-1628257228852-a285d25296a6?auto=format&fit=crop&w=900&q=70"] },
+];
+
+function GateMosaic() {
+  return (
+    <div className="gate-visual" aria-hidden="true">
+      <div className="mosaic">
+        {mosaicTiles.map(tile => (
+          <div key={tile.label} className={`mosaic-tile ${tile.className}`}>
+            {tile.photos.map((src, i) => (
+              <img key={src} className={`mosaic-photo mosaic-photo--${i === 0 ? "a" : "b"}`} src={src} alt="" loading={i === 0 ? "eager" : "lazy"} decoding="async" />
+            ))}
+            <span className="mosaic-label">{tile.label}</span>
+          </div>
+        ))}
+        <figure className="mosaic-verse">
+          <blockquote>«¡Mirad cuán bueno y cuán delicioso es habitar los hermanos juntos en armonía!»</blockquote>
+          <figcaption>Salmo 133:1</figcaption>
+        </figure>
+      </div>
     </div>
   );
 }
