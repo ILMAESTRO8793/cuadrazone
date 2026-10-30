@@ -199,3 +199,9 @@ Decisión del propietario: aprobar al instante si los documentos coinciden, sin 
 - Portada en dos columnas en escritorio: botones a la izquierda y un mosaico de fotos a la derecha (una grande y dos chicas). Cada foto hace un zoom lento («Ken Burns») y se funde con otra a su propio ritmo; marco azul con brillo dorado y el Salmo 133:1 flotando. Fotos de Unsplash (licencia libre): mercado, bolso artesanal, clase, herramientas, alabanza y Biblia.
 - En celular el mosaico va debajo de los botones, más bajo y sin el versículo. Sin animación si el sistema pide reducir movimiento.
 - Para usar fotos reales de CuadraZone, cambiar las URLs de `mosaicTiles` en `client/src/pages/Home.tsx`.
+
+## Portada con video de fondo — 30 de octubre de 2026 (reemplaza el mosaico)
+
+- El propietario prefirió el video al mosaico. La portada tiene un video sin sonido y en bucle de fondo, con un velo azul marino más oscuro a la izquierda (donde están el título y los botones) y más transparente a la derecha. Título y textos en blanco y dorado.
+- Video: «Slow motion video of a fruit and veggie stand» de Mixkit (licencia gratuita de Mixkit, uso comercial). Fuentes en orden: `client/public/assets/video/portada.mp4` (si existe, video propio), luego el de Mixkit en 720p y 360p.
+- No se reproduce si el sistema pide reducir movimiento o ahorrar datos: se muestra una foto fija.

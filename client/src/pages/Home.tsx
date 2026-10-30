@@ -1,7 +1,7 @@
 import { BusinessCategoryBrowse } from "@/features/commerce/StoreDirectoryPage";
 import { LiveFeatured } from "@/features/commerce/LiveFeatured";
 import { sellerPlanLabel } from "@shared/pricing";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { countries, type CountryCode } from "@shared/countries";
 import {
@@ -68,7 +68,8 @@ export default function Home() {
       : ordered.filter(item => item.kind === kind);
   return (
     <>
-      <div className="gate-band">
+      <div className="gate-band gate-band--video">
+        <HeroVideo />
         <section className="gate container" aria-labelledby="gate-title">
           <div className="gate-grid">
             <div className="gate-main">
@@ -116,7 +117,6 @@ export default function Home() {
                 </span>
               </div>
             </div>
-            <GateMosaic />
           </div>
         </section>
       </div>
@@ -265,34 +265,37 @@ function CountryPicker() {
   );
 }
 
+
 /*
- * Mosaico cinematográfico de la portada: cada foto hace un zoom lento («Ken
- * Burns») y se funde con otra, cada una a su ritmo. Fotos con licencia de
- * Unsplash (uso comercial libre). Sin animación si el sistema pide reducir movimiento.
+ * Video de fondo de la portada: sin sonido, en bucle y con un velo azul para que
+ * el texto se lea. Video de Mixkit (licencia gratuita, uso comercial).
+ * Para usar un video propio, súbelo como client/public/assets/video/portada.mp4:
+ * se usa primero y el de Mixkit queda como respaldo. No se carga si el sistema
+ * pide reducir movimiento o ahorrar datos; entonces se muestra la imagen fija.
  */
-const mosaicTiles = [
-  { label: "Comercios", className: "mosaic-tile--big", photos: ["https://images.unsplash.com/photo-1770129157442-5f080cacf11c?auto=format&fit=crop&w=1200&q=70", "https://images.unsplash.com/photo-1766634001794-b3003f486954?auto=format&fit=crop&w=900&q=70"] },
-  { label: "Servicios", className: "mosaic-tile--top", photos: ["https://images.unsplash.com/photo-1758270704925-fa59d93119c1?auto=format&fit=crop&w=900&q=70", "https://images.unsplash.com/photo-1645651964715-d200ce0939cc?auto=format&fit=crop&w=900&q=70"] },
-  { label: "Eventos y libros", className: "mosaic-tile--bottom", photos: ["https://images.unsplash.com/photo-1724885794747-f4fb4dd8d0f2?auto=format&fit=crop&w=900&q=70", "https://images.unsplash.com/photo-1628257228852-a285d25296a6?auto=format&fit=crop&w=900&q=70"] },
+const HERO_POSTER = "https://images.unsplash.com/photo-1770129157442-5f080cacf11c?auto=format&fit=crop&w=1600&q=70";
+const HERO_SOURCES = [
+  "/assets/video/portada.mp4",
+  "https://assets.mixkit.co/videos/991/991-720.mp4",
+  "https://assets.mixkit.co/videos/991/991-360.mp4",
 ];
 
-function GateMosaic() {
+function HeroVideo() {
+  const [play, setPlay] = useState(false);
+  useEffect(() => {
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
+    setPlay(!reduce && !saveData);
+  }, []);
   return (
-    <div className="gate-visual" aria-hidden="true">
-      <div className="mosaic">
-        {mosaicTiles.map(tile => (
-          <div key={tile.label} className={`mosaic-tile ${tile.className}`}>
-            {tile.photos.map((src, i) => (
-              <img key={src} className={`mosaic-photo mosaic-photo--${i === 0 ? "a" : "b"}`} src={src} alt="" loading={i === 0 ? "eager" : "lazy"} decoding="async" />
-            ))}
-            <span className="mosaic-label">{tile.label}</span>
-          </div>
-        ))}
-        <figure className="mosaic-verse">
-          <blockquote>«¡Mirad cuán bueno y cuán delicioso es habitar los hermanos juntos en armonía!»</blockquote>
-          <figcaption>Salmo 133:1</figcaption>
-        </figure>
-      </div>
+    <div className="hero-video" aria-hidden="true">
+      <div className="hero-video-poster" style={{ backgroundImage: `url(${HERO_POSTER})` }} />
+      {play && (
+        <video className="hero-video-media" autoPlay muted loop playsInline preload="auto" poster={HERO_POSTER}>
+          {HERO_SOURCES.map(src => <source key={src} src={src} type="video/mp4" />)}
+        </video>
+      )}
+      <div className="hero-video-veil" />
     </div>
   );
 }
