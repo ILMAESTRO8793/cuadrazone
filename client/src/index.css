@@ -2148,3 +2148,6 @@ body,
 .category-menu-heading { display: block; padding: 14px 18px 7px; color: #071f3b; border-top: 1px solid #e3e9e7; }
 .category-popover > div { max-height: min(70vh, 620px); overflow-y: auto; }
 @media (max-width: 600px) { .header-search-scope { width: 76px; max-width: 76px; padding: 0 4px; } }
+
+/* Logo del pie con su fondo azul original, para que se lea sobre el fondo claro */
+.footer-brand img.footer-logo { border-radius: 14px; box-shadow: 0 6px 18px rgba(11, 31, 59, .18); }

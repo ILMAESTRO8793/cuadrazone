@@ -188,3 +188,8 @@ Decisión del propietario: aprobar al instante si los documentos coinciden, sin 
 - **Países:** 18 países en `shared/countries.ts`; solo Panamá activo. En la portada, «¿En qué país estás?»; en los demás se deja el correo (`cz_country_waitlist`, migración 0013, límite por IP).
 - **Requisitos públicos:** se quitó «Aprobación personal del equipo de CuadraZone» y «Residencia en Panamá».
 - **Riesgo aceptado:** una captura editada podría pasar la comparación; lo mitigan el celular verificado por SMS, el historial y la posibilidad de cerrar tiendas.
+
+## Logo oficial — 29 de octubre de 2026
+
+- Logo original del propietario (letras blancas «Cuadra», «Zone» dorado y carrito dorado con cruz). En el encabezado azul se usa sin el fondo (`logo-cuadrazone.png`, recortado y con el fondo azul vuelto transparente, sin alterar el diseño); en el pie claro, con su fondo azul original (`logo-cuadrazone-fondo.png`).
+- Favicon: el carrito con la cruz sobre azul. Imagen para redes (`og-image.png`) a partir del original.

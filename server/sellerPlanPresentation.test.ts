@@ -24,7 +24,7 @@ describe("Oferta de dos planes", () => {
       const html = renderPage(route).html;
       expect(html).toContain("19.99");
       expect(html).toContain("39.99");
-      expect(html).toContain("/assets/logo-carrito-blanco.png");
+      expect(html).toContain("/assets/logo-cuadrazone.png");
     }
   });
   it("protects selection and does not expose a saved plan in public SSR", () => {

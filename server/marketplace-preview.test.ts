@@ -21,12 +21,12 @@ describe("CuadraZone preview", () => {
     expect(result.html).toContain(">SERVICIOS<");
     expect(result.html).toContain('href="/mercado" class="gate-choice');
     expect(result.html).toContain('href="/servicios" class="gate-choice');
-    expect(result.html).toContain("/assets/logo-carrito-blanco.png");
+    expect(result.html).toContain("/assets/logo-cuadrazone.png");
     expect(result.html).toContain("No se procesan pagos");
   });
   it("places the verified verse below the unchanged logo, separate from business copy", () => {
     const html = renderPage("/").html;
-    const logo = html.indexOf("/assets/logo-carrito-blanco.png");
+    const logo = html.indexOf("/assets/logo-cuadrazone.png");
     const scripture = html.indexOf('class="brand-scripture"');
     expect(scripture).toBeGreaterThan(logo);
     expect(scripture).toBeLessThan(html.indexOf('class="header-location"'));

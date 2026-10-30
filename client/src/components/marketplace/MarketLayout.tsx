@@ -152,7 +152,7 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
               className="site-logo"
               aria-label="CuadraZone, inicio"
             >
-              <img src={assets.logo} alt="CuadraZone" width={240} height={68} />
+              <img src={assets.logo} alt="CuadraZone" width={240} height={78} />
             </Link>
             <figure className="brand-scripture">
               <blockquote cite="https://www.biblegateway.com/passage/?search=Salmos%20133%3A1&version=RVR1960">
@@ -426,7 +426,7 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
         <div className="container footer-top">
           <div className="footer-brand">
             <Link href="/" aria-label="Inicio CuadraZone">
-              <img src={assets.logo} alt="CuadraZone" width={230} height={65} />
+              <img className="footer-logo" src="/assets/logo-cuadrazone-fondo.png" alt="CuadraZone" width={230} height={80} />
             </Link>
             <p>
               Un espacio para descubrir, comprar y apoyar el talento de nuestra

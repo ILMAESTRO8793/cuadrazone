@@ -21,7 +21,7 @@ export type Listing = {
 // Biblia: Sixteen Miles Out; alabanza: Kevin Wright; herramientas: benjamin lehman.
 // Al tener fotos reales de la comunidad, reemplaza estas URLs por rutas en /assets/.
 export const assets = {
-  logo: "/assets/logo-carrito-blanco.png",
+  logo: "/assets/logo-cuadrazone.png",
   hero: "https://images.unsplash.com/photo-1770129157442-5f080cacf11c?auto=format&fit=crop&w=1600&q=75",
   headphones: "https://images.unsplash.com/photo-1553774661-0651f14b2da4?auto=format&fit=crop&w=1200&q=75",
   tote: "https://images.unsplash.com/photo-1766634001794-b3003f486954?auto=format&fit=crop&w=1200&q=75",
