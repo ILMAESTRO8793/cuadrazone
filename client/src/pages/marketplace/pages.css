@@ -1815,7 +1815,7 @@
 }
 
 /* ── Portada: elegir Marketplace o Servicios ── */
-.gate-band { background: linear-gradient(180deg, #EAF5F2 0%, #F3F6F5 100%); }
+.gate-band { background: #FFFFFF; }
 .gate { padding: 56px 0 64px; display: flex; flex-direction: column; gap: 18px; }
 .gate h1 { margin: 0; font-size: clamp(34px, 5vw, 56px); line-height: 1.05; letter-spacing: -0.02em; color: #0B1F3B; }
 .gate-copy { margin: 0; max-width: 640px; font-size: 18px; line-height: 1.6; color: #4A5568; }
@@ -1870,29 +1870,7 @@
 }
 
 
-/* ── Portada con video de fondo ── */
-.gate-band--video { position: relative; overflow: hidden; background: #071F3B; isolation: isolate; }
-.hero-video { position: absolute; inset: 0; z-index: -1; }
-.hero-video-poster, .hero-video-media { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background-size: cover; background-position: center; }
-.hero-video-media { animation: hero-fade-in 1.2s ease-out both; }
-.hero-video-veil { position: absolute; inset: 0; background:
-  linear-gradient(90deg, rgba(7, 31, 59, .94) 0%, rgba(7, 31, 59, .82) 38%, rgba(7, 31, 59, .38) 70%, rgba(7, 31, 59, .2) 100%),
-  linear-gradient(0deg, rgba(7, 31, 59, .55) 0%, rgba(7, 31, 59, 0) 35%); }
-@keyframes hero-fade-in { from { opacity: 0; } to { opacity: 1; } }
-.gate-band--video .gate { padding-top: 64px; padding-bottom: 72px; }
-.gate-band--video .gate h1 { color: #FFFFFF; text-shadow: 0 2px 24px rgba(0, 0, 0, .35); }
-.gate-band--video .gate-copy { color: #D5DCE6; }
-.gate-band--video .eyebrow { color: #E2B866; }
-.gate-band--video .country-select { color: #FFFFFF; }
-.gate-band--video .country-select select { border-color: #E2B866; }
-.gate-band--video .gate-small, .gate-band--video .gate-small span { color: #D5DCE6; }
-.gate-band--video .gate-choice--market { background: rgba(11, 31, 59, .78); border: 2px solid rgba(226, 184, 102, .7); backdrop-filter: blur(6px); }
-.gate-band--video .gate-choice--services { border-color: #FFFFFF; }
-.gate-band--video .gate-choice { box-shadow: 0 14px 40px rgba(0, 0, 0, .35); }
-@media (max-width: 1099px) {
-  .hero-video-veil { background: linear-gradient(180deg, rgba(7, 31, 59, .7) 0%, rgba(7, 31, 59, .88) 55%, rgba(7, 31, 59, .95) 100%); }
-}
-@media (prefers-reduced-motion: reduce) { .hero-video-media { display: none; } }
+
 
 /* Provincia de la tienda y envío a la provincia del comprador */
 .ship-note { display: flex; flex-direction: column; gap: 4px; margin: 6px 0 2px; font-size: 13px; line-height: 1.35; }

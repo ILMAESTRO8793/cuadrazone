@@ -1,7 +1,7 @@
 import { BusinessCategoryBrowse } from "@/features/commerce/StoreDirectoryPage";
 import { LiveFeatured } from "@/features/commerce/LiveFeatured";
 import { sellerPlanLabel } from "@shared/pricing";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "wouter";
 import { countries, type CountryCode } from "@shared/countries";
 import {
@@ -71,8 +71,7 @@ export default function Home() {
       : ordered.filter(item => item.kind === kind);
   return (
     <>
-      <div className="gate-band gate-band--video">
-        <HeroVideo />
+      <div className="gate-band">
         <section className="gate container" aria-labelledby="gate-title">
           <div className="gate-grid">
             <div className="gate-main">
@@ -292,38 +291,3 @@ function CountryPicker() {
   );
 }
 
-
-/*
- * Video de fondo de la portada: sin sonido, en bucle y con un velo azul para que
- * el texto se lea. Video de Mixkit «Woman exploring an online sales page on her
- * cell phone» (licencia gratuita, uso comercial): comprar en línea desde el celular.
- * Para usar un video propio, súbelo como client/public/assets/video/portada.mp4:
- * se usa primero y el de Mixkit queda como respaldo. No se carga si el sistema
- * pide reducir movimiento o ahorrar datos; entonces se muestra la imagen fija.
- */
-const HERO_POSTER = "https://assets.mixkit.co/videos/42136/42136-thumb-360-0.jpg";
-const HERO_SOURCES = [
-  "/assets/video/portada.mp4",
-  "https://assets.mixkit.co/videos/42136/42136-720.mp4",
-  "https://assets.mixkit.co/videos/42136/42136-360.mp4",
-];
-
-function HeroVideo() {
-  const [play, setPlay] = useState(false);
-  useEffect(() => {
-    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
-    setPlay(!reduce && !saveData);
-  }, []);
-  return (
-    <div className="hero-video" aria-hidden="true">
-      <div className="hero-video-poster" style={{ backgroundImage: `url(${HERO_POSTER})` }} />
-      {play && (
-        <video className="hero-video-media" autoPlay muted loop playsInline preload="auto" poster={HERO_POSTER}>
-          {HERO_SOURCES.map(src => <source key={src} src={src} type="video/mp4" />)}
-        </video>
-      )}
-      <div className="hero-video-veil" />
-    </div>
-  );
-}

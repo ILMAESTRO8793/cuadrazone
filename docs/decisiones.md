@@ -221,3 +221,5 @@ Decisiones del propietario: publicar en Bienes raíces, Autos y Empleos es pagad
 - **Plan para publicar:** vale el plan activo de la tienda (incluida la prueba) o un plan de anunciante (`cz_advertiser_plans` y `cz_advertiser_payments`) que el administrador registra con el correo o celular de la cuenta, con el monto exacto. Publicar exige plan activo y al menos una foto. Si el plan vence, los anuncios dejan de mostrarse sin borrarse. Mayor Visibilidad: «Destacado» y primero en la búsqueda.
 - **Búsqueda:** Comprar o Alquilar, tipo, provincia, precio, habitaciones, amueblado, mascotas y texto. Menú propio de la sección.
 - **Pendiente:** Autos y Buscar empleo (CV, postulaciones y publicación de vacantes), con las mismas reglas de plan.
+
+- 31/10/2026: se quitó el video de fondo de la portada a pedido del propietario; la portada queda con fondo blanco.
