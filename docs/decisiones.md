@@ -211,3 +211,13 @@ Decisión del propietario: aprobar al instante si los documentos coinciden, sin 
 - Cada tienda define un precio de envío por provincia (`cz_stores.shippingFeesByProvince`, migración 0014); la cobertura son esas provincias. Las tiendas con tarifa única siguen funcionando (`shippingFeeFor`, `coveredProvinces`). La entrega a domicilio queda como tarifa de la propia provincia.
 - Las tarjetas y la ficha del producto muestran «Desde [provincia de la tienda]» y «Envío a [provincia del comprador]: US$X» o «No envía a …». La provincia del comprador es la de «Explorar en» del encabezado y se usa por defecto al comprar; el servidor recalcula y rechaza totales con el envío de otra provincia.
 - La provincia del vendedor ya se pide en la solicitud y en la tienda. Los servicios (etapa 4) usarán la misma regla.
+
+## Bienes raíces, y botones de Autos y Empleo — 31 de octubre de 2026
+
+Decisiones del propietario: publicar en Bienes raíces, Autos y Empleos es pagado con uno de los dos planes; cualquier persona con cuenta puede publicar (sin verificación de vendedor); se construye primero Bienes raíces.
+
+- **Portada:** seis botones en dos columnas: Comercios, Servicios, Bienes raíces, Autos, Buscar empleo y Crear tu tienda. Autos y Buscar empleo llevan a una página «Próximamente».
+- **Anuncios (`cz_properties`, migración 0015):** venta o alquiler de casa, apartamento, terreno, local u oficina. Campos según el tipo: habitaciones y baños (casa y apartamento), metros de construcción o de terreno, piso, estacionamientos, amueblado, mascotas (alquiler), uso de suelo, título, agua y luz (terreno), comodidades, depósito y contrato mínimo (alquiler). Ubicación aproximada, hasta 15 fotos (`/media/catalog/properties/…`), celular de contacto con WhatsApp y llamada.
+- **Plan para publicar:** vale el plan activo de la tienda (incluida la prueba) o un plan de anunciante (`cz_advertiser_plans` y `cz_advertiser_payments`) que el administrador registra con el correo o celular de la cuenta, con el monto exacto. Publicar exige plan activo y al menos una foto. Si el plan vence, los anuncios dejan de mostrarse sin borrarse. Mayor Visibilidad: «Destacado» y primero en la búsqueda.
+- **Búsqueda:** Comprar o Alquilar, tipo, provincia, precio, habitaciones, amueblado, mascotas y texto. Menú propio de la sección.
+- **Pendiente:** Autos y Buscar empleo (CV, postulaciones y publicación de vacantes), con las mismas reglas de plan.

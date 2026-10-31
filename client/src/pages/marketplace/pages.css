@@ -1900,3 +1900,21 @@
 .ship-origin { color: #0B1F3B; font-weight: 700; }
 .ship-dest { color: #0F6B34; font-weight: 600; }
 .ship-dest--none { color: #7A5A1C; }
+
+/* ── Seis botones: dos columnas en pantallas anchas ── */
+@media (min-width: 900px) {
+  .gate-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; max-width: 980px; }
+  .gate-choices .gate-choice { grid-template-columns: auto minmax(0, 1fr); min-height: 0; padding: 20px 22px; gap: 16px; }
+  .gate-choices .gate-arrow { display: none; }
+  .gate-choices .gate-icon { width: 56px; height: 56px; border-radius: 16px; }
+  .gate-choices .gate-choice strong { font-size: clamp(22px, 2vw, 30px); }
+  .gate-choices .gate-detail { font-size: 14.5px; }
+
+  .gate-grid { grid-template-columns: minmax(0, 980px); }
+}
+.gate-choice--estate, .gate-choice--cars, .gate-choice--jobs { background: rgba(255, 255, 255, .96); color: #0B1F3B; border: 2px solid rgba(226, 184, 102, .85); }
+.gate-choice--estate .gate-detail, .gate-choice--cars .gate-detail, .gate-choice--jobs .gate-detail { color: #4A5568; }
+.gate-choice--estate .gate-icon { background: #E3F1EC; color: #0F5132; }
+.gate-choice--cars .gate-icon { background: #E3EAF2; color: #0B1F3B; }
+.gate-choice--jobs .gate-icon { background: #F1EADB; color: #7A5A1C; }
+.gate-choice--estate .gate-arrow, .gate-choice--cars .gate-arrow, .gate-choice--jobs .gate-arrow { background: #0B1F3B; color: #fff; }

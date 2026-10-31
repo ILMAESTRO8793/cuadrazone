@@ -38,6 +38,10 @@ export function getPageMeta(url: string, snapshot: PublicSnapshot = {}) {
     "/admin/denominaciones": "Administrar denominaciones",
     "/admin/suscripciones": "Suscripciones y comisiones",
     "/entrar": "Entrar o crear cuenta",
+    "/bienes-raices": "Bienes raíces: venta y alquiler",
+    "/bienes-raices/mis-anuncios": "Mis anuncios de bienes raíces",
+    "/autos": "Autos",
+    "/empleos": "Buscar empleo",
     "/ayuda": "Centro de ayuda",
   };
   if (titles[path]) title = `${titles[path]} | CuadraZone Panamá`;
@@ -76,6 +80,10 @@ export function getPageMeta(url: string, snapshot: PublicSnapshot = {}) {
     title = "Documentos legales | CuadraZone Panamá";
     description =
       "Fe y valores, código de conducta y política de privacidad de CuadraZone.";
+  } else if (/^\/bienes-raices\/[a-z0-9-]{1,160}$/.test(path)) {
+    // Ficha de un inmueble: se carga en el navegador.
+    title = "Propiedad en venta o alquiler | CuadraZone Panamá";
+    description = "Casas, apartamentos, terrenos y locales en venta o alquiler en Panamá.";
   } else if (path !== "/") status = 404;
   if (snapshot.badRequest) status = 400;
   if (snapshot.failed) status = 503;
@@ -115,6 +123,7 @@ export function getPageMeta(url: string, snapshot: PublicSnapshot = {}) {
         "/admin/denominaciones",
         "/admin/suscripciones",
         "/entrar",
+        "/bienes-raices/mis-anuncios",
       ].includes(path),
   };
 }

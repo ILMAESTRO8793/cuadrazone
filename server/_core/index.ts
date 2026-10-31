@@ -1,5 +1,6 @@
 import "dotenv/config";
 import { registerCatalogImageRoutes } from "../services/catalogImages";
+import { registerPropertyImageRoutes } from "../services/realEstate";
 import { registerDocumentRoutes } from "../services/privateDocuments";
 import express from "express";
 import { createServer } from "http";
@@ -29,6 +30,7 @@ async function startServer() {
   registerMediaRoutes(app);
   registerDocumentRoutes(app);
   registerCatalogImageRoutes(app);
+  registerPropertyImageRoutes(app);
   const server = createServer(app);
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "1mb" }));

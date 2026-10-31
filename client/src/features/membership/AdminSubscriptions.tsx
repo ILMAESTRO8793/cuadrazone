@@ -73,7 +73,67 @@ export function AdminSubscriptions({ enabled }: { enabled: boolean }) {
           <p>Registra su pago o revisa su historial. Cuando un vendedor aprobado te pague por Yappy, transferencia o efectivo, su tienda se publica al registrar el pago y se oculta sola al vencer.</p>
         </section>
       )}
+      <section className="member-card admin-detail" style={{ gridColumn: "1 / -1" }}>
+        <AdvertiserPlans />
+      </section>
     </div>
+  );
+}
+
+/** Plan de anunciante: para quien publica bienes raíces sin tener tienda. */
+function AdvertiserPlans() {
+  const list = trpc.realEstate.advertiserPlans.useQuery();
+  const record = trpc.realEstate.recordAdvertiserPayment.useMutation();
+  const [account, setAccount] = useState("");
+  const [planId, setPlanId] = useState<SellerPlanId>("normal");
+  const [months, setMonths] = useState(1);
+  const [method, setMethod] = useState<Method>("yappy");
+  const [reference, setReference] = useState("");
+  const [paidOn, setPaidOn] = useState(todayInPanama());
+  const amount = getSellerPlan(planId).monthlyCents * months;
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    try {
+      const r = await record.mutateAsync({ account, planId, months, amountCents: amount, method, reference: reference.trim(), paidOn, note: "" });
+      toast.success(`Plan activo hasta ${day(new Date(r.endsAt))}`);
+      setAccount(""); setReference("");
+      await list.refetch();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "No se pudo registrar");
+    }
+  }
+  return (
+    <>
+      <h2>Planes de anunciantes (bienes raíces)</h2>
+      <p className="member-muted">Para quien publica casas, apartamentos o terrenos sin tener tienda. Quien ya tiene una tienda activa publica con su mismo plan. Con Mayor Visibilidad sus anuncios salen primero y como «Destacado».</p>
+      <form className="admin-review-form" onSubmit={save}>
+        <label>Correo o celular de su cuenta<input value={account} onChange={e => setAccount(e.target.value)} required placeholder="persona@correo.com o 6123-4567" /></label>
+        <label>Plan
+          <select value={planId} onChange={e => setPlanId(e.target.value as SellerPlanId)}>
+            {sellerPlanIds.map(id => <option key={id} value={id}>{getSellerPlan(id).name} · {money(getSellerPlan(id).monthlyCents)} al mes</option>)}
+          </select>
+        </label>
+        <label>Meses<input type="number" min={1} max={12} value={months} onChange={e => setMonths(Math.min(12, Math.max(1, Number(e.target.value) || 1)))} /></label>
+        <label>Método
+          <select value={method} onChange={e => setMethod(e.target.value as Method)}>
+            {(Object.keys(methodText) as Method[]).map(key => <option key={key} value={key}>{methodText[key]}</option>)}
+          </select>
+        </label>
+        <label>{method === "efectivo" ? "Recibo (opcional)" : "Número de comprobante"}<input value={reference} onChange={e => setReference(e.target.value)} maxLength={120} /></label>
+        <label>Fecha del pago<input type="date" value={paidOn} max={todayInPanama()} onChange={e => setPaidOn(e.target.value)} /></label>
+        <button className="btn btn-gold" type="submit" disabled={record.isPending}>{record.isPending ? "Guardando…" : `Registrar pago de ${money(amount)}`}</button>
+      </form>
+      {list.data && list.data.length > 0 && (
+        <ul className="admin-audit">
+          {list.data.map(p => (
+            <li key={p.userId}>
+              <strong>{p.name || p.email || p.phone}</strong> · {getSellerPlan(p.planId as SellerPlanId).name} · {p.active ? `activo hasta ${day(new Date(p.endsAt))}` : `venció el ${day(new Date(p.endsAt))}`}
+              <br /><small>{[p.email, p.phone].filter(Boolean).join(" · ")}</small>
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
   );
 }
 

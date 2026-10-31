@@ -1,4 +1,5 @@
 import {
+  bigint,
   foreignKey,
   index,
   int,
@@ -126,3 +127,77 @@ export type ProductImage = typeof czProductImages.$inferSelect;
 export type NewStore = typeof czStores.$inferInsert;
 export type NewProduct = typeof czProducts.$inferInsert;
 export type NewVariant = typeof czVariants.$inferInsert;
+
+/** Anuncios de bienes raíces (venta y alquiler). */
+export const czProperties = mysqlTable(
+  "cz_properties",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull().references(() => users.id),
+    slug: varchar("slug", { length: 160 }).notNull(),
+    status: mysqlEnum("status", ["draft", "published", "paused", "closed"]).notNull().default("draft"),
+    revision: int("revision").notNull().default(0),
+    operation: mysqlEnum("operation", ["venta", "alquiler"]).notNull(),
+    propertyType: mysqlEnum("propertyType", ["casa", "apartamento", "terreno", "local", "oficina"]).notNull(),
+    title: varchar("title", { length: 120 }).notNull(),
+    description: text("description").notNull(),
+    priceCents: bigint("priceCents", { mode: "number" }).notNull(),
+    depositCents: bigint("depositCents", { mode: "number" }),
+    minLeaseMonths: int("minLeaseMonths"),
+    province: varchar("province", { length: 60 }).notNull(),
+    district: varchar("district", { length: 80 }).notNull(),
+    neighborhood: varchar("neighborhood", { length: 120 }).notNull().default(""),
+    areaBuiltM2: int("areaBuiltM2"),
+    areaLandM2: int("areaLandM2"),
+    bedrooms: int("bedrooms"),
+    bathrooms: int("bathrooms"),
+    parking: int("parking"),
+    floor: int("floor"),
+    furnished: int("furnished").notNull().default(0),
+    petsAllowed: int("petsAllowed").notNull().default(0),
+    landUse: mysqlEnum("landUse", ["residencial", "comercial", "agricola", "mixto"]),
+    hasTitle: int("hasTitle").notNull().default(0),
+    hasWater: int("hasWater").notNull().default(0),
+    hasPower: int("hasPower").notNull().default(0),
+    amenities: json("amenities").$type<string[]>(),
+    advertiserType: mysqlEnum("advertiserType", ["dueno", "agente"]).notNull().default("dueno"),
+    contactPhone: varchar("contactPhone", { length: 20 }).notNull(),
+    showPhone: int("showPhone").notNull().default(1),
+    images: json("images").$type<string[]>(),
+    publishedAt: timestamp("publishedAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    uniqueIndex("cz_properties_slug_uq").on(table.slug),
+    index("cz_properties_search_idx").on(table.status, table.operation, table.propertyType, table.province),
+    index("cz_properties_owner_idx").on(table.userId, table.updatedAt),
+  ]
+);
+
+/** Plan de anunciante: para publicar bienes raíces (y luego autos y empleos) sin tener tienda. */
+export const czAdvertiserPlans = mysqlTable("cz_advertiser_plans", {
+  userId: int("userId").primaryKey().references(() => users.id),
+  planId: varchar("planId", { length: 40 }).notNull(),
+  endsAt: timestamp("endsAt").notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+/** Pagos del plan de anunciante registrados por un administrador. */
+export const czAdvertiserPayments = mysqlTable(
+  "cz_advertiser_payments",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull().references(() => users.id),
+    planId: varchar("planId", { length: 40 }).notNull(),
+    months: int("months").notNull(),
+    amountCents: int("amountCents").notNull(),
+    method: mysqlEnum("method", ["yappy", "transferencia", "efectivo", "otro"]).notNull(),
+    reference: varchar("reference", { length: 120 }),
+    paidOn: varchar("paidOn", { length: 10 }).notNull(),
+    periodEnd: timestamp("periodEnd").notNull(),
+    recordedBy: int("recordedBy").notNull().references(() => users.id),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => [uniqueIndex("cz_advertiser_payment_reference_uq").on(table.method, table.reference)]
+);

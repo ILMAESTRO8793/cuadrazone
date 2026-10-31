@@ -124,6 +124,21 @@
     {
       "path": "/vendedor/plan",
       "title": "Mi selección de plan"
+    },
+    {
+      "path": "/bienes-raices"
+    },
+    {
+      "path": "/bienes-raices/mis-anuncios"
+    },
+    {
+      "path": "/bienes-raices/:slug"
+    },
+    {
+      "path": "/autos"
+    },
+    {
+      "path": "/empleos"
     }
   ]
 }

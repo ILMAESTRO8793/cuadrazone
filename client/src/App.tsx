@@ -47,6 +47,7 @@ import { AccountPage } from "./features/membership/AccountPage";
 import { SellerApplicationPage } from "./features/membership/SellerApplicationPage";
 import { SellerPlanPage } from "./features/membership/SellerPlanPage";
 import { LoginPage } from "./features/membership/LoginPage";
+import { ComingSoonPage, RealEstateDetailPage, RealEstateListPage, RealEstateMinePage } from "./features/realEstate/RealEstatePages";
 import { SellerStatusPage } from "./features/membership/SellerStatusPage";
 import { AdminVerificationPage } from "./features/membership/AdminVerificationPage";
 
@@ -141,6 +142,11 @@ function Router() {
         <Route path="/checkout" component={CheckoutPage} />
         <Route path="/mi-cuenta" component={AccountPage} />
         <Route path="/entrar" component={LoginPage} />
+        <Route path="/bienes-raices" component={RealEstateListPage} />
+        <Route path="/bienes-raices/mis-anuncios" component={RealEstateMinePage} />
+        <Route path="/bienes-raices/:slug">{p => <RealEstateDetailPage key={p.slug} slug={p.slug} />}</Route>
+        <Route path="/autos">{() => <ComingSoonPage title="Autos" description="Muy pronto podrás comprar, vender y alquilar autos y motos en CuadraZone." />}</Route>
+        <Route path="/empleos">{() => <ComingSoonPage title="Buscar empleo" description="Muy pronto podrás crear tu CV, aplicar a vacantes y publicar empleos en CuadraZone." />}</Route>
         <Route path="/solicitud-vendedor" component={SellerApplicationPage} />
         <Route path="/vendedor" component={SellerStatusPage} />
         <Route path="/admin/verificaciones">

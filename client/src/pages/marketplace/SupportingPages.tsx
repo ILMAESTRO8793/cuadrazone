@@ -805,7 +805,7 @@ const legalContent: Record<
       ],
       [
         "Qué es público",
-        "El nombre de la tienda, su descripción, provincia y ciudad, sus publicaciones con fotos y precios, y las reseñas. El Yappy o el link de pago del vendedor solo lo ven los compradores con un pedido pagado por ese método. Los documentos de identidad, la captura de Yappy o banco y la carta pastoral nunca son públicos: solo los ve el equipo de CuadraZone cuando una solicitud necesita revisión.",
+        "El nombre de la tienda, su descripción, provincia y ciudad, sus publicaciones con fotos y precios, y las reseñas. El Yappy o el link de pago del vendedor solo lo ven los compradores con un pedido pagado por ese método. En los anuncios de bienes raíces son públicos el precio, la ubicación aproximada (provincia, distrito y barrio, nunca la dirección exacta), las fotos y el celular que el anunciante pone para que lo contacten. Los documentos de identidad, la captura de Yappy o banco y la carta pastoral nunca son públicos: solo los ve el equipo de CuadraZone cuando una solicitud necesita revisión.",
       ],
       [
         "Con quién compartimos datos",

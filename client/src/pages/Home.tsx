@@ -14,6 +14,9 @@ import {
   HeartHandshake,
   Package,
   ShieldCheck,
+  House,
+  Car,
+  BriefcaseBusiness,
   ShoppingBag,
   Sparkles,
   Store,
@@ -96,6 +99,30 @@ export default function Home() {
                   <span className="gate-text">
                     <strong>SERVICIOS</strong>
                     <span className="gate-detail">Clases, tutorías, trabajos a domicilio, consultas profesionales y eventos.</span>
+                  </span>
+                  <span className="gate-arrow" aria-hidden="true"><ArrowRight size={26} /></span>
+                </Link>
+                <Link href="/bienes-raices" className="gate-choice gate-choice--estate">
+                  <span className="gate-icon" aria-hidden="true"><House size={34} strokeWidth={1.6} /></span>
+                  <span className="gate-text">
+                    <strong>BIENES RAÍCES</strong>
+                    <span className="gate-detail">Casas, apartamentos, terrenos y locales en venta o alquiler.</span>
+                  </span>
+                  <span className="gate-arrow" aria-hidden="true"><ArrowRight size={26} /></span>
+                </Link>
+                <Link href="/autos" className="gate-choice gate-choice--cars">
+                  <span className="gate-icon" aria-hidden="true"><Car size={34} strokeWidth={1.6} /></span>
+                  <span className="gate-text">
+                    <strong>AUTOS</strong>
+                    <span className="gate-detail">Compra, venta y alquiler de autos y motos.</span>
+                  </span>
+                  <span className="gate-arrow" aria-hidden="true"><ArrowRight size={26} /></span>
+                </Link>
+                <Link href="/empleos" className="gate-choice gate-choice--jobs">
+                  <span className="gate-icon" aria-hidden="true"><BriefcaseBusiness size={34} strokeWidth={1.6} /></span>
+                  <span className="gate-text">
+                    <strong>BUSCAR EMPLEO</strong>
+                    <span className="gate-detail">Crea tu CV, aplica a vacantes o publica un empleo.</span>
                   </span>
                   <span className="gate-arrow" aria-hidden="true"><ArrowRight size={26} /></span>
                 </Link>
