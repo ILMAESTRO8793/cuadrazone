@@ -268,16 +268,17 @@ function CountryPicker() {
 
 /*
  * Video de fondo de la portada: sin sonido, en bucle y con un velo azul para que
- * el texto se lea. Video de Mixkit (licencia gratuita, uso comercial).
+ * el texto se lea. Video de Mixkit «Woman exploring an online sales page on her
+ * cell phone» (licencia gratuita, uso comercial): comprar en línea desde el celular.
  * Para usar un video propio, súbelo como client/public/assets/video/portada.mp4:
  * se usa primero y el de Mixkit queda como respaldo. No se carga si el sistema
  * pide reducir movimiento o ahorrar datos; entonces se muestra la imagen fija.
  */
-const HERO_POSTER = "https://images.unsplash.com/photo-1770129157442-5f080cacf11c?auto=format&fit=crop&w=1600&q=70";
+const HERO_POSTER = "https://assets.mixkit.co/videos/42136/42136-thumb-360-0.jpg";
 const HERO_SOURCES = [
   "/assets/video/portada.mp4",
-  "https://assets.mixkit.co/videos/991/991-720.mp4",
-  "https://assets.mixkit.co/videos/991/991-360.mp4",
+  "https://assets.mixkit.co/videos/42136/42136-720.mp4",
+  "https://assets.mixkit.co/videos/42136/42136-360.mp4",
 ];
 
 function HeroVideo() {

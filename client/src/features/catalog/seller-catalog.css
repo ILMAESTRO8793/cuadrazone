@@ -673,3 +673,13 @@
     animation: none;
   }
 }
+
+/* Tabla de precio de envío por provincia */
+.ship-table { display: grid; gap: 6px; margin: 8px 0 14px; }
+.ship-row { display: grid; grid-template-columns: minmax(0, 1fr) 150px; gap: 12px; align-items: center; padding: 8px 12px; border: 1px solid #DCE3E1; border-radius: 10px; background: #fff; }
+.ship-province { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+.ship-province input { width: 18px; height: 18px; accent-color: #0B1F3B; }
+.ship-own { margin-left: 4px; padding: 2px 8px; border-radius: 999px; background: #F1EADB; color: #5C430F; font-size: 12px; font-weight: 700; }
+.ship-price { display: flex; align-items: center; gap: 6px; font-weight: 600; color: #4A5568; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (max-width: 520px) { .ship-row { grid-template-columns: minmax(0, 1fr) 120px; } }

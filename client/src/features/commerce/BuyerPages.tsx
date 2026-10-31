@@ -1,5 +1,7 @@
 import type { CartItemDTO, DeliveryMode } from "@shared/commerce";
 import { paymentMethodLabels } from "@shared/commerce";
+import { coveredProvinces, shippingFeeFor } from "@shared/marketplace";
+import { useMarket } from "@/contexts/MarketContext";
 import { useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Heart, Package, ShoppingBag, Trash2 } from "lucide-react";
@@ -194,7 +196,9 @@ function CheckoutContent() {
   const utils = trpc.useUtils();
   const create = trpc.commerce.checkout.useMutation();
   const attempt = useRef<{ fingerprint: string; key: string } | null>(null);
-  const [province, setProvince] = useState("Panamá");
+  // La provincia del comprador viene de la que eligió arriba («Explorar en»).
+  const market = useMarket();
+  const [province, setProvince] = useState(market.province || "Panamá");
   const [modes, setModes] = useState<
     Record<number, "shipping" | "pickup" | "home">
   >({});
@@ -209,10 +213,16 @@ function CheckoutContent() {
           .every(i => (i.productDeliveryModes ?? []).includes(mode)) ??
           false) &&
         (mode === "pickup" ||
-          (g.storeDeliveryProvinces.includes(province) &&
+          (coveredProvinces({ deliveryProvinces: g.storeDeliveryProvinces, shippingFeesByProvince: g.storeShippingFees }).includes(province) &&
             (mode === "shipping"
-              ? g.storeShippingFeeCents
+              ? shippingFeeOf(g)
               : g.storeHomeFeeCents) != null))
+    );
+  }
+  function shippingFeeOf(g: CartItemDTO) {
+    return shippingFeeFor(
+      { shippingFeeCents: g.storeShippingFeeCents, deliveryProvinces: g.storeDeliveryProvinces, shippingFeesByProvince: g.storeShippingFees },
+      province
     );
   }
   function chosen(g: CartItemDTO) {
@@ -222,7 +232,7 @@ function CheckoutContent() {
   function fee(g: CartItemDTO) {
     const mode = chosen(g);
     return mode === "shipping"
-      ? (g.storeShippingFeeCents ?? 0)
+      ? (shippingFeeOf(g) ?? 0)
       : mode === "home"
         ? (g.storeHomeFeeCents ?? 0)
         : 0;

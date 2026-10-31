@@ -91,6 +91,10 @@ export const saveStoreInput = z.object({
     .nullable()
     .default(null),
   deliveryProvinces: z.array(z.enum(provinceOptions)).default([]),
+  /** Precio de envío para cada provincia a la que envía (centavos). */
+  shippingFeesByProvince: z
+    .partialRecord(z.enum(provinceOptions), z.number().int().min(0).max(100_000))
+    .default({}),
   /** Celular de Yappy del vendedor (+507 y 8 dígitos) o vacío. */
   yappyPhone: z.string().trim().regex(/^$|^\+507\d{8}$/, "Usa un celular de Panamá: +507 y 8 dígitos").default(""),
   /** Nombre en el Directorio de Yappy Comercial o vacío. */
@@ -195,6 +199,7 @@ export type PublicStore = {
   shippingFeeCents: number | null;
   homeFeeCents: number | null;
   deliveryProvinces: string[];
+  shippingFeesByProvince: Record<string, number>;
   verified: true;
   createdAt: string;
   updatedAt: string;
@@ -224,6 +229,39 @@ export function isAllowedCardLink(value: string): boolean {
   if (url.protocol !== "https:" || url.username || url.password || url.port) return false;
   const host = url.hostname.toLowerCase();
   return CARD_LINK_HOSTS.some(allowed => host === allowed || host.endsWith(`.${allowed}`));
+}
+
+/**
+ * Precio de envío de una tienda a una provincia, o null si no envía allí.
+ * Con precios por provincia se usa ese precio; las tiendas antiguas con tarifa
+ * única la aplican a todas sus provincias de cobertura.
+ */
+export function shippingFeeFor(
+  store: { shippingFeeCents: number | null; deliveryProvinces: readonly string[] | unknown; shippingFeesByProvince?: Record<string, number> | null | unknown },
+  province: string
+): number | null {
+  const byProvince = readFeeMap(store.shippingFeesByProvince);
+  if (Object.keys(byProvince).length) return byProvince[province] ?? null;
+  const provinces = Array.isArray(store.deliveryProvinces) ? (store.deliveryProvinces as string[]) : [];
+  return store.shippingFeeCents != null && provinces.includes(province) ? store.shippingFeeCents : null;
+}
+
+/** Provincias que cubre la tienda (con precio por provincia o tarifa única). */
+export function coveredProvinces(store: { deliveryProvinces: readonly string[] | unknown; shippingFeesByProvince?: Record<string, number> | null | unknown }): string[] {
+  const byProvince = Object.keys(readFeeMap(store.shippingFeesByProvince));
+  if (byProvince.length) return byProvince;
+  return Array.isArray(store.deliveryProvinces) ? (store.deliveryProvinces as string[]) : [];
+}
+
+/** Lee el mapa de precios aunque venga como texto JSON (MariaDB) o vacío. */
+export function readFeeMap(value: unknown): Record<string, number> {
+  if (typeof value === "string") { try { value = JSON.parse(value); } catch { return {}; } }
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>).filter(
+      ([k, v]) => (provinceOptions as readonly string[]).includes(k) && Number.isInteger(v) && (v as number) >= 0
+    )
+  ) as Record<string, number>;
 }
 
 /** El vendedor puede recibir pagos por Yappy si registró un celular o un nombre en el directorio. */

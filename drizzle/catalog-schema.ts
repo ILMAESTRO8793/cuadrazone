@@ -26,6 +26,8 @@ export const czStores = mysqlTable(
     shippingFeeCents: int("shippingFeeCents"),
     homeFeeCents: int("homeFeeCents"),
     deliveryProvinces: json("deliveryProvinces").$type<string[]>(),
+    /** Precio de envío por provincia en centavos: { "Chiriquí": 1200, … }. */
+    shippingFeesByProvince: json("shippingFeesByProvince").$type<Record<string, number>>(),
     /** Yappy donde el vendedor recibe los pagos de sus compradores (celular +507). */
     yappyPhone: varchar("yappyPhone", { length: 20 }),
     /** Nombre en el Directorio de Yappy Comercial, si el vendedor tiene uno. */

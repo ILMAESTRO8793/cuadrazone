@@ -1893,3 +1893,10 @@
   .hero-video-veil { background: linear-gradient(180deg, rgba(7, 31, 59, .7) 0%, rgba(7, 31, 59, .88) 55%, rgba(7, 31, 59, .95) 100%); }
 }
 @media (prefers-reduced-motion: reduce) { .hero-video-media { display: none; } }
+
+/* Provincia de la tienda y envío a la provincia del comprador */
+.ship-note { display: flex; flex-direction: column; gap: 4px; margin: 6px 0 2px; font-size: 13px; line-height: 1.35; }
+.ship-note span { display: inline-flex; align-items: center; gap: 5px; }
+.ship-origin { color: #0B1F3B; font-weight: 700; }
+.ship-dest { color: #0F6B34; font-weight: 600; }
+.ship-dest--none { color: #7A5A1C; }

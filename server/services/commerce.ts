@@ -15,7 +15,7 @@ import {
   type PaymentMethod, type PublicProductDTO, paymentMethodLabels
 } from "@shared/commerce";
 import type { PublicProduct } from "@shared/marketplace";
-import { isAllowedCardLink, storeAcceptsYappy } from "@shared/marketplace";
+import { coveredProvinces, isAllowedCardLink, readFeeMap, shippingFeeFor, storeAcceptsYappy } from "@shared/marketplace";
 import { queueEmail, recipientFor } from "./email";
 import { orderPlacedBuyer, orderPlacedSeller, orderStatusChanged } from "./emailMessages";
 import { assertActiveStore, assertSellerOwner } from "./catalog";
@@ -74,12 +74,13 @@ function parseJsonArray(value: unknown): string[] {
 }
 function parseModes(value: unknown): DeliveryMode[] { return parseJsonArray(value).filter((x): x is DeliveryMode => x === "shipping" || x === "pickup" || x === "home"); }
 
-export function deliveryQuote(store: Pick<CatalogStore, "shippingFeeCents" | "homeFeeCents" | "deliveryProvinces">, mode: DeliveryMode, province: string): number {
+export function deliveryQuote(store: Pick<CatalogStore, "shippingFeeCents" | "homeFeeCents" | "deliveryProvinces"> & { shippingFeesByProvince?: unknown }, mode: DeliveryMode, province: string): number {
   if (mode === "pickup") return 0;
-  const fee = mode === "shipping" ? store.shippingFeeCents : store.homeFeeCents;
+  const coverage = { deliveryProvinces: parseJsonArray(store.deliveryProvinces), shippingFeesByProvince: store.shippingFeesByProvince };
+  if (!coveredProvinces(coverage).includes(province)) fail("PRECONDITION_FAILED", "La tienda no envía a la provincia seleccionada");
+  // Envío: precio de esa provincia. A domicilio: la tarifa a domicilio de la tienda.
+  const fee = mode === "shipping" ? shippingFeeFor({ shippingFeeCents: store.shippingFeeCents, ...coverage }, province) : store.homeFeeCents;
   if (fee === null || !Number.isInteger(fee) || fee < 0 || fee > MAX_MONEY_CENTS) fail("PRECONDITION_FAILED", "La tienda no tiene una tarifa válida para esta entrega");
-  const provinces = parseJsonArray(store.deliveryProvinces);
-  if (!provinces.includes(province)) fail("PRECONDITION_FAILED", "La tienda no cubre la provincia seleccionada");
   return fee;
 }
 
@@ -147,7 +148,7 @@ async function cartFor(tx: Db | Tx, userId: number): Promise<CartDTO> {
     items.push({ id: row.item.id, variantId: row.variant.id, quantity: row.item.quantity, productId: row.product.id, title: row.product.title,
       slug: row.product.slug, image: parseJsonArray(row.product.imageUrls)[0] ?? null, storeId: row.store.id, storeName: row.store.name,
       storeShippingFeeCents: row.store.shippingFeeCents ?? null, storeHomeFeeCents: row.store.homeFeeCents ?? null,
-      storeDeliveryProvinces: parseJsonArray(row.store.deliveryProvinces), productDeliveryModes: parseModes(row.product.deliveryModes),
+      storeDeliveryProvinces: parseJsonArray(row.store.deliveryProvinces), storeShippingFees: readFeeMap(row.store.shippingFeesByProvince), productDeliveryModes: parseModes(row.product.deliveryModes),
       priceCents: row.variant.priceCents, stock: row.variant.stock, available: availableNow, size: row.variant.size, color: row.variant.color });
   }
   return { items, subtotalCents: calculateSubtotal(items.filter(i => i.available).map(i => ({ priceCents: i.priceCents, quantity: i.quantity }))) };

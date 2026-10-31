@@ -23,6 +23,7 @@ import {
   catalogCategories,
   listPublicInput,
   saveStoreInput,
+  readFeeMap,
   type BookMetadata,
   type DeliveryMode,
   type ListPublicInput,
@@ -236,6 +237,7 @@ function publicStore(row: Store & { churchName: string }): PublicStore {
     shippingFeeCents: row.shippingFeeCents ?? null,
     homeFeeCents: row.homeFeeCents ?? null,
     deliveryProvinces: jsonArray<string>(row.deliveryProvinces, []),
+    shippingFeesByProvince: readFeeMap(row.shippingFeesByProvince),
     createdAt: iso(row.createdAt),
     updatedAt: iso(row.updatedAt),
   };
@@ -327,6 +329,7 @@ function ownerProductDto(
       shippingFeeCents: dto.store.shippingFeeCents,
       homeFeeCents: dto.store.homeFeeCents,
       deliveryProvinces: dto.store.deliveryProvinces,
+      shippingFeesByProvince: dto.store.shippingFeesByProvince,
       yappyPhone: store.yappyPhone ?? null,
       yappyDirectory: store.yappyDirectory ?? null,
       cardPaymentUrl: store.cardPaymentUrl ?? null,
@@ -802,6 +805,7 @@ export async function getMyStore(userId: number) {
           shippingFeeCents: store.shippingFeeCents ?? null,
           homeFeeCents: store.homeFeeCents ?? null,
           deliveryProvinces: jsonArray<string>(store.deliveryProvinces, []),
+          shippingFeesByProvince: readFeeMap(store.shippingFeesByProvince),
           yappyPhone: store.yappyPhone ?? null,
           yappyDirectory: store.yappyDirectory ?? null,
           cardPaymentUrl: store.cardPaymentUrl ?? null,
@@ -825,6 +829,11 @@ export async function saveStore(userId: number, input: SaveStoreInput) {
     yappyPhone: validated.yappyPhone || null,
     yappyDirectory: validated.yappyDirectory.trim() || null,
     cardPaymentUrl: validated.cardPaymentUrl || null,
+    shippingFeesByProvince: Object.keys(validated.shippingFeesByProvince).length ? validated.shippingFeesByProvince : null,
+    // Con precios por provincia, la cobertura son esas provincias.
+    deliveryProvinces: Object.keys(validated.shippingFeesByProvince).length
+      ? Object.keys(validated.shippingFeesByProvince)
+      : validated.deliveryProvinces,
     cardOnDelivery: validated.cardOnDelivery ? 1 : 0,
   };
   const db = await requireDb();
@@ -870,6 +879,7 @@ export async function saveStore(userId: number, input: SaveStoreInput) {
         shippingFeeCents: fresh.shippingFeeCents ?? null,
         homeFeeCents: fresh.homeFeeCents ?? null,
         deliveryProvinces: jsonArray<string>(fresh.deliveryProvinces, []),
+        shippingFeesByProvince: readFeeMap(fresh.shippingFeesByProvince),
         yappyPhone: fresh.yappyPhone ?? null,
         yappyDirectory: fresh.yappyDirectory ?? null,
         cardPaymentUrl: fresh.cardPaymentUrl ?? null,
@@ -902,6 +912,7 @@ export async function saveStore(userId: number, input: SaveStoreInput) {
       shippingFeeCents: fresh.shippingFeeCents ?? null,
       homeFeeCents: fresh.homeFeeCents ?? null,
       deliveryProvinces: jsonArray<string>(fresh.deliveryProvinces, []),
+      shippingFeesByProvince: readFeeMap(fresh.shippingFeesByProvince),
       yappyPhone: fresh.yappyPhone ?? null,
       yappyDirectory: fresh.yappyDirectory ?? null,
       cardPaymentUrl: fresh.cardPaymentUrl ?? null,

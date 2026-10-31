@@ -1,3 +1,4 @@
+import { ShippingNote } from "@/lib/ShippingNote";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { BadgeCheck, Package, ShoppingBag, Star } from "lucide-react";
@@ -405,6 +406,7 @@ export function RealDetailPage({ slug }: { slug: string }) {
           </Link>
           <div className="live-notice">
             <strong>Entrega desde {p.store.province}</strong>
+            <ShippingNote store={p.store} modes={p.deliveryModes} />
             <p>
               {p.deliveryModes
                 .map(mode =>

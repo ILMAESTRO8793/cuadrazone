@@ -8,6 +8,7 @@ import { Link, useLocation, useSearch } from "wouter";
 import { BadgeCheck, Heart, Package, Search, Store } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import { ShippingNote } from "@/lib/ShippingNote";
 import { useAuth } from "@/_core/hooks/useAuth";
 import {
   usePublicCatalog,
@@ -86,8 +87,9 @@ export function RealProductCard({ product }: { product: RealProduct }) {
           <BadgeCheck size={14} /> {product.store.name}
         </Link>
         <strong>{usd(product.priceCents)}</strong>
+        <ShippingNote store={product.store} modes={product.deliveryModes} />
         <p>
-          {product.store.province} · {product.reviewCount} reseñas
+          {product.reviewCount} reseñas
           {product.soldCount > 0 &&
             ` · ${product.soldCount} unidades entregadas`}
         </p>

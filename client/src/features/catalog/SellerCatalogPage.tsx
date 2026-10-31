@@ -59,6 +59,8 @@ type StoreForm = {
   shippingFee: string;
   homeFee: string;
   deliveryProvinces: Province[];
+  /** Precio de envío escrito para cada provincia marcada («5.00»). */
+  provinceFees: Record<string, string>;
   yappyPhone: string;
   yappyDirectory: string;
   cardPaymentUrl: string;
@@ -108,6 +110,7 @@ type StoreSnapshot = {
     shippingFeeCents?: number | null;
     homeFeeCents?: number | null;
     deliveryProvinces?: string[];
+    shippingFeesByProvince?: Record<string, number>;
     yappyPhone?: string | null;
     yappyDirectory?: string | null;
     cardPaymentUrl?: string | null;
@@ -127,6 +130,7 @@ const EMPTY_STORE: StoreForm = {
   shippingFee: "",
   homeFee: "",
   deliveryProvinces: [],
+  provinceFees: {},
   yappyPhone: "",
   yappyDirectory: "",
   cardPaymentUrl: "",
@@ -292,6 +296,7 @@ function SellerCatalogContent({
         homeFee:
           store.homeFeeCents == null ? "" : centsToDecimal(store.homeFeeCents),
         deliveryProvinces: validProvinces(store.deliveryProvinces ?? []),
+        provinceFees: feesFromStore(store),
         yappyPhone: store.yappyPhone ?? "",
         yappyDirectory: store.yappyDirectory ?? "",
         cardPaymentUrl: store.cardPaymentUrl ?? "",
@@ -329,14 +334,20 @@ function SellerCatalogContent({
     event.preventDefault();
     setConflict(null);
     try {
-      const shippingFeeCents = storeForm.shippingFee.trim()
-        ? decimalToCents(storeForm.shippingFee)
-        : null;
+      const shippingFeeCentsLegacy = null;
+      // Precio de envío por provincia: solo las provincias marcadas con precio.
+      const feesByProvince: Record<string, number> = {};
+      for (const [province, value] of Object.entries(storeForm.provinceFees)) {
+        if (!value.trim()) continue;
+        const cents = decimalToCents(value);
+        if (cents === null) throw new Error(`Precio de envío inválido para ${province}; usa hasta dos decimales.`);
+        feesByProvince[province] = cents;
+      }
+      const feeValues = Object.values(feesByProvince);
       const homeFeeCents = storeForm.homeFee.trim()
         ? decimalToCents(storeForm.homeFee)
         : null;
       if (
-        (storeForm.shippingFee.trim() && shippingFeeCents === null) ||
         (storeForm.homeFee.trim() && homeFeeCents === null)
       )
         throw new Error("Tarifa inválida; utiliza hasta dos decimales.");
@@ -345,9 +356,14 @@ function SellerCatalogContent({
         description: storeForm.description,
         province: storeForm.province,
         city: storeForm.city,
-        shippingFeeCents,
+        // Tarifa base = la más baja; el precio real sale de cada provincia.
+        shippingFeeCents: feeValues.length ? Math.min(...feeValues) : shippingFeeCentsLegacy,
         homeFeeCents,
-        deliveryProvinces: validProvinces(storeForm.deliveryProvinces),
+        shippingFeesByProvince: feesByProvince,
+        deliveryProvinces: validProvinces([
+          ...Object.keys(feesByProvince),
+          ...(homeFeeCents !== null && !(storeForm.province in feesByProvince) ? [storeForm.province] : []),
+        ]),
         yappyPhone: normalizePanamaPhone(storeForm.yappyPhone),
         yappyDirectory: storeForm.yappyDirectory,
         cardPaymentUrl: storeForm.cardPaymentUrl.trim(),
@@ -365,6 +381,7 @@ function SellerCatalogContent({
         homeFee:
           saved.homeFeeCents == null ? "" : centsToDecimal(saved.homeFeeCents),
         deliveryProvinces: validProvinces(saved.deliveryProvinces ?? []),
+        provinceFees: feesFromStore(saved),
         yappyPhone: saved.yappyPhone ?? "",
         yappyDirectory: saved.yappyDirectory ?? "",
         cardPaymentUrl: saved.cardPaymentUrl ?? "",
@@ -397,6 +414,7 @@ function SellerCatalogContent({
         homeFee:
           store.homeFeeCents == null ? "" : centsToDecimal(store.homeFeeCents),
         deliveryProvinces: validProvinces(store.deliveryProvinces ?? []),
+        provinceFees: feesFromStore(store),
         yappyPhone: store.yappyPhone ?? "",
         yappyDirectory: store.yappyDirectory ?? "",
         cardPaymentUrl: store.cardPaymentUrl ?? "",
@@ -848,24 +866,50 @@ function SellerCatalogContent({
               </label>
             </fieldset>
             <fieldset className="seller-catalog-subsection">
-              <legend>Tarifas y cobertura de entrega</legend>
+              <legend>Envíos por provincia</legend>
               <p>
-                Tarifa plana por tienda para las provincias que selecciones.
-                Dejar vacío desactiva esa modalidad; escribir 0 ofrece entrega
-                gratuita explícita. Retiro personal: US$0.00.
+                Marca las provincias a las que envías y escribe el precio del
+                envío para cada una. El comprador verá el precio de su
+                provincia en cada producto. Escribe 0 para envío gratis. El
+                retiro personal siempre es gratis.
               </p>
+              <div className="ship-table" role="table" aria-label="Precio de envío por provincia">
+                {storeProvinces.map(p => {
+                  const enabled = p in storeForm.provinceFees;
+                  return (
+                    <div className="ship-row" role="row" key={p}>
+                      <label className="ship-province" role="cell">
+                        <input
+                          type="checkbox"
+                          checked={enabled}
+                          onChange={e => {
+                            const next = { ...storeForm.provinceFees };
+                            if (e.target.checked) next[p] = next[p] ?? "";
+                            else delete next[p];
+                            updateStore("provinceFees", next);
+                          }}
+                        />
+                        {p}
+                        {p === storeForm.province && <span className="ship-own">Tu provincia</span>}
+                      </label>
+                      <label className="ship-price" role="cell">
+                        <span className="visually-hidden">Precio de envío a {p} en dólares</span>
+                        <span aria-hidden="true">US$</span>
+                        <Input
+                          inputMode="decimal"
+                          disabled={!enabled}
+                          value={storeForm.provinceFees[p] ?? ""}
+                          onChange={e => updateStore("provinceFees", { ...storeForm.provinceFees, [p]: e.target.value })}
+                          placeholder={enabled ? "0.00" : "No envía"}
+                        />
+                      </label>
+                    </div>
+                  );
+                })}
+              </div>
               <div className="seller-catalog-form-grid">
                 <label>
-                  Envío (USD)
-                  <Input
-                    inputMode="decimal"
-                    value={storeForm.shippingFee}
-                    onChange={e => updateStore("shippingFee", e.target.value)}
-                    placeholder="Sin configurar"
-                  />
-                </label>
-                <label>
-                  A domicilio (USD)
+                  Entrega a domicilio en tu provincia (USD)
                   <Input
                     inputMode="decimal"
                     value={storeForm.homeFee}
@@ -873,25 +917,6 @@ function SellerCatalogContent({
                     placeholder="Sin configurar"
                   />
                 </label>
-              </div>
-              <div className="seller-catalog-checks">
-                {storeProvinces.map(p => (
-                  <label key={p}>
-                    <input
-                      type="checkbox"
-                      checked={storeForm.deliveryProvinces.includes(p)}
-                      onChange={e =>
-                        updateStore(
-                          "deliveryProvinces",
-                          e.target.checked
-                            ? [...storeForm.deliveryProvinces, p]
-                            : storeForm.deliveryProvinces.filter(v => v !== p)
-                        )
-                      }
-                    />
-                    {p}
-                  </label>
-                ))}
               </div>
             </fieldset>
             <div className="seller-catalog-form-actions">
@@ -1533,3 +1558,12 @@ export function SellerCatalogPage({
 }
 
 export default SellerCatalogPage;
+
+/** Precios por provincia guardados; si la tienda usaba tarifa única, la aplica a sus provincias. */
+function feesFromStore(store: { shippingFeesByProvince?: Record<string, number>; shippingFeeCents?: number | null; deliveryProvinces?: string[] }): Record<string, string> {
+  const byProvince = store.shippingFeesByProvince ?? {};
+  if (Object.keys(byProvince).length)
+    return Object.fromEntries(Object.entries(byProvince).map(([p, c]) => [p, centsToDecimal(c)]));
+  if (store.shippingFeeCents == null) return {};
+  return Object.fromEntries((store.deliveryProvinces ?? []).map(p => [p, centsToDecimal(store.shippingFeeCents!)]));
+}

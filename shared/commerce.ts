@@ -38,6 +38,8 @@ export const cartItemDto = z.object({
   storeShippingFeeCents: moneyCents.nullable(),
   storeHomeFeeCents: moneyCents.nullable(),
   storeDeliveryProvinces: z.array(z.string()),
+  /** Precio de envío por provincia de la tienda (vacío si usa tarifa única). */
+  storeShippingFees: z.record(z.string(), moneyCents).default({}),
   productDeliveryModes: z.array(z.enum(deliveryModes)).optional(),
   priceCents: moneyCents,
   stock: z.number().int().nonnegative(),

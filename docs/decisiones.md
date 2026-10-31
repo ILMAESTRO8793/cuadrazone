@@ -203,5 +203,11 @@ Decisión del propietario: aprobar al instante si los documentos coinciden, sin 
 ## Portada con video de fondo — 30 de octubre de 2026 (reemplaza el mosaico)
 
 - El propietario prefirió el video al mosaico. La portada tiene un video sin sonido y en bucle de fondo, con un velo azul marino más oscuro a la izquierda (donde están el título y los botones) y más transparente a la derecha. Título y textos en blanco y dorado.
-- Video: «Slow motion video of a fruit and veggie stand» de Mixkit (licencia gratuita de Mixkit, uso comercial). Fuentes en orden: `client/public/assets/video/portada.mp4` (si existe, video propio), luego el de Mixkit en 720p y 360p.
+- Video (cambiado el 30/10 por uno digital): «Woman exploring an online sales page on her cell phone» de Mixkit (antes, un mercado de frutas) (licencia gratuita de Mixkit, uso comercial). Fuentes en orden: `client/public/assets/video/portada.mp4` (si existe, video propio), luego el de Mixkit en 720p y 360p.
 - No se reproduce si el sistema pide reducir movimiento o ahorrar datos: se muestra una foto fija.
+
+## Envío por provincia — 30 de octubre de 2026
+
+- Cada tienda define un precio de envío por provincia (`cz_stores.shippingFeesByProvince`, migración 0014); la cobertura son esas provincias. Las tiendas con tarifa única siguen funcionando (`shippingFeeFor`, `coveredProvinces`). La entrega a domicilio queda como tarifa de la propia provincia.
+- Las tarjetas y la ficha del producto muestran «Desde [provincia de la tienda]» y «Envío a [provincia del comprador]: US$X» o «No envía a …». La provincia del comprador es la de «Explorar en» del encabezado y se usa por defecto al comprar; el servidor recalcula y rechaza totales con el envío de otra provincia.
+- La provincia del vendedor ya se pide en la solicitud y en la tienda. Los servicios (etapa 4) usarán la misma regla.
