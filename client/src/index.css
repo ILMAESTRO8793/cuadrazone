@@ -2151,3 +2151,8 @@ body,
 
 /* Logo del pie con su fondo azul original, para que se lea sobre el fondo claro */
 .footer-brand img.footer-logo { border-radius: 14px; box-shadow: 0 6px 18px rgba(11, 31, 59, .18); }
+
+/* Pantallas grandes: el sitio usa más ancho (logo a la izquierda, menos vacío a los lados). */
+@media (min-width: 1500px) {
+  .container { max-width: min(92vw, 2100px); }
+}

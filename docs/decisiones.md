@@ -223,3 +223,5 @@ Decisiones del propietario: publicar en Bienes raíces, Autos y Empleos es pagad
 - **Pendiente:** Autos y Buscar empleo (CV, postulaciones y publicación de vacantes), con las mismas reglas de plan.
 
 - 31/10/2026: se quitó el video de fondo de la portada a pedido del propietario; la portada queda con fondo blanco.
+
+- 31/10/2026: en pantallas de 1500 px o más el contenedor usa hasta el 92% del ancho (máx. 2100 px) para que el logo quede a la izquierda; los botones de la portada usan todo el ancho (2 columnas en laptop, 3 en pantallas grandes).
