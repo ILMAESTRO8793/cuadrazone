@@ -139,6 +139,12 @@
     },
     {
       "path": "/empleos"
+    },
+    {
+      "path": "/autos/mis-anuncios"
+    },
+    {
+      "path": "/autos/:slug"
     }
   ]
 }

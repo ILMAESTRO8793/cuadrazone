@@ -201,3 +201,50 @@ export const czAdvertiserPayments = mysqlTable(
   },
   table => [uniqueIndex("cz_advertiser_payment_reference_uq").on(table.method, table.reference)]
 );
+
+/** Anuncios de autos (venta y alquiler). */
+export const czVehicles = mysqlTable(
+  "cz_vehicles",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull().references(() => users.id),
+    slug: varchar("slug", { length: 160 }).notNull(),
+    status: mysqlEnum("status", ["draft", "published", "paused", "closed"]).notNull().default("draft"),
+    revision: int("revision").notNull().default(0),
+    operation: mysqlEnum("operation", ["venta", "alquiler"]).notNull(),
+    vehicleType: mysqlEnum("vehicleType", ["sedan", "suv", "pickup", "hatchback", "coupe", "van", "moto", "camion"]).notNull(),
+    make: varchar("make", { length: 40 }).notNull(),
+    otherMake: varchar("otherMake", { length: 40 }).notNull().default(""),
+    model: varchar("model", { length: 60 }).notNull(),
+    year: int("year").notNull(),
+    condition: mysqlEnum("condition", ["nuevo", "usado"]).notNull(),
+    mileageKm: int("mileageKm").notNull(),
+    transmission: mysqlEnum("transmission", ["automatica", "manual"]).notNull(),
+    fuel: mysqlEnum("fuel", ["gasolina", "diesel", "hibrido", "electrico"]).notNull(),
+    color: varchar("color", { length: 30 }).notNull().default(""),
+    engine: varchar("engine", { length: 30 }).notNull().default(""),
+    doors: int("doors"),
+    title: varchar("title", { length: 120 }).notNull(),
+    description: text("description").notNull(),
+    priceCents: bigint("priceCents", { mode: "number" }).notNull(),
+    negotiable: int("negotiable").notNull().default(0),
+    titleInSellerName: int("titleInSellerName").notNull().default(1),
+    rentPeriod: mysqlEnum("rentPeriod", ["dia", "semana", "mes"]),
+    depositCents: bigint("depositCents", { mode: "number" }),
+    minDriverAge: int("minDriverAge"),
+    features: json("features").$type<string[]>(),
+    province: varchar("province", { length: 60 }).notNull(),
+    district: varchar("district", { length: 80 }).notNull(),
+    sellerType: mysqlEnum("sellerType", ["particular", "concesionario", "rentadora"]).notNull().default("particular"),
+    contactPhone: varchar("contactPhone", { length: 20 }).notNull(),
+    images: json("images").$type<string[]>(),
+    publishedAt: timestamp("publishedAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    uniqueIndex("cz_vehicles_slug_uq").on(table.slug),
+    index("cz_vehicles_search_idx").on(table.status, table.operation, table.vehicleType, table.province),
+    index("cz_vehicles_owner_idx").on(table.userId, table.updatedAt),
+  ]
+);

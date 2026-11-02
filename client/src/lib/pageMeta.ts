@@ -40,7 +40,8 @@ export function getPageMeta(url: string, snapshot: PublicSnapshot = {}) {
     "/entrar": "Entrar o crear cuenta",
     "/bienes-raices": "Bienes raíces: venta y alquiler",
     "/bienes-raices/mis-anuncios": "Mis anuncios de bienes raíces",
-    "/autos": "Autos",
+    "/autos": "Autos: venta y alquiler",
+    "/autos/mis-anuncios": "Mis autos",
     "/empleos": "Buscar empleo",
     "/ayuda": "Centro de ayuda",
   };
@@ -80,6 +81,9 @@ export function getPageMeta(url: string, snapshot: PublicSnapshot = {}) {
     title = "Documentos legales | CuadraZone Panamá";
     description =
       "Fe y valores, código de conducta y política de privacidad de CuadraZone.";
+  } else if (/^\/autos\/[a-z0-9-]{1,160}$/.test(path)) {
+    title = "Auto en venta o alquiler | CuadraZone Panamá";
+    description = "Autos y motos en venta o alquiler en Panamá.";
   } else if (/^\/bienes-raices\/[a-z0-9-]{1,160}$/.test(path)) {
     // Ficha de un inmueble: se carga en el navegador.
     title = "Propiedad en venta o alquiler | CuadraZone Panamá";
@@ -124,6 +128,7 @@ export function getPageMeta(url: string, snapshot: PublicSnapshot = {}) {
         "/admin/suscripciones",
         "/entrar",
         "/bienes-raices/mis-anuncios",
+        "/autos/mis-anuncios",
       ].includes(path),
   };
 }

@@ -33,11 +33,12 @@ import { useMarket } from "@/contexts/MarketContext";
  * los Servicios (clases, trabajos a domicilio, consultas y eventos). El menú
  * muestra solo lo del mundo en el que está el comprador.
  */
-type Section = "market" | "services" | "estate" | "home";
+type Section = "market" | "services" | "estate" | "cars" | "home";
 const SERVICES_PATH = /^\/(servicios|servicio|eventos|evento)(\/|$)/;
 const MARKET_PATH = /^\/(mercado|articulo|catalogo|libros|producto|tiendas|tienda)(\/|$)/;
 export function sectionFor(path: string): Section {
   if (/^\/bienes-raices(\/|$)/.test(path)) return "estate";
+  if (/^\/autos(\/|$)/.test(path)) return "cars";
   if (SERVICES_PATH.test(path)) return "services";
   if (MARKET_PATH.test(path)) return "market";
   return "home";
@@ -58,6 +59,12 @@ const navBySection: Record<Section, { title: string; href: string }[]> = {
     { title: "Comprar", href: "/bienes-raices?op=venta" },
     { title: "Alquilar", href: "/bienes-raices?op=alquiler" },
     { title: "Mis anuncios", href: "/bienes-raices/mis-anuncios" },
+  ],
+  cars: [
+    { title: "Todos los autos", href: "/autos" },
+    { title: "Comprar", href: "/autos?op=venta" },
+    { title: "Alquilar", href: "/autos?op=alquiler" },
+    { title: "Mis autos", href: "/autos/mis-anuncios" },
   ],
   home: [
     { title: "Inicio", href: "/" },
@@ -378,8 +385,8 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
               ))}
             </nav>
             {section !== "home" && (
-              <Link className="section-switch" href={section === "market" ? "/servicios" : section === "estate" ? "/" : "/mercado"}>
-                {section === "market" ? "Ir a Servicios" : section === "estate" ? "Volver al inicio" : "Ir a Comercios"} <ArrowRight size={14} />
+              <Link className="section-switch" href={section === "market" ? "/servicios" : section === "estate" || section === "cars" ? "/" : "/mercado"}>
+                {section === "market" ? "Ir a Servicios" : section === "estate" || section === "cars" ? "Volver al inicio" : "Ir a Comercios"} <ArrowRight size={14} />
               </Link>
             )}
             <Link className="sell-nav" href="/vender">

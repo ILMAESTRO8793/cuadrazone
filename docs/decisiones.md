@@ -225,3 +225,9 @@ Decisiones del propietario: publicar en Bienes raíces, Autos y Empleos es pagad
 - 31/10/2026: se quitó el video de fondo de la portada a pedido del propietario; la portada queda con fondo blanco.
 
 - 31/10/2026: en pantallas de 1500 px o más el contenedor usa hasta el 92% del ancho (máx. 2100 px) para que el logo quede a la izquierda; los botones de la portada usan todo el ancho (2 columnas en laptop, 3 en pantallas grandes).
+
+## Autos — 2 de noviembre de 2026
+
+- Venta y alquiler de sedán, SUV, pickup, hatchback, coupé, van, moto y camión (`cz_vehicles`, migración 0016). Mismas reglas que bienes raíces: cualquier persona con cuenta prepara anuncios; publicar exige plan activo (tienda o anunciante) y al menos una foto; Mayor Visibilidad = «Destacado» y primero; si vence el plan, se ocultan. El plan de anunciante sirve para bienes raíces y autos.
+- Campos: marca (lista de las más comunes en Panamá u «Otra» escrita), modelo, año, condición, kilometraje (un nuevo no puede pasar de 1,000 km), transmisión, combustible, color, motor, puertas, equipamiento, precio negociable y si está a nombre del vendedor (venta); período por día, semana o mes, depósito y edad mínima del conductor (alquiler); provincia y distrito; particular, concesionario o rentadora; celular con WhatsApp y llamada; hasta 12 fotos (`/media/catalog/vehicles/…`).
+- Filtros: Comprar o Alquilar, tipo, marca, provincia, año desde y hasta, precio, kilometraje máximo, transmisión, combustible, condición y texto.

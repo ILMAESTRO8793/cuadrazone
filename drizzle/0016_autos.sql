@@ -1,0 +1,43 @@
+CREATE TABLE `cz_vehicles` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`userId` int NOT NULL,
+	`slug` varchar(160) NOT NULL,
+	`status` enum('draft','published','paused','closed') NOT NULL DEFAULT 'draft',
+	`revision` int NOT NULL DEFAULT 0,
+	`operation` enum('venta','alquiler') NOT NULL,
+	`vehicleType` enum('sedan','suv','pickup','hatchback','coupe','van','moto','camion') NOT NULL,
+	`make` varchar(40) NOT NULL,
+	`otherMake` varchar(40) NOT NULL DEFAULT '',
+	`model` varchar(60) NOT NULL,
+	`year` int NOT NULL,
+	`condition` enum('nuevo','usado') NOT NULL,
+	`mileageKm` int NOT NULL,
+	`transmission` enum('automatica','manual') NOT NULL,
+	`fuel` enum('gasolina','diesel','hibrido','electrico') NOT NULL,
+	`color` varchar(30) NOT NULL DEFAULT '',
+	`engine` varchar(30) NOT NULL DEFAULT '',
+	`doors` int,
+	`title` varchar(120) NOT NULL,
+	`description` text NOT NULL,
+	`priceCents` bigint NOT NULL,
+	`negotiable` int NOT NULL DEFAULT 0,
+	`titleInSellerName` int NOT NULL DEFAULT 1,
+	`rentPeriod` enum('dia','semana','mes'),
+	`depositCents` bigint,
+	`minDriverAge` int,
+	`features` json,
+	`province` varchar(60) NOT NULL,
+	`district` varchar(80) NOT NULL,
+	`sellerType` enum('particular','concesionario','rentadora') NOT NULL DEFAULT 'particular',
+	`contactPhone` varchar(20) NOT NULL,
+	`images` json,
+	`publishedAt` timestamp,
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `cz_vehicles_id` PRIMARY KEY(`id`),
+	CONSTRAINT `cz_vehicles_slug_uq` UNIQUE(`slug`)
+);
+--> statement-breakpoint
+ALTER TABLE `cz_vehicles` ADD CONSTRAINT `cz_vehicles_userId_users_id_fk` FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX `cz_vehicles_search_idx` ON `cz_vehicles` (`status`,`operation`,`vehicleType`,`province`);--> statement-breakpoint
+CREATE INDEX `cz_vehicles_owner_idx` ON `cz_vehicles` (`userId`,`updatedAt`);

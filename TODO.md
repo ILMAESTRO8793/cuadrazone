@@ -145,3 +145,8 @@ Evidencia de planes: migración aditiva 0004 aplicada, 39 rutas sincronizadas, p
 - [x] Cuentas unidas por correo y por celular; verificación de contactos con código en Mi cuenta.
 - [x] Probado de punta a punta con SMS y Brevo de prueba.
 - [ ] Instalar SMS Gateway for Android en un celular dedicado y configurar sus variables en Railway.
+
+## Autos — 2 de noviembre
+- [x] Anuncios de venta y alquiler con parámetros completos, búsqueda con filtros, ficha y panel «Mis autos».
+- [x] Probado de punta a punta (plan, fotos, filtros, destacado, vencimiento).
+- [ ] Buscar empleo: CV, postulaciones y publicación de vacantes.
