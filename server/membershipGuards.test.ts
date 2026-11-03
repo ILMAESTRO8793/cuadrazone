@@ -118,11 +118,10 @@ describe("CuadraZone membership guards", () => {
     expect(accountEmailMatches({ loginMethod: "google", email: "" }, "")).toBe(false);
   });
 
-  it("permite enviar con teléfono pendiente pero exige ambos verificados para aprobar", () => {
+  it("basta el correo verificado: el celular se pide pero no se verifica por SMS", () => {
     const base = { phone: "+50761234567", emailVerifiedAt: new Date(), phoneVerifiedAt: null };
     expect(contactRequirementError("submit", base)).toBeNull();
-    expect(contactRequirementError("approve", base)).toMatch(/teléfono/);
-    expect(contactRequirementError("approve", { ...base, phoneVerifiedAt: new Date() })).toBeNull();
+    expect(contactRequirementError("approve", base)).toBeNull();
     expect(contactRequirementError("submit", { ...base, emailVerifiedAt: null })).toMatch(/correo/);
     expect(contactRequirementError("submit", { ...base, phone: "" })).toMatch(/teléfono de Panamá/);
     expect(contactRequirementError("submit", { ...base, phone: "+50612345678" })).toMatch(/teléfono de Panamá/);

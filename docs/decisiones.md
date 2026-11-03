@@ -243,3 +243,9 @@ Decisiones del propietario: publicar en Bienes raíces, Autos y Empleos es pagad
 ## Respaldo de la base de datos — 2 de noviembre de 2026
 
 - Botón «Descargar respaldo de la base de datos» en /admin (ruta `GET /api/admin/respaldo.sql`, solo administradores; 401 sin sesión, 403 si no es admin). Genera un único .sql con la estructura y todos los datos de todas las tablas, incluidos documentos binarios y el registro de migraciones. Probado: restaurado en una base vacía, las 34 tablas quedan idénticas (CHECKSUM TABLE) y el sitio funciona sobre ella.
+
+## Solo correo para registrarse — 3 de noviembre de 2026
+
+- Decisión del propietario: basta el correo verificado (Google o código por correo). El celular se pide como contacto para los compradores, pero ya no se verifica por SMS ni se exige verificado para enviar la solicitud, para la aprobación inmediata ni para que el administrador apruebe.
+- `ADMIN_EMAILS` tolera comillas, espacios, mayúsculas y separadores con coma, punto y coma o espacio.
+- El trabajo de «varias tiendas por cuenta» quedó guardado aparte (git stash) para retomarlo.

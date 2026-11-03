@@ -2,8 +2,9 @@
 // Ver docs/despliegue-railway.md y .env.example.
 function list(value: string | undefined) {
   return (value ?? "")
-    .split(",")
-    .map(item => item.trim().toLowerCase())
+    // Acepta comas, punto y coma o espacios, y quita comillas puestas por error.
+    .split(/[,;\s]+/)
+    .map(item => item.replace(/["']/g, "").trim().toLowerCase())
     .filter(Boolean);
 }
 

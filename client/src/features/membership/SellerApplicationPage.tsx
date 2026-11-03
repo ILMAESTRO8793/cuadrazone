@@ -290,7 +290,7 @@ function SellerApplicationContent() {
   };
   const checks = app?.autoChecks ?? null;
   const allGreen = Boolean(
-    checks?.identity.status === "ok" && checks?.payout.status === "ok" && profile?.emailVerifiedAt && profile?.phoneVerifiedAt
+    checks?.identity.status === "ok" && checks?.payout.status === "ok" && profile?.emailVerifiedAt
   );
 
   const submit = async () => {
@@ -618,9 +618,9 @@ function SellerApplicationContent() {
                 <strong>Teléfono</strong>
                 <span>{profile.phone || "No guardado"}</span>
                 <em
-                  className={`member-status ${profile.phoneVerifiedAt ? "member-status--ok" : "member-status--pending"}`}
+                  className={`member-status ${profile.phone ? "member-status--ok" : "member-status--pending"}`}
                 >
-                  {profile.phoneVerifiedAt ? "Verificado" : "Pendiente"}
+                  {profile.phoneVerifiedAt ? "Verificado" : "Registrado"}
                 </em>
               </div>
             </div>
@@ -832,7 +832,7 @@ function SellerApplicationContent() {
           </div>
           <ul className="cz-checklist">
             <CheckRow label="Correo verificado" status={profile?.emailVerifiedAt ? "ok" : "fail"} reasons={profile?.emailVerifiedAt ? [] : ["Verifícalo en Mi cuenta."]} />
-            <CheckRow label="Celular verificado" status={profile?.phoneVerifiedAt ? "ok" : "fail"} reasons={profile?.phoneVerifiedAt ? [] : ["Verifícalo con el código por SMS en Mi cuenta."]} />
+            <CheckRow label="Celular de contacto" status={profile && /^\+507\d{8}$/.test(profile.phone) ? "ok" : "fail"} reasons={profile && /^\+507\d{8}$/.test(profile.phone) ? [] : ["Guárdalo en tu perfil: +507 y 8 dígitos."]} />
             <CheckRow compares label="Cédula: número y nombre coinciden" status={autoCheck.isPending ? "checking" : checks?.identity.status ?? "waiting"} reasons={checks?.identity.reasons ?? []} />
             <CheckRow compares label="Yappy o banco a tu nombre" status={autoCheck.isPending ? "checking" : checks?.payout.status ?? "waiting"} reasons={checks?.payout.reasons ?? []} />
             <CheckRow label="Valores, conducta y privacidad aceptados" status={form.faithAccepted && form.conductAccepted && form.privacyAccepted ? "ok" : "fail"} reasons={[]} />

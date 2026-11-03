@@ -91,12 +91,13 @@ export function contactRequirementError(
   stage: "submit" | "approve",
   profile: { phone: string; emailVerifiedAt: unknown; phoneVerifiedAt: unknown }
 ): string | null {
+  // Decisión del 3/11/2026: basta el correo verificado. El celular se pide como
+  // contacto para los compradores, pero ya no hay que verificarlo por SMS.
+  void stage;
   if (!profile.emailVerifiedAt)
-    return "Verifica tu correo: debe ser el mismo de tu cuenta de Google";
+    return "Verifica tu correo: debe ser el mismo con el que entras a CuadraZone";
   if (!PANAMA_PHONE.test(profile.phone))
     return "Guarda un teléfono de Panamá (+507 y 8 dígitos) en tu perfil";
-  if (stage === "approve" && !profile.phoneVerifiedAt)
-    return "Verifica el teléfono del solicitante antes de aprobar";
   return null;
 }
 
@@ -746,13 +747,12 @@ export async function submitApplication(
         checks.identityDocumentId === (app.identityDocumentId ?? null) &&
         checks.payoutDocumentId === (app.payoutDocumentId ?? null)
     );
-    // Verificación inmediata: documentos coinciden y correo y celular verificados.
+    // Verificación inmediata: documentos coinciden y correo verificado.
     const instant = Boolean(
       sameInputs &&
         checks!.identity.status === "ok" &&
         checks!.payout.status === "ok" &&
-        profile?.emailVerifiedAt &&
-        profile?.phoneVerifiedAt
+        profile?.emailVerifiedAt
     );
     const nextRevision = app.revision + 1;
     const now = new Date();
