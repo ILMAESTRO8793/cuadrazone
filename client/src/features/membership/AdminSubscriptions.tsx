@@ -104,8 +104,8 @@ function AdvertiserPlans() {
   }
   return (
     <>
-      <h2>Planes de anunciantes (bienes raíces y autos)</h2>
-      <p className="member-muted">Para quien publica casas, apartamentos, terrenos o autos sin tener tienda. Quien ya tiene una tienda activa publica con su mismo plan. Con Mayor Visibilidad sus anuncios salen primero y como «Destacado».</p>
+      <h2>Planes de anunciantes (bienes raíces, autos y empleos)</h2>
+      <p className="member-muted">Para quien publica casas, apartamentos, terrenos, autos o vacantes de empleo sin tener tienda. Quien ya tiene una tienda activa publica con su mismo plan. Con Mayor Visibilidad sus anuncios salen primero y como «Destacado».</p>
       <form className="admin-review-form" onSubmit={save}>
         <label>Correo o celular de su cuenta<input value={account} onChange={e => setAccount(e.target.value)} required placeholder="persona@correo.com o 6123-4567" /></label>
         <label>Plan

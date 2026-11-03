@@ -149,4 +149,4 @@ Evidencia de planes: migración aditiva 0004 aplicada, 39 rutas sincronizadas, p
 ## Autos — 2 de noviembre
 - [x] Anuncios de venta y alquiler con parámetros completos, búsqueda con filtros, ficha y panel «Mis autos».
 - [x] Probado de punta a punta (plan, fotos, filtros, destacado, vencimiento).
-- [ ] Buscar empleo: CV, postulaciones y publicación de vacantes.
+- [x] Buscar empleo: CV con PDF, postulaciones con estados y publicación de vacantes con candidatos.

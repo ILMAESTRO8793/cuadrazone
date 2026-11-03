@@ -49,6 +49,7 @@ import { SellerPlanPage } from "./features/membership/SellerPlanPage";
 import { LoginPage } from "./features/membership/LoginPage";
 import { ComingSoonPage, RealEstateDetailPage, RealEstateListPage, RealEstateMinePage } from "./features/realEstate/RealEstatePages";
 import { VehicleDetailPage, VehicleListPage, VehicleMinePage } from "./features/vehicles/VehiclePages";
+import { JobDetailPage, JobListPage, MyApplicationsPage, MyJobsPage, ResumePage } from "./features/jobs/JobPages";
 import { SellerStatusPage } from "./features/membership/SellerStatusPage";
 import { AdminVerificationPage } from "./features/membership/AdminVerificationPage";
 
@@ -149,7 +150,11 @@ function Router() {
         <Route path="/autos" component={VehicleListPage} />
         <Route path="/autos/mis-anuncios" component={VehicleMinePage} />
         <Route path="/autos/:slug">{p => <VehicleDetailPage key={p.slug} slug={p.slug} />}</Route>
-        <Route path="/empleos">{() => <ComingSoonPage title="Buscar empleo" description="Muy pronto podrás crear tu CV, aplicar a vacantes y publicar empleos en CuadraZone." />}</Route>
+        <Route path="/empleos" component={JobListPage} />
+        <Route path="/empleos/mi-cv" component={ResumePage} />
+        <Route path="/empleos/mis-postulaciones" component={MyApplicationsPage} />
+        <Route path="/empleos/mis-vacantes" component={MyJobsPage} />
+        <Route path="/empleos/:slug">{p => <JobDetailPage key={p.slug} slug={p.slug} />}</Route>
         <Route path="/solicitud-vendedor" component={SellerApplicationPage} />
         <Route path="/vendedor" component={SellerStatusPage} />
         <Route path="/admin/verificaciones">

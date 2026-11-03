@@ -145,6 +145,18 @@
     },
     {
       "path": "/autos/:slug"
+    },
+    {
+      "path": "/empleos/mi-cv"
+    },
+    {
+      "path": "/empleos/mis-postulaciones"
+    },
+    {
+      "path": "/empleos/mis-vacantes"
+    },
+    {
+      "path": "/empleos/:slug"
     }
   ]
 }

@@ -231,3 +231,15 @@ Decisiones del propietario: publicar en Bienes raíces, Autos y Empleos es pagad
 - Venta y alquiler de sedán, SUV, pickup, hatchback, coupé, van, moto y camión (`cz_vehicles`, migración 0016). Mismas reglas que bienes raíces: cualquier persona con cuenta prepara anuncios; publicar exige plan activo (tienda o anunciante) y al menos una foto; Mayor Visibilidad = «Destacado» y primero; si vence el plan, se ocultan. El plan de anunciante sirve para bienes raíces y autos.
 - Campos: marca (lista de las más comunes en Panamá u «Otra» escrita), modelo, año, condición, kilometraje (un nuevo no puede pasar de 1,000 km), transmisión, combustible, color, motor, puertas, equipamiento, precio negociable y si está a nombre del vendedor (venta); período por día, semana o mes, depósito y edad mínima del conductor (alquiler); provincia y distrito; particular, concesionario o rentadora; celular con WhatsApp y llamada; hasta 12 fotos (`/media/catalog/vehicles/…`).
 - Filtros: Comprar o Alquilar, tipo, marca, provincia, año desde y hasta, precio, kilometraje máximo, transmisión, combustible, condición y texto.
+
+## Buscar empleo — 2 de noviembre de 2026
+
+- **Quien busca (gratis):** CV en CuadraZone (`cz_resumes`): nombre, oficio, resumen, celular, correo, provincia, disponibilidad, experiencia, estudios, habilidades e idiomas; vista previa y «Descargar PDF» (impresión del navegador que solo imprime la hoja del CV). Aplica con un clic y un mensaje opcional; ve el estado en «Mis postulaciones».
+- **Quien publica (con plan):** vacantes (`cz_jobs`) con cargo, empresa, área, jornada, modalidad, provincia, salario (rango y período) o «a convenir», descripción, requisitos, beneficios y fecha de cierre. Publicar exige plan activo (tienda o anunciante) y fecha de cierre futura; las vencidas o con plan vencido no se muestran ni reciben postulaciones. Mayor Visibilidad = «Destacada».
+- **Postulaciones (`cz_job_applications`, migración 0017):** guardan una copia del CV al aplicar; una por vacante; no se puede aplicar a la propia. La empresa ve los candidatos, los marca vista (automático al abrir el CV), entrevista o no seleccionado, y los contacta por WhatsApp, llamada o correo.
+- **Correos:** a la empresa por cada candidato; al candidato cuando pasa a entrevista o no es seleccionado.
+- **Privacidad:** el CV solo lo ve la empresa a la que se aplicó.
+
+## Respaldo de la base de datos — 2 de noviembre de 2026
+
+- Botón «Descargar respaldo de la base de datos» en /admin (ruta `GET /api/admin/respaldo.sql`, solo administradores; 401 sin sesión, 403 si no es admin). Genera un único .sql con la estructura y todos los datos de todas las tablas, incluidos documentos binarios y el registro de migraciones. Probado: restaurado en una base vacía, las 34 tablas quedan idénticas (CHECKSUM TABLE) y el sitio funciona sobre ella.

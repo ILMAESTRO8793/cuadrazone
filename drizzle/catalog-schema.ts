@@ -248,3 +248,74 @@ export const czVehicles = mysqlTable(
     index("cz_vehicles_owner_idx").on(table.userId, table.updatedAt),
   ]
 );
+
+/** CV de quien busca empleo (uno por usuario). */
+export const czResumes = mysqlTable("cz_resumes", {
+  userId: int("userId").primaryKey().references(() => users.id),
+  fullName: varchar("fullName", { length: 120 }).notNull(),
+  headline: varchar("headline", { length: 120 }).notNull(),
+  summary: text("summary").notNull(),
+  phone: varchar("phone", { length: 20 }).notNull(),
+  email: varchar("email", { length: 254 }).notNull().default(""),
+  province: varchar("province", { length: 60 }).notNull(),
+  availability: varchar("availability", { length: 20 }).notNull().default("inmediata"),
+  experience: json("experience"),
+  education: json("education"),
+  skills: json("skills"),
+  languages: json("languages"),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+/** Vacantes de empleo. */
+export const czJobs = mysqlTable(
+  "cz_jobs",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull().references(() => users.id),
+    slug: varchar("slug", { length: 160 }).notNull(),
+    status: mysqlEnum("status", ["draft", "published", "paused", "closed"]).notNull().default("draft"),
+    revision: int("revision").notNull().default(0),
+    title: varchar("title", { length: 120 }).notNull(),
+    company: varchar("company", { length: 120 }).notNull(),
+    area: varchar("area", { length: 30 }).notNull(),
+    jobType: varchar("jobType", { length: 30 }).notNull(),
+    modality: varchar("modality", { length: 20 }).notNull(),
+    province: varchar("province", { length: 60 }).notNull(),
+    district: varchar("district", { length: 80 }).notNull(),
+    salaryNegotiable: int("salaryNegotiable").notNull().default(0),
+    salaryMinCents: int("salaryMinCents"),
+    salaryMaxCents: int("salaryMaxCents"),
+    salaryPeriod: varchar("salaryPeriod", { length: 20 }).notNull().default("mes"),
+    description: text("description").notNull(),
+    requirements: text("requirements").notNull(),
+    benefits: text("benefits").notNull(),
+    closesOn: varchar("closesOn", { length: 10 }).notNull(),
+    publishedAt: timestamp("publishedAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    uniqueIndex("cz_jobs_slug_uq").on(table.slug),
+    index("cz_jobs_search_idx").on(table.status, table.area, table.province),
+    index("cz_jobs_owner_idx").on(table.userId, table.updatedAt),
+  ]
+);
+
+/** Postulaciones: guardan una copia del CV al momento de aplicar. */
+export const czJobApplications = mysqlTable(
+  "cz_job_applications",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    jobId: int("jobId").notNull().references(() => czJobs.id, { onDelete: "cascade" }),
+    applicantUserId: int("applicantUserId").notNull().references(() => users.id),
+    resume: json("resume").notNull(),
+    message: text("message").notNull(),
+    status: mysqlEnum("status", ["enviada", "vista", "entrevista", "descartada"]).notNull().default("enviada"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    uniqueIndex("cz_job_applications_uq").on(table.jobId, table.applicantUserId),
+    index("cz_job_applications_applicant_idx").on(table.applicantUserId, table.createdAt),
+  ]
+);

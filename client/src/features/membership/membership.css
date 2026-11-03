@@ -206,3 +206,5 @@
 @keyframes cz-blink-fail { 0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(198, 40, 40, .45); } 50% { opacity: .5; box-shadow: 0 0 0 7px rgba(198, 40, 40, 0); } }
 @media (prefers-reduced-motion: reduce) { .cz-check-icon { animation: none !important; } }
 .member-section-heading { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+
+.admin-backup { display: inline-flex; margin-top: 10px; }

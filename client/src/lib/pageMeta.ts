@@ -42,7 +42,10 @@ export function getPageMeta(url: string, snapshot: PublicSnapshot = {}) {
     "/bienes-raices/mis-anuncios": "Mis anuncios de bienes raíces",
     "/autos": "Autos: venta y alquiler",
     "/autos/mis-anuncios": "Mis autos",
-    "/empleos": "Buscar empleo",
+    "/empleos": "Buscar empleo en Panamá",
+    "/empleos/mi-cv": "Mi CV",
+    "/empleos/mis-postulaciones": "Mis postulaciones",
+    "/empleos/mis-vacantes": "Mis vacantes",
     "/ayuda": "Centro de ayuda",
   };
   if (titles[path]) title = `${titles[path]} | CuadraZone Panamá`;
@@ -81,6 +84,9 @@ export function getPageMeta(url: string, snapshot: PublicSnapshot = {}) {
     title = "Documentos legales | CuadraZone Panamá";
     description =
       "Fe y valores, código de conducta y política de privacidad de CuadraZone.";
+  } else if (/^\/empleos\/[a-z0-9-]{1,160}$/.test(path)) {
+    title = "Vacante de empleo | CuadraZone Panamá";
+    description = "Vacantes de empleo en Panamá. Crea tu CV gratis y aplica con un clic.";
   } else if (/^\/autos\/[a-z0-9-]{1,160}$/.test(path)) {
     title = "Auto en venta o alquiler | CuadraZone Panamá";
     description = "Autos y motos en venta o alquiler en Panamá.";
@@ -129,6 +135,9 @@ export function getPageMeta(url: string, snapshot: PublicSnapshot = {}) {
         "/entrar",
         "/bienes-raices/mis-anuncios",
         "/autos/mis-anuncios",
+        "/empleos/mi-cv",
+        "/empleos/mis-postulaciones",
+        "/empleos/mis-vacantes",
       ].includes(path),
   };
 }
