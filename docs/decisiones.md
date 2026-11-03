@@ -249,3 +249,4 @@ Decisiones del propietario: publicar en Bienes raíces, Autos y Empleos es pagad
 - Decisión del propietario: basta el correo verificado (Google o código por correo). El celular se pide como contacto para los compradores, pero ya no se verifica por SMS ni se exige verificado para enviar la solicitud, para la aprobación inmediata ni para que el administrador apruebe.
 - `ADMIN_EMAILS` tolera comillas, espacios, mayúsculas y separadores con coma, punto y coma o espacio.
 - El trabajo de «varias tiendas por cuenta» quedó guardado aparte (git stash) para retomarlo.
+- 3/11/2026: el administrador va directo a /admin al entrar (si no tenía página pendiente), ve un enlace «Administración» en el menú y un aviso en Mi cuenta. El perfil nuevo se precarga con el nombre, correo y celular de la cuenta. El saludo del encabezado usa el nombre de la persona.

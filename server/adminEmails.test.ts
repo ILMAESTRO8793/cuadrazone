@@ -14,3 +14,12 @@ describe("lista de administradores", () => {
     expect(ENV.adminEmails).toEqual(["info@cuadrazone.com", "otro@gmail.com"]);
   });
 });
+
+import { landingFor } from "./_core/codeAuth";
+describe("a dónde va después de entrar", () => {
+  it("el administrador va a su panel si no tenía una página pendiente", () => {
+    expect(landingFor("/", true)).toBe("/admin");
+    expect(landingFor("/vendedor", true)).toBe("/vendedor");
+    expect(landingFor("/", false)).toBe("/");
+  });
+});

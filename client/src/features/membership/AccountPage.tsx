@@ -45,8 +45,13 @@ function AccountContent() {
       displayName: profile.displayName,
       email: profile.email,
       phone: profile.phone,
-    } : emptyForm);
-  }, [membership.isLoading, profile]);
+    } : {
+      // Primera vez: se llena con los datos con los que entró.
+      displayName: user?.name ?? "",
+      email: user?.email ?? "",
+      phone: user?.phone ?? "",
+    });
+  }, [membership.isLoading, profile, user]);
 
   const save = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -106,6 +111,17 @@ function AccountContent() {
         </button>
       </div>
 
+      {user?.role === "admin" && (
+        <div className="admin-welcome" role="note">
+          <ShieldCheck size={28} aria-hidden="true" />
+          <div>
+            <strong>Eres administrador de CuadraZone</strong>
+            <p>Desde el panel apruebas o rechazas vendedores, registras pagos y planes, y descargas el respaldo de la base de datos. No necesitas llenar este perfil para usarlo.</p>
+          </div>
+          <Link className="member-button" href="/admin">Ir al panel de administración</Link>
+        </div>
+      )}
+
       <div className="member-grid member-grid--account">
         <section className="member-card">
           <div className="member-card-heading"><div><p className="member-eyebrow">PERFIL</p><h2>Datos de contacto</h2></div><UserRound size={22} aria-hidden="true" /></div>
@@ -136,7 +152,7 @@ function AccountContent() {
               <ContactCodeVerifier channel="email" label={profile.email} onVerified={() => utils.membership.me.invalidate()} />
             )
           )}
-          <p className="member-muted"><strong>Teléfono:</strong> verifícalo tú mismo con un código por SMS. Si no puedes recibirlo, el equipo de CuadraZone lo confirma por llamada o WhatsApp al revisar tu solicitud.</p>
+          <p className="member-muted"><strong>Teléfono:</strong> es solo de contacto para tus compradores; no hace falta verificarlo.</p>
           {!phoneVerified && profile?.phone && (
             <ContactCodeVerifier channel="phone" label={profile.phone} onVerified={() => utils.membership.me.invalidate()} />
           )}

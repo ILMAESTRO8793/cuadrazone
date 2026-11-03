@@ -208,3 +208,10 @@
 .member-section-heading { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
 
 .admin-backup { display: inline-flex; margin-top: 10px; }
+
+.admin-welcome { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin: 0 0 20px; padding: 18px 20px; border-radius: 16px; background: #0B1F3B; color: #fff; }
+.admin-welcome svg { color: #E2B866; flex: 0 0 auto; }
+.admin-welcome div { flex: 1 1 320px; }
+.admin-welcome strong { font-size: 18px; }
+.admin-welcome p { margin: 4px 0 0; color: #D5DCE6; line-height: 1.5; }
+.admin-welcome .member-button { background: #B58C3C; color: #0B1F3B; border-color: #B58C3C; }

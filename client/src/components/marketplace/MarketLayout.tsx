@@ -335,7 +335,7 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
             >
               <UserRound size={23} />
               <span>
-                <small>Hola, explora</small>
+                <small>{auth.user ? `Hola, ${(auth.user.name || auth.user.email || "").split(/[ @]/)[0] || "de nuevo"}` : "Hola, explora"}</small>
                 <strong>Mi cuenta</strong>
               </span>
             </Link>
@@ -394,6 +394,11 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
             {section !== "home" && (
               <Link className="section-switch" href={section === "market" ? "/servicios" : section === "estate" || section === "cars" || section === "jobs" ? "/" : "/mercado"}>
                 {section === "market" ? "Ir a Servicios" : section === "estate" || section === "cars" || section === "jobs" ? "Volver al inicio" : "Ir a Comercios"} <ArrowRight size={14} />
+              </Link>
+            )}
+            {auth.user?.role === "admin" && (
+              <Link className="admin-nav" href="/admin">
+                <ShieldCheck size={15} /> Administración
               </Link>
             )}
             <Link className="sell-nav" href="/vender">

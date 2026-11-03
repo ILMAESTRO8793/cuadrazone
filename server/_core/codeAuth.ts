@@ -44,6 +44,11 @@ export function emailOpenId(email: string) {
   return `email_${createHash("sha256").update(email).digest("hex").slice(0, 40)}`;
 }
 
+/** Al entrar sin una página pendiente, el administrador va directo a su panel. */
+export function landingFor(returnTo: string, isAdmin: boolean) {
+  return isAdmin && returnTo === "/" ? "/admin" : returnTo;
+}
+
 export function phoneOpenId(phone: string) {
   return `phone_${phone}`;
 }
@@ -103,7 +108,7 @@ export function registerCodeAuthRoutes(app: Express) {
     const account = await signInWithContact(channel, destination);
     const token = await sdk.createSessionToken(account.openId, { name: account.name ?? "", expiresInMs: ONE_YEAR_MS });
     res.cookie(COOKIE_NAME, token, { ...getSessionCookieOptions(req), maxAge: ONE_YEAR_MS });
-    return { ok: true, returnTo: safeReturnPath(req.body?.returnTo) };
+    return { ok: true, returnTo: landingFor(safeReturnPath(req.body?.returnTo), channel === "email" && ENV.adminEmails.includes(destination)) };
   }));
 
   // Verificar el correo o el celular guardados en el perfil (Mi cuenta).
