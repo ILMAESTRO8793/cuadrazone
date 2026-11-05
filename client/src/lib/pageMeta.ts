@@ -22,7 +22,7 @@ export function getPageMeta(url: string, snapshot: PublicSnapshot = {}) {
     "/catalogo": "Catálogo de ejemplo",
     "/libros": "Libros cristianos",
     "/eventos": "Eventos y conciertos",
-    "/servicios": "Servicios profesionales",
+    "/servicios": "Servicios en Panamá",
     "/suscripciones": "Planes Normal US$19.99 y Mayor Visibilidad US$39.99",
     "/vendedor/plan": "Mi selección de plan",
     "/vender": "Vende en CuadraZone",
@@ -61,7 +61,11 @@ export function getPageMeta(url: string, snapshot: PublicSnapshot = {}) {
     } else if ("store" in snapshot) status = 404;
   } else if (/^\/pedidos\/\d+$/.test(path)) {
     title = "Detalle de pedido | CuadraZone";
-  } else if (/^\/(producto|evento|servicio)\//.test(path)) {
+  } else if (/^\/servicio\/[a-z0-9-]{1,180}$/.test(path)) {
+    // Servicio real de una tienda de servicios: se carga en el navegador.
+    title = "Servicio | CuadraZone Panamá";
+    description = "Servicios de emprendedores en Panamá: clases, reparaciones, consultas y más. Solicítalo y te contactan.";
+  } else if (/^\/(producto|evento)\//.test(path)) {
     const item = listings.find(item => item.slug === path.split("/")[2]);
     if (item) {
       title = `${item.title} | CuadraZone`;

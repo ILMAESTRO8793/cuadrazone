@@ -88,6 +88,8 @@ export const czApplications = mysqlTable("cz_membership_applications", {
   consentVersion: varchar("consentVersion", { length: 64 }).notNull(),
   identityDocumentId: int("identityDocumentId"),
   pastoralDocumentId: int("pastoralDocumentId"),
+  /** Qué vende: «comercio» (cosas tangibles) o «servicios». Solo uno por tienda. */
+  storeKind: varchar("storeKind", { length: 20 }).notNull().default("comercio"),
   /** Captura de Yappy o del banco donde se ve el nombre del titular. */
   payoutDocumentId: int("payoutDocumentId"),
   /** Nombres y apellidos tal como aparecen en el documento de identidad. */

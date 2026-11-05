@@ -49,6 +49,7 @@ import { SellerPlanPage } from "./features/membership/SellerPlanPage";
 import { LoginPage } from "./features/membership/LoginPage";
 import { ComingSoonPage, RealEstateDetailPage, RealEstateListPage, RealEstateMinePage } from "./features/realEstate/RealEstatePages";
 import { VehicleDetailPage, VehicleListPage, VehicleMinePage } from "./features/vehicles/VehiclePages";
+import { ServiceDetailPage, ServiceListPage } from "./features/services/ServicePages";
 import { JobDetailPage, JobListPage, MyApplicationsPage, MyJobsPage, ResumePage } from "./features/jobs/JobPages";
 import { SellerStatusPage } from "./features/membership/SellerStatusPage";
 import { AdminVerificationPage } from "./features/membership/AdminVerificationPage";
@@ -121,9 +122,7 @@ function Router() {
         <Route path="/eventos">
           {() => <CatalogPage initialKind="evento" />}
         </Route>
-        <Route path="/servicios">
-          {() => <CatalogPage initialKind="servicio" />}
-        </Route>
+        <Route path="/servicios" component={ServiceListPage} />
         <Route path="/producto/:slug">
           {params => <DetailPage slug={params.slug} key={params.slug} />}
         </Route>
@@ -131,7 +130,7 @@ function Router() {
           {params => <DetailPage slug={params.slug} key={params.slug} />}
         </Route>
         <Route path="/servicio/:slug">
-          {params => <DetailPage slug={params.slug} key={params.slug} />}
+          {params => <ServiceDetailPage slug={params.slug} key={params.slug} />}
         </Route>
         <Route path="/tienda/:slug">
           {params => <StorePage slug={params.slug} />}

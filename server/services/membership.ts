@@ -20,7 +20,9 @@ import {
   type ProviderReadiness,
   type ApplicationSnapshot,
   type DocumentSnapshot,
+  storeKindError,
 } from "@shared/membership";
+import { catalogCategories } from "@shared/marketplace";
 import {
   businessSelectionsInput,
   readBusinessSelections,
@@ -219,9 +221,11 @@ export async function runAutoChecks(user: User): Promise<AutoChecks> {
 
 function mapApplication(row: Application): ApplicationSnapshot {
   return {
+    storeKind: (row.storeKind === "servicios" ? "servicios" : "comercio") as ApplicationSnapshot["storeKind"],
     businessType: row.businessType,
     businessName: row.businessName,
     businessCategories: readBusinessSelections(row.details),
+    productCategories: readProductCategories(row.details),
     identificationType: row.identificationType,
     identificationNumber: row.identificationNumber,
     documentExpiry: row.documentExpiry,
@@ -338,6 +342,8 @@ export function validateDocumentExpiry(value: string): void {
 }
 
 function validateBusinessRules(input: ApplicationInput) {
+  const kindError = storeKindError(input);
+  if (kindError) throw new MembershipError("BAD_REQUEST", kindError);
   const parsed = applicationInput.safeParse(input);
   if (!parsed.success) {
     throw new MembershipError(
@@ -649,6 +655,7 @@ export async function saveApplication(
     assertDraftRevision(existing?.revision ?? null, expectedRevision);
     const values = {
       userId: user.id,
+      storeKind: input.storeKind,
       businessType: input.businessType,
       businessName: input.businessName,
       identificationType: input.identificationType,
@@ -1119,3 +1126,10 @@ export async function saveDenomination(input: {
 }
 
 export { documentKinds, applicationInput };
+
+/** Categorías de productos guardadas en el expediente (tiendas de comercio). */
+function readProductCategories(details: unknown): ApplicationSnapshot["productCategories"] {
+  if (typeof details === "string") { try { details = JSON.parse(details); } catch { return []; } }
+  const values = (details as { productCategories?: unknown } | null)?.productCategories;
+  return Array.isArray(values) ? (values.filter(v => (catalogCategories as readonly string[]).includes(String(v))) as ApplicationSnapshot["productCategories"]) : [];
+}

@@ -215,3 +215,15 @@
 .admin-welcome strong { font-size: 18px; }
 .admin-welcome p { margin: 4px 0 0; color: #D5DCE6; line-height: 1.5; }
 .admin-welcome .member-button { background: #B58C3C; color: #0B1F3B; border-color: #B58C3C; }
+
+/* Elegir Comercio o Servicios */
+.kind-choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin: 8px 0 16px; }
+.kind-choice { display: flex; flex-direction: column; gap: 6px; padding: 18px; border: 2px solid #DCE3E1; border-radius: 14px; background: #fff; text-align: left; font: inherit; color: #0B1F3B; cursor: pointer; }
+.kind-choice strong { font-size: 20px; }
+.kind-choice span { color: #4A5568; font-size: 14px; line-height: 1.5; }
+.kind-choice.is-active { border-color: #0B1F3B; background: #F1F5FA; box-shadow: 0 0 0 3px rgba(181, 140, 60, .35); }
+.kind-choice:disabled { cursor: default; opacity: .8; }
+.kind-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 12px; }
+.kind-chip { min-height: 38px; padding: 0 14px; border: 1px solid #9AA8A5; border-radius: 999px; background: #fff; font: inherit; font-size: 14px; font-weight: 600; color: #0B1F3B; cursor: pointer; }
+.kind-chip.is-active { background: #0B1F3B; border-color: #0B1F3B; color: #fff; }
+.kind-chip:disabled { opacity: .5; cursor: default; }

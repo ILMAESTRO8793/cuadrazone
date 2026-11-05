@@ -20,6 +20,8 @@ export const czStores = mysqlTable(
     id: int("id").autoincrement().primaryKey(),
     userId: int("userId").notNull(),
     slug: varchar("slug", { length: 180 }).notNull(),
+    /** Copia del tipo de la solicitud, para filtrar Comercios y Servicios. */
+    storeKind: varchar("storeKind", { length: 20 }).notNull().default("comercio"),
     name: varchar("name", { length: 160 }).notNull(),
     description: text("description").notNull(),
     province: varchar("province", { length: 60 }).notNull(),
@@ -60,6 +62,15 @@ export const czProducts = mysqlTable(
     title: varchar("title", { length: 240 }).notNull(),
     description: text("description").notNull(),
     category: varchar("category", { length: 120 }).notNull(),
+    /** Datos de cosas tangibles y videos (solo tiendas de comercio). */
+    condition: varchar("condition", { length: 20 }).notNull().default("nuevo"),
+    brand: varchar("brand", { length: 80 }).notNull().default(""),
+    weightGrams: int("weightGrams"),
+    lengthCm: int("lengthCm"),
+    widthCm: int("widthCm"),
+    heightCm: int("heightCm"),
+    warranty: varchar("warranty", { length: 200 }).notNull().default(""),
+    videos: json("videos").$type<string[]>(),
     priceCents: int("priceCents").notNull(),
     status: mysqlEnum("status", ["draft", "published", "archived"]).$type<ProductStatus>().notNull().default("draft"),
     revision: int("revision").notNull().default(1),
@@ -318,4 +329,56 @@ export const czJobApplications = mysqlTable(
     uniqueIndex("cz_job_applications_uq").on(table.jobId, table.applicantUserId),
     index("cz_job_applications_applicant_idx").on(table.applicantUserId, table.createdAt),
   ]
+);
+
+/** Servicios de las tiendas de servicios (sin envíos ni inventario). */
+export const czServices = mysqlTable(
+  "cz_services",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    storeId: int("storeId").notNull().references(() => czStores.id),
+    userId: int("userId").notNull().references(() => users.id),
+    slug: varchar("slug", { length: 180 }).notNull(),
+    status: mysqlEnum("status", ["draft", "published", "paused"]).notNull().default("draft"),
+    revision: int("revision").notNull().default(0),
+    title: varchar("title", { length: 120 }).notNull(),
+    description: text("description").notNull(),
+    serviceType: varchar("serviceType", { length: 20 }).notNull(),
+    categoryId: varchar("categoryId", { length: 80 }).notNull(),
+    specialtyId: varchar("specialtyId", { length: 120 }),
+    priceType: varchar("priceType", { length: 20 }).notNull(),
+    priceCents: int("priceCents"),
+    durationMinutes: int("durationMinutes"),
+    modalities: json("modalities").$type<string[]>().notNull(),
+    coverageProvinces: json("coverageProvinces").$type<string[]>(),
+    schedule: varchar("schedule", { length: 300 }).notNull().default(""),
+    images: json("images").$type<string[]>(),
+    publishedAt: timestamp("publishedAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    uniqueIndex("cz_services_slug_uq").on(table.slug),
+    index("cz_services_store_ix").on(table.storeId),
+    index("cz_services_search_ix").on(table.status, table.serviceType, table.categoryId),
+  ]
+);
+
+/** Solicitudes de servicio: el cliente pide y el proveedor lo contacta. */
+export const czServiceRequests = mysqlTable(
+  "cz_service_requests",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    serviceId: int("serviceId").notNull().references(() => czServices.id, { onDelete: "cascade" }),
+    requesterUserId: int("requesterUserId").notNull().references(() => users.id),
+    name: varchar("name", { length: 120 }).notNull(),
+    phone: varchar("phone", { length: 20 }).notNull(),
+    message: text("message").notNull(),
+    preferredDate: varchar("preferredDate", { length: 10 }).notNull().default(""),
+    province: varchar("province", { length: 60 }).notNull(),
+    status: mysqlEnum("status", ["nueva", "contactada", "cerrada"]).notNull().default("nueva"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [index("cz_service_requests_service_ix").on(table.serviceId, table.createdAt)]
 );

@@ -1,4 +1,4 @@
-import { businessSelectionsInput } from "@shared/businessCategories";
+import { catalogCategories } from "@shared/marketplace";
 import { getSellerPlan, sellerPlanLabel } from "@shared/pricing";
 import { AuthGate } from "@/features/membership/AuthGate";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -29,12 +29,15 @@ import {
   type ApplicationInput,
   type ApplicationSnapshot,
   type DocumentSnapshot,
+  storeKindError,
 } from "@shared/membership";
 
 const emptyApplication: ApplicationInput = {
   businessType: "individual",
   businessName: "",
+  storeKind: "comercio",
   businessCategories: [],
+  productCategories: [],
   identificationType: "cedula",
   identificationNumber: "",
   documentExpiry: "",
@@ -118,7 +121,9 @@ function SellerApplicationContent() {
       setForm({
         businessType: app.businessType,
         businessName: app.businessName,
+        storeKind: app.storeKind ?? "comercio",
         businessCategories: app.businessCategories,
+        productCategories: app.productCategories ?? [],
         identificationType: app.identificationType,
         identificationNumber: app.identificationNumber,
         documentExpiry: app.documentExpiry,
@@ -153,9 +158,14 @@ function SellerApplicationContent() {
   const documentByKind = (kind: "identity" | "pastoral" | "payout") =>
     documents.find(document => document.kind === kind);
   const parsedForm = applicationInput.safeParse(form);
-  const parsedCategories = businessSelectionsInput.safeParse(
-    form.businessCategories
-  );
+  // Una solicitud nueva debe elegir explícitamente qué vende.
+  const [kindChosen, setKindChosen] = useState(false);
+  const kindReady = Boolean(app) || kindChosen;
+  const kindProblem = kindReady ? storeKindError(form) : "Elige si tu tienda es de comercio o de servicios";
+  const chooseKind = (kind: "comercio" | "servicios") => {
+    setKindChosen(true);
+    setForm(current => ({ ...current, storeKind: kind, businessCategories: kind === "servicios" ? current.businessCategories : [], productCategories: kind === "comercio" ? current.productCategories : [] }));
+  };
   const hasUnsavedChanges = Boolean(
     app &&
       (!parsedForm.success ||
@@ -169,7 +179,7 @@ function SellerApplicationContent() {
     app &&
       editable &&
       parsedForm.success &&
-      parsedForm.data.businessCategories.length > 0 &&
+      !kindProblem &&
       !hasUnsavedChanges &&
       profile?.emailVerifiedAt &&
       /^\+507\d{8}$/.test(profile.phone) &&
@@ -574,30 +584,68 @@ function SellerApplicationContent() {
           </div>
           <div className="member-business-classification">
             <div className="member-field-heading">
-              <span className="member-field-title">
-                Clasificación del negocio <b>(obligatoria)</b>
-              </span>
-              <small>
-                Elige una o más categorías y, si quieres, sus especialidades
-                para que tu tienda aparezca en búsquedas.
-              </small>
+              <span className="member-field-title">¿Qué vas a vender? <b>(elige uno)</b></span>
+              <small>Una tienda es de comercio o de servicios, no de los dos. Si después quieres ofrecer lo otro, podrás abrir otra tienda.</small>
             </div>
-            <BusinessCategoryPicker
-              value={form.businessCategories}
-              onChange={businessCategories =>
-                setField("businessCategories", businessCategories)
-              }
-              disabled={!editable}
-              idPrefix="seller-business-category"
-            />
-            {!parsedCategories.success && (
-              <p className="member-form-error" role="alert">
-                {errorText(
-                  parsedCategories.error,
-                  "Selecciona al menos una categoría para tu negocio"
-                )}
-              </p>
+            <div className="kind-choices" role="radiogroup" aria-label="Tipo de tienda">
+              {([
+                ["comercio", "Comercio", "Cosas tangibles: ropa, artesanías, comida, tecnología, libros… Con fotos y videos, inventario y envíos."],
+                ["servicios", "Servicios", "Lo que haces para otros: clases, plomería, consultas, eventos, diseño… Sin envíos: el cliente te solicita y coordinan."],
+              ] as const).map(([kind, title, text]) => (
+                <button
+                  key={kind}
+                  type="button"
+                  role="radio"
+                  aria-checked={kindReady && form.storeKind === kind}
+                  disabled={!editable}
+                  className={`kind-choice ${kindReady && form.storeKind === kind ? "is-active" : ""}`}
+                  onClick={() => chooseKind(kind)}
+                >
+                  <strong>{title}</strong>
+                  <span>{text}</span>
+                </button>
+              ))}
+            </div>
+            {kindReady && form.storeKind === "comercio" && (
+              <>
+                <div className="member-field-heading">
+                  <span className="member-field-title">Categorías de tus productos <b>(al menos una)</b></span>
+                  <small>Elige hasta 8.</small>
+                </div>
+                <div className="kind-chips">
+                  {catalogCategories.map(category => {
+                    const on = form.productCategories.includes(category);
+                    return (
+                      <button
+                        key={category}
+                        type="button"
+                        disabled={!editable || (!on && form.productCategories.length >= 8)}
+                        className={`kind-chip ${on ? "is-active" : ""}`}
+                        aria-pressed={on}
+                        onClick={() => setField("productCategories", on ? form.productCategories.filter(c => c !== category) : [...form.productCategories, category])}
+                      >
+                        {category}
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
             )}
+            {kindReady && form.storeKind === "servicios" && (
+              <>
+                <div className="member-field-heading">
+                  <span className="member-field-title">Categorías de tus servicios <b>(al menos una)</b></span>
+                  <small>Elige una o más categorías y, si quieres, sus especialidades para aparecer en las búsquedas.</small>
+                </div>
+                <BusinessCategoryPicker
+                  value={form.businessCategories}
+                  onChange={businessCategories => setField("businessCategories", businessCategories)}
+                  disabled={!editable}
+                  idPrefix="seller-business-category"
+                />
+              </>
+            )}
+            {kindProblem && <p className="member-form-error" role="alert">{kindProblem}</p>}
           </div>
         </fieldset>
 
@@ -880,7 +928,7 @@ function SellerApplicationContent() {
               {!(form.legalGivenNames.trim().length >= 2 && form.legalSurnames.trim().length >= 2) && <li>Escribir tus nombres y apellidos como en tu cédula.</li>}
               {!(form.conductAccepted && form.privacyAccepted) && <li>Aceptar conducta y privacidad.</li>}
               {hasUnsavedChanges && <li>Guardar los cambios del formulario.</li>}
-              {(!parsedForm.success || parsedForm.data.businessCategories.length === 0) && <li>Completar los datos obligatorios de negocio, identificación y categoría.</li>}
+              {(!parsedForm.success || kindProblem) && <li>Elegir si vendes productos o servicios y sus categorías, y completar los datos de identificación.</li>}
             </ul>
           </div>
         )}

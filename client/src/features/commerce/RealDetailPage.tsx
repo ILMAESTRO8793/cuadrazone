@@ -1,3 +1,4 @@
+import { productConditionLabels } from "@shared/marketplace";
 import { ShippingNote } from "@/lib/ShippingNote";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
@@ -318,6 +319,13 @@ export function RealDetailPage({ slug }: { slug: string }) {
               </button>
             ))}
           </div>
+          {(p.videos ?? []).length > 0 && (
+            <div className="live-videos" aria-label="Videos del producto">
+              {p.videos.map((src, i) => (
+                <video key={src} src={src} controls preload="metadata" playsInline aria-label={`Video ${i + 1} de ${p.title}`} />
+              ))}
+            </div>
+          )}
         </section>
         <section className="live-detail-copy">
           <p className="eyebrow">
@@ -338,6 +346,23 @@ export function RealDetailPage({ slug }: { slug: string }) {
             {usd(variant?.priceCents ?? p.priceCents)}
           </strong>
           <p className="live-description">{p.description}</p>
+          {p.kind === "product" && (
+            <dl className="live-book-meta live-specs">
+              {(
+                [
+                  ["Condición", productConditionLabels[p.condition ?? "nuevo"]],
+                  ["Marca", p.brand],
+                  ["Peso", p.weightGrams ? (p.weightGrams >= 1000 ? `${(p.weightGrams / 1000).toLocaleString("es-PA")} kg` : `${p.weightGrams} g`) : ""],
+                  ["Medidas", p.lengthCm && p.widthCm && p.heightCm ? `${p.lengthCm} × ${p.widthCm} × ${p.heightCm} cm` : ""],
+                  ["Garantía", p.warranty],
+                ] as Array<[string, string]>
+              )
+                .filter(([, value]) => value)
+                .map(([label, value]) => (
+                  <div key={label}><dt>{label}</dt><dd>{value}</dd></div>
+                ))}
+            </dl>
+          )}
           {p.book && (
             <dl className="live-book-meta">
               {[

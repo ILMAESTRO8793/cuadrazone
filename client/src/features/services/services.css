@@ -1,0 +1,24 @@
+/* ── Servicios ── */
+.svc-input, .svc-request input, .svc-request select, .svc-request textarea { min-height: 42px; padding: 0 12px; border: 1px solid #9AA8A5; border-radius: 10px; font: inherit; background: #fff; color: #0B1F3B; }
+.svc-request textarea { padding: 10px 12px; min-height: 110px; resize: vertical; }
+.svc-editor { display: flex; flex-direction: column; gap: 14px; }
+.svc-requests { margin-top: 28px; }
+.svc-requests h2 { font-size: 22px; color: #0B1F3B; }
+.svc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 18px; }
+.svc-card { display: flex; flex-direction: column; overflow: hidden; border-radius: 18px; background: #fff; border: 1px solid #DCE3E1; text-decoration: none; color: #0B1F3B; transition: transform .15s ease, box-shadow .15s ease; }
+.svc-card:hover, .svc-card:focus-visible { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(11, 31, 59, .14); }
+.svc-card-photo { position: relative; aspect-ratio: 16 / 10; background: #E7ECEA; }
+.svc-card-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.svc-card-body { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px 16px; }
+.svc-card-body h3 { margin: 0; font-size: 17px; line-height: 1.3; }
+.svc-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.svc-tags span { padding: 4px 10px; border-radius: 999px; background: #EEF2F1; font-size: 12.5px; font-weight: 600; }
+.svc-store { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 0; font-size: 13.5px; color: #4A5568; }
+.svc-store svg { flex: 0 0 auto; }
+.svc-request { display: flex; flex-direction: column; gap: 10px; }
+.svc-request label { display: flex; flex-direction: column; gap: 6px; font-weight: 600; font-size: 14px; color: #0B1F3B; }
+.job-applicant { display: flex !important; flex-direction: column; gap: 10px; }
+.job-applicant-head { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center; }
+.job-applicant-head > div { display: flex; flex-direction: column; gap: 3px; }
+.job-applicant-head select { min-height: 40px; padding: 0 10px; border: 1px solid #9AA8A5; border-radius: 10px; font: inherit; }
+.job-message { margin: 0; padding: 10px 12px; border-left: 3px solid #B58C3C; background: #FFF8EC; border-radius: 8px; font-style: italic; }

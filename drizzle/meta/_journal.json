@@ -127,6 +127,13 @@
       "when": 1793634917090,
       "tag": "0017_empleos",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "5",
+      "when": 1793809923088,
+      "tag": "0018_comercio_servicios",
+      "breakpoints": true
     }
   ]
 }

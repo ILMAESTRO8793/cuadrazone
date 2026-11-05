@@ -1,7 +1,8 @@
 import { activeCountryCodes } from "./countries";
 import type { PlanSelectionSnapshot } from "./pricing";
 import { z } from "zod";
-import { businessSelectionsInput, type BusinessSelection } from "@shared/businessCategories";
+import { businessSelectionsOptional, type BusinessSelection } from "@shared/businessCategories";
+import { catalogCategories, storeKinds, type StoreKind } from "./marketplace";
 
 export const applicationStatuses = ["draft", "pending", "approved", "rejected"] as const;
 export type ApplicationStatus = typeof applicationStatuses[number];
@@ -13,7 +14,12 @@ export const profileInput = z.object({
 export const applicationInput = z.object({
   businessType: z.enum(["individual", "company"]),
   businessName: z.string().trim().max(160).default(""),
-  businessCategories: businessSelectionsInput,
+  /** Qué vende la tienda: cosas tangibles (comercio) o servicios. Solo uno. */
+  storeKind: z.enum(storeKinds),
+  /** Servicios: categorías de servicio. Comercio: queda vacío. */
+  businessCategories: businessSelectionsOptional.default([]),
+  /** Comercio: categorías de productos. Servicios: queda vacío. */
+  productCategories: z.array(z.enum(catalogCategories)).max(8).default([]),
   identificationType: z.enum(["cedula", "residencia"]),
   identificationNumber: z.string().trim().min(4).max(40),
   documentExpiry: z.string().regex(/^$|^\d{4}-\d{2}-\d{2}$/).default(""),
@@ -92,3 +98,15 @@ export function splitApplicationSave(input: z.infer<typeof saveApplicationInput>
 /** Mensaje que ve el solicitante después de enviar su solicitud. */
 export const REVIEW_RESPONSE_MESSAGE =
   "¡Gracias! Recibimos tu solicitud. En un plazo de 1 a 3 días te daremos respuesta para confirmarte si fue aprobada o rechazada. Te avisaremos por correo y también puedes ver el estado en Mi tienda.";
+
+/** Cada tipo de tienda usa sus propias categorías y no las del otro. */
+export function storeKindError(input: { storeKind: StoreKind; businessCategories: readonly unknown[]; productCategories: readonly unknown[] }): string | null {
+  if (input.storeKind === "comercio") {
+    if (!input.productCategories.length) return "Escoge al menos una categoría de productos";
+    if (input.businessCategories.length) return "Una tienda de comercio no lleva categorías de servicios";
+  } else {
+    if (!input.businessCategories.length) return "Escoge al menos una categoría de servicios";
+    if (input.productCategories.length) return "Una tienda de servicios no lleva categorías de productos";
+  }
+  return null;
+}

@@ -123,7 +123,7 @@ describe("clasificación y directorio de negocios", () => {
       })
     ).toThrow(/pertenece/);
   });
-  it("consulta categorías/especialidades con SQL parametrizado y las seis guardas de tienda activa", () => {
+  it("consulta categorías/especialidades con SQL parametrizado y las guardas de tienda activa (sin exigir celular verificado)", () => {
     const dialect = new MySqlDialect();
     const compiled = dialect.sqlToQuery(
       and(
@@ -139,7 +139,7 @@ describe("clasificación y directorio de negocios", () => {
     );
     expect(compiled.sql).toContain("json_contains");
     expect(compiled.sql).toContain("emailVerifiedAt");
-    expect(compiled.sql).toContain("phoneVerifiedAt");
+    expect(compiled.sql).not.toContain("phoneVerifiedAt");
     expect(compiled.sql).toContain("contactEmail");
     expect(compiled.sql).toContain("contactPhone");
     expect(compiled.params).toContain("approved");

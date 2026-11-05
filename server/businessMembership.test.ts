@@ -12,6 +12,7 @@ import {
 const allFields = {
   businessType: "individual" as const,
   businessName: "Taller de prueba",
+  storeKind: "servicios",
   businessCategories: [
     { categoryId: "tecnologia-y-digital", specialtyIds: ["tecnologia-y-digital-01", "tecnologia-y-digital-02"] },
     { categoryId: "eventos", specialtyIds: [] },

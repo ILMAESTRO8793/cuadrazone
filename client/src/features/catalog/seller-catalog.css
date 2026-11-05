@@ -683,3 +683,11 @@
 .ship-price { display: flex; align-items: center; gap: 6px; font-weight: 600; color: #4A5568; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 @media (max-width: 520px) { .ship-row { grid-template-columns: minmax(0, 1fr) 120px; } }
+
+/* Detalles tangibles y videos del producto */
+.seller-catalog-dims { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.seller-catalog-videos { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin: 8px 0; }
+.seller-catalog-video { display: flex; flex-direction: column; gap: 6px; }
+.seller-catalog-video video { width: 100%; aspect-ratio: 16 / 9; border-radius: 10px; background: #0B1F3B; }
+.re-upload { position: relative; display: inline-flex; align-self: flex-start; padding: 12px 16px; border: 2px dashed #B58C3C; border-radius: 12px; color: #5C430F; font-weight: 700; cursor: pointer; }
+.re-upload input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }

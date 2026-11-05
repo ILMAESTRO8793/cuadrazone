@@ -505,6 +505,18 @@ export const businessSelectionsInput = z
       seen.add(selection.categoryId);
     });
   });
+/** Igual que la anterior pero puede quedar vacía (tiendas de comercio no usan categorías de servicio). */
+export const businessSelectionsOptional = z
+  .array(businessCategorySelection)
+  .max(businessCategories.length)
+  .superRefine((selections, context) => {
+    const seen = new Set<string>();
+    selections.forEach((selection, index) => {
+      if (seen.has(selection.categoryId))
+        context.addIssue({ code: "custom", path: [index, "categoryId"], message: "No repitas una categoría" });
+      seen.add(selection.categoryId);
+    });
+  });
 export type BusinessSelection = z.infer<typeof businessCategorySelection>;
 /** Extrae sólo la clasificación pública: nunca se entrega el resto del expediente. */
 export function readBusinessSelections(details: unknown): BusinessSelection[] {

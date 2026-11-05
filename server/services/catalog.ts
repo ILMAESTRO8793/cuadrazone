@@ -24,6 +24,7 @@ import {
   listPublicInput,
   saveStoreInput,
   readFeeMap,
+  legacyCatalogCategories,
   type BookMetadata,
   type DeliveryMode,
   type ListPublicInput,
@@ -169,8 +170,8 @@ async function sellerReadiness(tx: any, userId: number) {
   const profile = profileRows[0] as MembershipProfile | undefined;
   const application = appRows[0] as Application | undefined;
   const contactsVerified = Boolean(
+    // Desde el 3/11/2026 basta el correo verificado; el celular es solo de contacto.
     profile?.emailVerifiedAt &&
-      profile.phoneVerifiedAt &&
       application &&
       application.contactEmail === profile.email &&
       application.contactPhone === profile.phone
@@ -297,6 +298,14 @@ function productDto(
     category: row.category,
     priceCents: row.priceCents,
     images,
+    videos: jsonArray<string>(row.videos, []),
+    condition: (row.condition ?? "nuevo") as PublicProduct["condition"],
+    brand: row.brand ?? "",
+    weightGrams: row.weightGrams ?? null,
+    lengthCm: row.lengthCm ?? null,
+    widthCm: row.widthCm ?? null,
+    heightCm: row.heightCm ?? null,
+    warranty: row.warranty ?? "",
     deliveryModes: modes,
     book,
     variants: variants.filter(v => v.active === 1).map(publicVariant),
@@ -362,8 +371,8 @@ async function joinedStore(tx: any, storeId: number, includeInactive = false) {
           : [
               eq(czApplications.status, "approved"),
               eq(czApplications.subscriptionStatus, "active"),
+              eq(czStores.storeKind, "comercio"),
               isNotNull(czMembershipProfiles.emailVerifiedAt),
-              isNotNull(czMembershipProfiles.phoneVerifiedAt),
               eq(czApplications.contactEmail, czMembershipProfiles.email),
               eq(czApplications.contactPhone, czMembershipProfiles.phone),
             ])
@@ -420,8 +429,8 @@ async function publicProductBySlug(
         eq(czProducts.status, "published"),
         eq(czApplications.status, "approved"),
         eq(czApplications.subscriptionStatus, "active"),
+        eq(czStores.storeKind, "comercio"),
         isNotNull(czMembershipProfiles.emailVerifiedAt),
-        isNotNull(czMembershipProfiles.phoneVerifiedAt),
         eq(czApplications.contactEmail, czMembershipProfiles.email),
         eq(czApplications.contactPhone, czMembershipProfiles.phone)
       )
@@ -455,8 +464,8 @@ export async function listPublicProducts(
     eq(czProducts.status, "published"),
     eq(czApplications.status, "approved"),
     eq(czApplications.subscriptionStatus, "active"),
+    eq(czStores.storeKind, "comercio"),
     isNotNull(czMembershipProfiles.emailVerifiedAt),
-    isNotNull(czMembershipProfiles.phoneVerifiedAt),
     eq(czApplications.contactEmail, czMembershipProfiles.email),
     eq(czApplications.contactPhone, czMembershipProfiles.phone),
   ];
@@ -509,8 +518,8 @@ export async function listPublicProducts(
           eq(czProducts.status, "published"),
           eq(czApplications.status, "approved"),
           eq(czApplications.subscriptionStatus, "active"),
+          eq(czStores.storeKind, "comercio"),
           isNotNull(czMembershipProfiles.emailVerifiedAt),
-          isNotNull(czMembershipProfiles.phoneVerifiedAt),
           eq(czApplications.contactEmail, czMembershipProfiles.email),
           eq(czApplications.contactPhone, czMembershipProfiles.phone)
         )
@@ -639,8 +648,8 @@ export async function getPublicStore(
         eq(czStores.slug, slug),
         eq(czApplications.status, "approved"),
         eq(czApplications.subscriptionStatus, "active"),
+        eq(czStores.storeKind, "comercio"),
         isNotNull(czMembershipProfiles.emailVerifiedAt),
-        isNotNull(czMembershipProfiles.phoneVerifiedAt),
         eq(czApplications.contactEmail, czMembershipProfiles.email),
         eq(czApplications.contactPhone, czMembershipProfiles.phone)
       )
@@ -671,8 +680,8 @@ export async function getPublicStore(
         eq(czProducts.status, "published"),
         eq(czApplications.status, "approved"),
         eq(czApplications.subscriptionStatus, "active"),
+        eq(czStores.storeKind, "comercio"),
         isNotNull(czMembershipProfiles.emailVerifiedAt),
-        isNotNull(czMembershipProfiles.phoneVerifiedAt),
         eq(czApplications.contactEmail, czMembershipProfiles.email),
         eq(czApplications.contactPhone, czMembershipProfiles.phone)
       )
@@ -723,8 +732,8 @@ export async function suggest(q: string): Promise<string[]> {
         eq(czProducts.status, "published"),
         eq(czApplications.status, "approved"),
         eq(czApplications.subscriptionStatus, "active"),
+        eq(czStores.storeKind, "comercio"),
         isNotNull(czMembershipProfiles.emailVerifiedAt),
-        isNotNull(czMembershipProfiles.phoneVerifiedAt),
         eq(czApplications.contactEmail, czMembershipProfiles.email),
         eq(czApplications.contactPhone, czMembershipProfiles.phone),
         or(
@@ -848,6 +857,12 @@ export async function saveStore(userId: number, input: SaveStoreInput) {
       "PRECONDITION_FAILED",
       "Crea una solicitud de vendedor antes de crear la tienda"
     );
+  // Una tienda de servicios no tiene envíos: se guardan vacíos aunque lleguen datos.
+  const storeKind = readiness.application.storeKind === "servicios" ? "servicios" : "comercio";
+  const values =
+    storeKind === "servicios"
+      ? { ...parsed, storeKind, shippingFeesByProvince: null, deliveryProvinces: [], shippingFeeCents: null, homeFeeCents: null }
+      : { ...parsed, storeKind };
   return db.transaction(async (tx: any) => {
     const existingRows = await tx
       .select()
@@ -860,7 +875,7 @@ export async function saveStore(userId: number, input: SaveStoreInput) {
       const result = await tx.insert(czStores).values({
         userId,
         slug: `${base}-${crypto.randomUUID().slice(0, 8)}`,
-        ...parsed,
+        ...values,
       });
       const id = insertId(result);
       const fresh = await storeFor(tx, id);
@@ -889,7 +904,7 @@ export async function saveStore(userId: number, input: SaveStoreInput) {
     }
     const update = await tx
       .update(czStores)
-      .set(parsed)
+      .set(values)
       .where(and(eq(czStores.id, existing.id), eq(czStores.userId, userId)));
     if (!updateChanged(update))
       throw new CatalogError(
@@ -1110,6 +1125,11 @@ export async function saveProduct(
         "PRECONDITION_FAILED",
         "Debes tener perfil y solicitud de vendedor para guardar publicaciones"
       );
+    // Los productos (cosas tangibles) son solo para tiendas de comercio.
+    if (readiness.application.storeKind === "servicios")
+      throw new CatalogError("PRECONDITION_FAILED", "Tu tienda es de servicios: publica servicios, no productos");
+    if (![...catalogCategories, ...legacyCatalogCategories].includes(input.category as never))
+      throw new CatalogError("BAD_REQUEST", "Escoge una categoría de productos de la lista");
     let productId: number;
     let existing: Product | undefined;
     if (input.id !== undefined) {
@@ -1154,6 +1174,14 @@ export async function saveProduct(
           bookMetadata: input.book ? bookInput.parse(input.book) : null,
           imageUrls: input.images,
           deliveryModes: input.deliveryModes,
+          condition: input.condition ?? "nuevo",
+          brand: (input.brand ?? "").trim(),
+          weightGrams: input.weightGrams ?? null,
+          lengthCm: input.lengthCm ?? null,
+          widthCm: input.widthCm ?? null,
+          heightCm: input.heightCm ?? null,
+          warranty: (input.warranty ?? "").trim(),
+          videos: (input.videos ?? []).filter(url => url.startsWith(`/media/catalog/products/${productId}/videos/`)),
           revision: nextRevision,
         })
         .where(
@@ -1192,6 +1220,14 @@ export async function saveProduct(
         description: input.description,
         category: input.category,
         priceCents: input.priceCents,
+        condition: input.condition ?? "nuevo",
+        brand: (input.brand ?? "").trim(),
+        weightGrams: input.weightGrams ?? null,
+        lengthCm: input.lengthCm ?? null,
+        widthCm: input.widthCm ?? null,
+        heightCm: input.heightCm ?? null,
+        warranty: (input.warranty ?? "").trim(),
+        videos: [],
         status: "draft",
         revision: 1,
         bookMetadata: input.book ? bookInput.parse(input.book) : null,
@@ -1404,4 +1440,10 @@ export async function homeCollections() {
     bestSellers: bestSellers.items,
     books: books.items,
   };
+}
+
+/** Cantidad de productos de una tienda (para permitir cambiar su tipo solo si está vacía). */
+export async function countStoreProducts(db: any, storeId: number): Promise<number> {
+  const rows = await db.select({ n: sql<number>`count(*)` }).from(czProducts).where(eq(czProducts.storeId, storeId));
+  return Number(rows[0]?.n ?? 0);
 }

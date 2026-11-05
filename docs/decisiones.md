@@ -250,3 +250,12 @@ Decisiones del propietario: publicar en Bienes raíces, Autos y Empleos es pagad
 - `ADMIN_EMAILS` tolera comillas, espacios, mayúsculas y separadores con coma, punto y coma o espacio.
 - El trabajo de «varias tiendas por cuenta» quedó guardado aparte (git stash) para retomarlo.
 - 3/11/2026: el administrador va directo a /admin al entrar (si no tenía página pendiente), ve un enlace «Administración» en el menú y un aviso en Mi cuenta. El perfil nuevo se precarga con el nombre, correo y celular de la cuenta. El saludo del encabezado usa el nombre de la persona.
+
+## Comercio y Servicios separados por completo — 4 de noviembre de 2026
+
+Decisión del propietario: cada tienda vende cosas tangibles (comercio) o servicios, nunca los dos; se elige al abrir la tienda.
+
+- **Tipo de tienda** (`cz_membership_applications.storeKind` y copia en `cz_stores.storeKind`, migración 0018; las existentes quedan «comercio»). La solicitud obliga a elegir: Comercio usa categorías de productos (`catalogCategories`, sin «Servicios»); Servicios usa las 11 categorías de servicio. Se puede cambiar el tipo solo mientras la tienda no tenga publicaciones.
+- **Comercio:** productos con datos tangibles (condición nuevo/usado/reacondicionado, marca, peso, medidas, garantía), inventario, envíos por provincia y hasta 3 videos por producto (MP4/WEBM/MOV, 40 MB, se verifica la firma del archivo; `/api/catalog/products/:id/videos`). El catálogo público de Comercios solo muestra tiendas de comercio.
+- **Servicios:** `cz_services` (tipo: clase, curso, a domicilio, consulta, eventos, otro; precio fijo, por hora, desde o a cotizar; duración; modalidad a domicilio/en local/en línea; provincias de cobertura; horario; hasta 8 fotos). Sin envíos, inventario, carrito, pedidos ni comisión. Solicitudes (`cz_service_requests`) con correo al proveedor y estados nueva/contactada/cerrada; límite de 3 por día por persona y servicio. Páginas públicas reales `/servicios` y `/servicio/:slug` (reemplazan el catálogo de ejemplo).
+- **Celular:** el catálogo y el directorio ya no exigen celular verificado para mostrar tiendas (coherente con el registro solo con correo del 3/11).

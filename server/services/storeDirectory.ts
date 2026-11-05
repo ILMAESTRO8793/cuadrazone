@@ -32,7 +32,6 @@ function activeDirectoryConditions() {
     eq(czApplications.status, "approved"),
     eq(czApplications.subscriptionStatus, "active"),
     isNotNull(czMembershipProfiles.emailVerifiedAt),
-    isNotNull(czMembershipProfiles.phoneVerifiedAt),
     eq(czApplications.contactEmail, czMembershipProfiles.email),
     eq(czApplications.contactPhone, czMembershipProfiles.phone),
   ];

@@ -3,6 +3,11 @@ import { z } from "zod";
 export const productKinds = ["product", "book"] as const;
 export const productStatuses = ["draft", "published", "archived"] as const;
 export const deliveryModes = ["shipping", "pickup", "home"] as const;
+export const productConditions = ["nuevo", "usado", "reacondicionado"] as const;
+export type ProductCondition = (typeof productConditions)[number];
+export const productConditionLabels: Record<ProductCondition, string> = { nuevo: "Nuevo", usado: "Usado", reacondicionado: "Reacondicionado" };
+export const MAX_PRODUCT_VIDEOS = 3;
+export const MAX_PRODUCT_VIDEO_BYTES = 40 * 1024 * 1024;
 export const catalogSorts = [
   "newest",
   "price_asc",
@@ -115,6 +120,16 @@ export const saveProductInput = z
     kind: z.enum(productKinds),
     priceCents: z.number().int().min(0).max(2_147_483_647),
     images: z.array(catalogImageRef).max(12),
+    /** Videos del producto (mp4, webm o mov), subidos a la tienda. */
+    videos: z.array(z.string().max(500).regex(/^\/media\/catalog\/products\/\d+\/videos\/[A-Za-z0-9._-]+$/)).max(MAX_PRODUCT_VIDEOS).default([]),
+    /** Datos de cosas tangibles. */
+    condition: z.enum(productConditions).default("nuevo"),
+    brand: z.string().trim().max(80).default(""),
+    weightGrams: z.number().int().min(1).max(1_000_000).nullable().default(null),
+    lengthCm: z.number().int().min(1).max(10_000).nullable().default(null),
+    widthCm: z.number().int().min(1).max(10_000).nullable().default(null),
+    heightCm: z.number().int().min(1).max(10_000).nullable().default(null),
+    warranty: z.string().trim().max(200).default(""),
     deliveryModes: z.array(z.enum(deliveryModes)).min(1).max(3),
     variants: z.array(variantInput).max(100),
     book: bookInput.optional(),
@@ -287,6 +302,14 @@ export type PublicProduct = {
   category: string;
   priceCents: number;
   images: string[];
+  videos: string[];
+  condition: ProductCondition;
+  brand: string;
+  weightGrams: number | null;
+  lengthCm: number | null;
+  widthCm: number | null;
+  heightCm: number | null;
+  warranty: string;
   deliveryModes: DeliveryMode[];
   book: BookMetadata | null;
   variants: PublicVariant[];
@@ -303,24 +326,44 @@ export type OwnerProduct = Omit<PublicProduct, "store"> & {
   status: ProductStatus;
 };
 
+/**
+ * Una tienda vende cosas tangibles (comercio) o servicios, nunca las dos.
+ * Comercio: productos con fotos y videos, inventario y envíos.
+ * Servicios: sin envíos ni inventario; se solicitan y se coordinan con el proveedor.
+ */
+export const storeKinds = ["comercio", "servicios"] as const;
+export type StoreKind = (typeof storeKinds)[number];
+export const storeKindLabels: Record<StoreKind, string> = { comercio: "Comercio", servicios: "Servicios" };
+
+/** Categorías de productos físicos (solo tiendas de comercio). */
 export const catalogCategories = [
-  "Hogar",
-  "Ropa",
-  "Tecnología",
-  "Alimentos",
-  "Belleza",
+  "Hogar y cocina",
+  "Ropa y calzado",
+  "Tecnología y accesorios",
+  "Alimentos y repostería",
+  "Belleza y cuidado personal",
   "Artesanías",
-  "Papelería",
-  "Música",
-  "Accesorios",
+  "Papelería y útiles escolares",
+  "Instrumentos y música",
+  "Accesorios y joyería",
   "Salud y bienestar",
-  "Educación",
+  "Bebés y niños",
+  "Juguetes",
+  "Deportes",
+  "Ferretería y herramientas",
+  "Autos y repuestos",
+  "Mascotas",
   "Libros cristianos",
   "Devocionales",
   "Biblias",
-  "Regalos",
-  "Servicios",
+  "Regalos y recuerdos",
+  "Arte y decoración",
 ] as const;
+
+/** Categorías de antes, para que los productos ya publicados sigan siendo válidos. */
+export const legacyCatalogCategories = ["Hogar", "Ropa", "Tecnología", "Alimentos", "Belleza", "Papelería", "Música", "Accesorios", "Educación", "Regalos"] as const;
+
+
 
 export const publicProductDtoFields = [
   "id",

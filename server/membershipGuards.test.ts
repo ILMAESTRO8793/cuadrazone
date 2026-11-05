@@ -70,7 +70,7 @@ describe("CuadraZone membership guards", () => {
 
   it("guarda una solicitud del formulario real sin rechazar los campos de control", () => {
     const fromClient = saveApplicationInput.parse({
-      businessType: "individual", businessName: "", businessCategories: [{ categoryId: "viajes-y-turismo", specialtyIds: [] }],
+      storeKind: "servicios", businessType: "individual", businessName: "", businessCategories: [{ categoryId: "viajes-y-turismo", specialtyIds: [] }],
       identificationType: "cedula", identificationNumber: "8-888-8888", documentExpiry: "", province: "Panamá", city: "Chilibre",
       denominationId: 1, churchName: "Iglesia Central", pastorName: "Pastor Prueba",
       legalGivenNames: "Salem Jean", legalSurnames: "Pierre Dupont",
@@ -85,7 +85,7 @@ describe("CuadraZone membership guards", () => {
 
   it("acepta vendedores sin iglesia ni pastor; si los indican, con nombre completo", () => {
     const base = {
-      businessType: "individual", businessName: "", businessCategories: [{ categoryId: "viajes-y-turismo", specialtyIds: [] }],
+      storeKind: "servicios", businessType: "individual", businessName: "", businessCategories: [{ categoryId: "viajes-y-turismo", specialtyIds: [] }],
       identificationType: "cedula", identificationNumber: "8-888-8888", documentExpiry: "", province: "Panamá", city: "Chilibre",
       residenceConfirmed: true, conductAccepted: true, privacyAccepted: true,
       legalGivenNames: "Salem", legalSurnames: "Pierre",
