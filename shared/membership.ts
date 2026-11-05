@@ -50,6 +50,11 @@ export type ApplicationSnapshot = ApplicationInput & {
   id: number; status: ApplicationStatus; revision: number; consentVersion: string; reviewReason: string | null;
   submittedAt: string | null; reviewedAt: string | null; contactEmail: string; contactPhone: string;
   storeStatus: "inactive" | "awaiting_payment" | "active";
+  /** Plan de la tienda: para mostrar la prueba gratis o la fecha de vencimiento. */
+  subscriptionStatus: string;
+  subscriptionPlanId: string | null;
+  subscriptionEndsAt: string | null;
+  trialEndsAt: string | null;
   /** Última verificación automática de documentos; null si falta o quedó desactualizada. */
   autoChecks: AutoChecksSnapshot | null;
 };
@@ -87,7 +92,7 @@ export const saveApplicationInput = applicationInput.extend({
   revision: z.number().int().positive().optional(),
   consentVersion: z.literal(CONSENT_VERSION),
 }).strict();
-export const statusLabels: Record<ApplicationStatus, string> = { draft: "Borrador", pending: "Pendiente de revisión", approved: "Aprobado · pago pendiente", rejected: "Rechazado · requiere correcciones" };
+export const statusLabels: Record<ApplicationStatus, string> = { draft: "Borrador", pending: "Pendiente de revisión", approved: "Aprobado", rejected: "Rechazado · requiere correcciones" };
 
 /** Separa los campos de control (revision, consentVersion) de la solicitud que se valida. */
 export function splitApplicationSave(input: z.infer<typeof saveApplicationInput>) {
@@ -109,4 +114,45 @@ export function storeKindError(input: { storeKind: StoreKind; businessCategories
     if (input.productCategories.length) return "Una tienda de servicios no lleva categorías de productos";
   }
   return null;
+}
+
+const fechaLarga = (iso: string) =>
+  new Date(iso).toLocaleDateString("es-PA", { timeZone: "America/Panama", day: "numeric", month: "long", year: "numeric" });
+
+/**
+ * Estado del vendedor para mostrar, según la solicitud y su plan:
+ * en prueba gratis muestra cuándo vence; pagado y activo, hasta cuándo; solo
+ * cuando venció la prueba o el plan dice que falta el pago.
+ */
+export function sellerStatus(
+  app: Pick<ApplicationSnapshot, "status" | "storeStatus" | "subscriptionStatus" | "trialEndsAt" | "subscriptionEndsAt">,
+  now: Date = new Date()
+): { label: string; notice: string; inTrial: boolean; active: boolean } {
+  if (app.status !== "approved") return { label: statusLabels[app.status], notice: "", inTrial: false, active: false };
+  const active = app.storeStatus === "active";
+  const inTrial = active && Boolean(app.trialEndsAt) && new Date(app.trialEndsAt!) > now;
+  if (inTrial) {
+    const fecha = fechaLarga(app.trialEndsAt!);
+    return {
+      label: `Aprobado · prueba gratis hasta el ${fecha}`,
+      notice: `Tu tienda está activa. Tu período de 3 meses gratis vence el ${fecha}. Antes de esa fecha te avisaremos para que elijas tu plan; no tienes nada pendiente por pagar.`,
+      inTrial: true,
+      active: true,
+    };
+  }
+  if (active) {
+    const fecha = app.subscriptionEndsAt ? fechaLarga(app.subscriptionEndsAt) : null;
+    return {
+      label: fecha ? `Aprobado · tienda activa hasta el ${fecha}` : "Aprobado · tienda activa",
+      notice: fecha ? `Tu tienda está activa. Tu plan vence el ${fecha}.` : "Tu tienda está activa.",
+      inTrial: false,
+      active: true,
+    };
+  }
+  return {
+    label: "Aprobado · pago pendiente",
+    notice: "Tu período gratis o tu plan terminó. Paga tu mensualidad para que tu tienda vuelva a mostrarse.",
+    inTrial: false,
+    active: false,
+  };
 }

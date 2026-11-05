@@ -30,6 +30,7 @@ import {
   type ApplicationSnapshot,
   type DocumentSnapshot,
   storeKindError,
+  sellerStatus,
 } from "@shared/membership";
 
 const emptyApplication: ApplicationInput = {
@@ -386,7 +387,7 @@ function SellerApplicationContent() {
           className={`member-notice member-notice--${app.status === "rejected" ? "warning" : "info"}`}
           role="status"
         >
-          <strong>{statusLabels[app.status]}</strong> · Revisión: versión{" "}
+          <strong>{sellerStatus(app).label}</strong> · Revisión: versión{" "}
           {app.revision}. Consentimiento: {app.consentVersion}.
           {app.status === "pending" && (
             <span> {REVIEW_RESPONSE_MESSAGE} La solicitud queda bloqueada mientras la revisamos.</span>

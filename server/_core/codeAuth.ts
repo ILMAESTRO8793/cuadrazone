@@ -1,3 +1,5 @@
+import { czApplications } from "../../drizzle/schema";
+import { czStores } from "../../drizzle/catalog-schema";
 // Entrada con código por correo o celular, y verificación de contactos del perfil.
 import { COOKIE_NAME, ONE_YEAR_MS, safeReturnPath } from "@shared/const";
 import { createHash } from "node:crypto";
@@ -47,6 +49,31 @@ export function emailOpenId(email: string) {
 /** Al entrar sin una página pendiente, el administrador va directo a su panel. */
 export function landingFor(returnTo: string, isAdmin: boolean) {
   return isAdmin && returnTo === "/" ? "/admin" : returnTo;
+}
+
+/**
+ * A dónde va la persona al entrar, si no venía de una página concreta:
+ * administrador → su panel; vendedor aprobado con tienda activa (también en la
+ * prueba gratis) → agregar productos o servicios (o preparar su tienda si aún
+ * no la creó); los demás → la portada.
+ */
+export async function landingForAccount(returnTo: string, openId: string): Promise<string> {
+  if (returnTo !== "/") return returnTo;
+  const user = await db.getUserByOpenId(openId);
+  if (!user) return returnTo;
+  if (user.role === "admin") return "/admin";
+  const database = await db.getDb();
+  if (!database) return returnTo;
+  const apps = await database
+    .select({ status: czApplications.status, subscriptionStatus: czApplications.subscriptionStatus, endsAt: czApplications.subscriptionEndsAt })
+    .from(czApplications)
+    .where(eq(czApplications.userId, user.id))
+    .limit(1);
+  const app = apps[0];
+  const active = app?.status === "approved" && app.subscriptionStatus === "active" && (!app.endsAt || new Date(app.endsAt) > new Date());
+  if (!active) return returnTo;
+  const stores = await database.select({ id: czStores.id }).from(czStores).where(eq(czStores.userId, user.id)).limit(1);
+  return stores[0] ? "/vendedor/productos" : "/vendedor/tienda";
 }
 
 export function phoneOpenId(phone: string) {
@@ -108,7 +135,7 @@ export function registerCodeAuthRoutes(app: Express) {
     const account = await signInWithContact(channel, destination);
     const token = await sdk.createSessionToken(account.openId, { name: account.name ?? "", expiresInMs: ONE_YEAR_MS });
     res.cookie(COOKIE_NAME, token, { ...getSessionCookieOptions(req), maxAge: ONE_YEAR_MS });
-    return { ok: true, returnTo: landingFor(safeReturnPath(req.body?.returnTo), channel === "email" && ENV.adminEmails.includes(destination)) };
+    return { ok: true, returnTo: await landingForAccount(safeReturnPath(req.body?.returnTo), account.openId) };
   }));
 
   // Verificar el correo o el celular guardados en el perfil (Mi cuenta).

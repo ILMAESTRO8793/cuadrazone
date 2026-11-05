@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from "react";
 import { CheckCircle2, Heart, LoaderCircle, LogOut, Save, ShieldCheck, ShoppingCart, Store, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
-import { statusLabels } from "@shared/membership";
+import { statusLabels, sellerStatus } from "@shared/membership";
 
 type ProfileForm = { displayName: string; email: string; phone: string };
 const emptyForm: ProfileForm = { displayName: "", email: "", phone: "" };
@@ -98,6 +98,7 @@ function AccountContent() {
     );
   }
 
+  const status = application ? sellerStatus(application) : null;
   return (
     <div className="member-page">
       <div className="member-page-heading">
@@ -161,14 +162,24 @@ function AccountContent() {
 
       <section className="member-card">
         <div className="member-card-heading"><div><p className="member-eyebrow">MEMBRESÍA</p><h2>Tu recorrido</h2></div><Store size={22} aria-hidden="true" /></div>
-        {application ? <p className="member-notice member-notice--info">Solicitud: <strong>{statusLabels[application.status]}</strong>{application.status === "approved" ? ` · La activación de tienda requiere pago mensual de vendedor (${sellerPlanLabel(preference?.planId ?? "normal")}/mes), todavía pendiente.` : ""}</p> : <p className="member-muted">Eres comprador gratuito. Puedes explorar CuadraZone sin mensualidad.</p>}
-        <p className="member-muted">{preference ? `Preferencia: ${getSellerPlan(preference.planId).name} · ${sellerPlanLabel(preference.planId)}/mes. No equivale a pago o beneficios activos.` : "No has guardado un plan. Puedes elegir Normal o Mayor Visibilidad sin realizar un cobro."}</p>
+        {application ? (
+          <p className={`member-notice ${status?.inTrial || status?.active ? "member-notice--ok" : "member-notice--info"}`}>
+            Solicitud: <strong>{status!.label}</strong>
+            {status!.notice ? ` · ${status!.notice}` : ""}
+          </p>
+        ) : <p className="member-muted">Eres comprador gratuito. Puedes explorar CuadraZone sin mensualidad.</p>}
+        {!status?.inTrial && <p className="member-muted">{preference ? `Preferencia: ${getSellerPlan(preference.planId).name} · ${sellerPlanLabel(preference.planId)}/mes. No equivale a pago o beneficios activos.` : "No has guardado un plan. Puedes elegir Normal o Mayor Visibilidad sin realizar un cobro."}</p>}
         <div className="member-link-grid">
+          {status?.active && (
+            <Link className="member-link-card member-link-card--primary" href="/vendedor/productos">
+              <Store size={18} /> {application?.storeKind === "servicios" ? "Agregar servicios" : "Agregar productos"} <span>Ir a mi tienda</span>
+            </Link>
+          )}
           <Link className="member-link-card" href="/vendedor/plan"><Store size={18} /> Mi plan <span>Elegir o consultar</span></Link>
           <Link className="member-link-card" href="/favoritos"><Heart size={18} /> Favoritos <span>Prototipo</span></Link>
           <Link className="member-link-card" href="/carrito"><ShoppingCart size={18} /> Carrito <span>Prototipo</span></Link>
           <Link className="member-link-card" href="/solicitud-vendedor"><Store size={18} /> Solicitud de vendedor <span>{application ? "Ver solicitud" : "Comenzar"}</span></Link>
-          <Link className="member-link-card" href="/vendedor"><Store size={18} /> Estado de vendedor <span>{application ? statusLabels[application.status] : "Sin solicitud"}</span></Link>
+          <Link className="member-link-card" href="/vendedor"><Store size={18} /> Estado de vendedor <span>{status ? status.label : "Sin solicitud"}</span></Link>
           {user?.role === "admin" && <Link className="member-link-card" href="/admin"><ShieldCheck size={18} /> Revisión administrativa <span>Panel protegido</span></Link>}
         </div>
       </section>

@@ -1,4 +1,4 @@
-import { landingFor } from "./codeAuth";
+import { landingForAccount } from "./codeAuth";
 import { COOKIE_NAME, ONE_YEAR_MS, OAUTH_STATE_COOKIE, safeReturnPath } from "@shared/const";
 import { parse as parseCookieHeader } from "cookie";
 import { randomBytes, timingSafeEqual } from "node:crypto";
@@ -107,7 +107,7 @@ export function registerOAuthRoutes(app: Express) {
 
       const sessionToken = await sdk.createSessionToken(openId, { name: profile.name ?? "", expiresInMs: ONE_YEAR_MS });
       res.cookie(COOKIE_NAME, sessionToken, { ...getSessionCookieOptions(req), maxAge: ONE_YEAR_MS });
-      res.redirect(302, landingFor(state.returnTo, roleForProfile(profile) === "admin"));
+      res.redirect(302, await landingForAccount(state.returnTo, openId));
     } catch (error) {
       console.error("[Auth] Google callback failed:", error instanceof Error ? error.message : "unknown error");
       loginError(res, "fallo");

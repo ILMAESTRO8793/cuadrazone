@@ -257,6 +257,10 @@ function mapApplication(row: Application): ApplicationSnapshot {
         : row.status === "approved"
           ? "awaiting_payment"
           : "inactive",
+    subscriptionStatus: row.subscriptionStatus,
+    subscriptionPlanId: row.subscriptionPlanId ?? null,
+    subscriptionEndsAt: iso(row.subscriptionEndsAt),
+    trialEndsAt: iso(row.trialEndsAt),
   };
 }
 
