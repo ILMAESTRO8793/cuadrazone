@@ -1,4 +1,5 @@
 import { ServicesPanel } from "@/features/services/ServicesPanel";
+import { DeleteStoreSection } from "./DeleteStoreSection";
 import { AuthGate } from "@/features/membership/AuthGate";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { authFetch } from "@/lib/authFetch";
@@ -1019,6 +1020,8 @@ function SellerCatalogContent({
           </form>
         </section>
       )}
+
+      {activeTab === "store" && hasStore && <DeleteStoreSection />}
 
       {activeTab === "products" && storeKind === "servicios" && <ServicesPanel hasStore={hasStore} />}
 

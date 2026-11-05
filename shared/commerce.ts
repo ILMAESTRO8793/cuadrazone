@@ -115,8 +115,9 @@ export const checkoutInput = z.object({
 });
 
 export const orderItemDto = z.object({
-  productId: positiveId,
-  variantId: positiveId,
+  /** Vacío si el producto se eliminó con su tienda. */
+  productId: positiveId.nullable(),
+  variantId: positiveId.nullable(),
   title: z.string(),
   quantity: z.number().int().positive(),
   unitPriceCents: moneyCents,
@@ -127,7 +128,8 @@ export type OrderItemDTO = z.infer<typeof orderItemDto>;
 export const orderDto = z.object({
   id: positiveId,
   number: z.string(),
-  storeId: positiveId,
+  /** Vacío si el vendedor eliminó su tienda. */
+  storeId: positiveId.nullable(),
   storeName: z.string(),
   status: z.enum(orderStatuses),
   totalCents: moneyCents,
@@ -233,9 +235,11 @@ export function checkoutFingerprint(input: Omit<CheckoutPayload, "province"> & {
 /** Exact replay guard: same checkoutKey is idempotent only for the same stores and payload. */
 export function sameCheckoutPayload(input: CheckoutPayload & { deliveries: ReadonlyArray<DeliveryChoice> }, previous: ReadonlyArray<ExistingCheckoutOrder>): boolean {
   const modes = new Map(input.deliveries.map(delivery => [delivery.storeId, delivery.mode]));
-  const stores = [...new Set(previous.map(order => order.storeId))].sort((a, b) => a - b);
+  // Un pedido de una tienda ya eliminada nunca coincide con una compra nueva.
+  if (previous.some(order => order.storeId == null)) return false;
+  const stores = [...new Set(previous.map(order => order.storeId as number))].sort((a, b) => a - b);
   const requested = [...modes.keys()].sort((a, b) => a - b);
-  return stores.length === requested.length && stores.every((storeId, i) => storeId === requested[i]) && previous.every(order => checkoutFingerprint(input, modes.get(order.storeId)!) === checkoutFingerprint(order, order.deliveryMode));
+  return stores.length === requested.length && stores.every((storeId, i) => storeId === requested[i]) && previous.every(order => checkoutFingerprint(input, modes.get(order.storeId as number)!) === checkoutFingerprint(order, order.deliveryMode));
 }
 
 export function stableVariantOrder(ids: ReadonlyArray<number>): number[] {

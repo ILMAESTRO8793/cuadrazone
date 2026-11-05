@@ -4,7 +4,7 @@
 // Los documentos privados (cédulas, cartas pastorales) NO pasan por aquí: viven
 // en la base de datos y solo se sirven tras autorización (privateDocuments.ts).
 import express, { type Express } from "express";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { ENV } from "./_core/env";
 
@@ -39,6 +39,12 @@ export async function storagePut(
   // "wx": nunca sobrescribe; las claves llevan un UUID aleatorio.
   await writeFile(full, data, { flag: "wx" });
   return { key, url: `${MEDIA_PREFIX}${key}` };
+}
+
+/** Borra para siempre una carpeta o archivo dentro del almacenamiento (p. ej. «catalog/products/12»). */
+export async function storageRemove(relKey: string): Promise<void> {
+  const full = resolveKey(relKey.replace(/^\/+|\/+$/g, ""));
+  await rm(full, { recursive: true, force: true });
 }
 
 export function storageUrl(key: string) {

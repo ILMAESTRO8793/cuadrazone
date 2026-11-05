@@ -264,3 +264,12 @@ Decisión del propietario: cada tienda vende cosas tangibles (comercio) o servic
 
 - El estado «Aprobado · pago pendiente» era un texto fijo para cualquier solicitud aprobada, aun en la prueba gratis. Ahora `sellerStatus` decide: en prueba → «Aprobado · prueba gratis hasta el …» y aviso de que no hay nada pendiente; pagado → «tienda activa hasta el …»; solo vencido → «pago pendiente». La solicitud expone `subscriptionStatus`, `subscriptionPlanId`, `subscriptionEndsAt` y `trialEndsAt`.
 - Al entrar (código por correo o Google) sin página pendiente: administrador → /admin; vendedor aprobado con tienda activa (incluida la prueba) → /vendedor/productos (agregar productos o servicios según su tipo), o /vendedor/tienda si aún no creó la tienda; los demás → portada. Acceso directo «Agregar productos/servicios» en Mi cuenta.
+
+## Eliminar la tienda por completo — 5 de noviembre de 2026
+
+Decisiones del propietario: las ventas pasadas y los pagos se conservan sin datos del vendedor; no se puede eliminar con pedidos en curso o comisiones sin pagar; solo se borra la tienda (bienes raíces, autos y empleos se quedan en la cuenta).
+
+- «Zona de peligro» en Mi tienda: muestra qué se borra y qué se conserva; exige escribir el nombre exacto de la tienda y marcar que es permanente. Rutas `services.deletionCheck` y `services.deleteStore`.
+- Se borra para siempre: tienda, productos, variantes, fotos y videos (también del disco), servicios y sus solicitudes, reseñas, preguntas, favoritos, carritos, conversaciones y mensajes del vendedor, la solicitud de vendedor, sus documentos (cédula, Yappy), su historial y el plan elegido. Correo de confirmación.
+- Se conserva: los pedidos pasados como «Tienda eliminada» (migración 0019: `cz_orders.storeId` y `cz_order_items.productId/variantId` pasan a admitir vacío, `cz_orders.storeName`), con título y precio; solo los ve el comprador. Los pagos de mensualidades y comisiones quedan como registro contable. La cuenta sigue y puede abrir una tienda nueva desde cero.
+- Arreglo encontrado en las pruebas: las solicitudes de comercio exigían categorías de servicio (validación vieja); ahora cada tipo valida sus propias categorías.

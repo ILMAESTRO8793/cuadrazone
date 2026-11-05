@@ -63,3 +63,23 @@ describe("productos tangibles y videos", () => {
     expect(() => validateVideoBytes(webm, "video/mp4")).toThrow();
   });
 });
+
+import { validateBusinessRules } from "./services/membership";
+import { applicationInput } from "../shared/membership";
+describe("solicitud según el tipo de tienda", () => {
+  const base = {
+    businessType: "individual", businessName: "", identificationType: "cedula", identificationNumber: "8-888-1234", documentExpiry: "",
+    province: "Panamá", city: "Chilibre", legalGivenNames: "Luis", legalSurnames: "Pérez", country: "PA", residenceConfirmed: true,
+    faithAccepted: true, conductAccepted: true, privacyAccepted: true,
+  };
+  it("comercio se acepta solo con categorías de productos", () => {
+    const comercio = applicationInput.parse({ ...base, storeKind: "comercio", productCategories: ["Artesanías"], businessCategories: [] });
+    expect(() => validateBusinessRules(comercio)).not.toThrow();
+  });
+  it("servicios se acepta solo con categorías de servicio", () => {
+    const servicios = applicationInput.parse({ ...base, storeKind: "servicios", businessCategories: [{ categoryId: "hogar-y-construccion", specialtyIds: [] }] });
+    expect(() => validateBusinessRules(servicios)).not.toThrow();
+    const sinCategorias = applicationInput.parse({ ...base, storeKind: "servicios", businessCategories: [] });
+    expect(() => validateBusinessRules(sinCategorias)).toThrow();
+  });
+});

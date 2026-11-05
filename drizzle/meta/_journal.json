@@ -134,6 +134,13 @@
       "when": 1793809923088,
       "tag": "0018_comercio_servicios",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "5",
+      "when": 1793915608620,
+      "tag": "0019_eliminar_tienda",
+      "breakpoints": true
     }
   ]
 }

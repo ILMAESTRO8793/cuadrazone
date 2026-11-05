@@ -231,18 +231,19 @@ export async function toggleFavorite(userId: number, productId: number): Promise
 }
 
 async function orderDto(tx: Db | Tx, orderId: number, viewerId: number): Promise<OrderDTO> {
-  const row = (await tx.select({ order: czOrders, store: czStores }).from(czOrders).innerJoin(czStores, eq(czOrders.storeId, czStores.id)).where(eq(czOrders.id, orderId)).limit(1))[0];
+  // Si el vendedor eliminó su tienda, el pedido queda solo para el comprador y sin datos del vendedor.
+  const row = (await tx.select({ order: czOrders, store: czStores }).from(czOrders).leftJoin(czStores, eq(czOrders.storeId, czStores.id)).where(eq(czOrders.id, orderId)).limit(1))[0];
   if (!row) fail("NOT_FOUND", "El pedido no existe");
-  if (row.order.userId !== viewerId && row.store.userId !== viewerId) fail("FORBIDDEN", "No autorizado para este pedido");
+  if (row.order.userId !== viewerId && row.store?.userId !== viewerId) fail("FORBIDDEN", "No autorizado para este pedido");
   const items = await tx.select().from(czOrderItems).where(eq(czOrderItems.orderId, orderId)).orderBy(asc(czOrderItems.id));
-  return { id: row.order.id, number: row.order.number, storeId: row.order.storeId, storeName: row.store.name, status: row.order.status as OrderStatus,
+  return { id: row.order.id, number: row.order.number, storeId: row.order.storeId, storeName: row.store?.name ?? (row.order.storeName || "Tienda eliminada"), status: row.order.status as OrderStatus,
     totalCents: row.order.totalCents, deliveryFeeCents: row.order.deliveryFeeCents, paymentMethod: row.order.paymentMethod as PaymentMethod, paymentStatus: row.order.paymentStatus,
     createdAt: row.order.createdAt, recipientName: row.order.recipientName, phone: row.order.phone, province: row.order.province, city: row.order.city, address: row.order.address,
     deliveryMode: row.order.deliveryMode, items: items.map(i => ({ productId: i.productId, variantId: i.variantId, title: i.title, quantity: i.quantity, unitPriceCents: i.unitPriceCents, size: i.size, color: i.color })),
     viewerRole: row.order.userId === viewerId ? "buyer" : "seller",
-    sellerYappy: row.order.paymentMethod === "yappy" ? { phone: row.store.yappyPhone ?? null, directory: row.store.yappyDirectory ?? null } : null,
+    sellerYappy: row.order.paymentMethod === "yappy" && row.store ? { phone: row.store.yappyPhone ?? null, directory: row.store.yappyDirectory ?? null } : null,
     // Solo se entrega si sigue siendo un link permitido, por si la lista de plataformas cambió.
-    sellerCardLink: row.order.paymentMethod === "card_link" && row.store.cardPaymentUrl && isAllowedCardLink(row.store.cardPaymentUrl) ? row.store.cardPaymentUrl : null };
+    sellerCardLink: row.order.paymentMethod === "card_link" && row.store?.cardPaymentUrl && isAllowedCardLink(row.store.cardPaymentUrl) ? row.store.cardPaymentUrl : null };
 }
 
 export async function checkout(userId: number, input: { checkoutKey: string; expectedTotalCents: number; recipientName: string; phone: string; province: string; city: string; address: string; deliveries: Array<{ storeId: number; mode: DeliveryMode }>; paymentMethod: PaymentMethod }): Promise<{ orders: OrderDTO[] }> {
@@ -372,7 +373,7 @@ export async function listOrders(userId: number, status: string, seller = false,
     : await db.select({ id: czOrders.id }).from(czOrders).where(and(eq(czOrders.userId, userId), status === "all" ? undefined : eq(czOrders.status, status as never))).orderBy(desc(czOrders.createdAt), desc(czOrders.id)).limit(boundedLimit);
   return Promise.all(rows.map(r => orderDto(db, r.id, userId)));
 }
-export async function getOrder(userId: number, id: number): Promise<OrderDTO> { const db = await database(); const row = (await db.select({ order: czOrders, store: czStores }).from(czOrders).innerJoin(czStores, eq(czOrders.storeId, czStores.id)).where(eq(czOrders.id, id)).limit(1))[0]; if (!row) fail("NOT_FOUND", "El pedido no existe"); return orderDto(db, id, userId); }
+export async function getOrder(userId: number, id: number): Promise<OrderDTO> { const db = await database(); const row = (await db.select({ id: czOrders.id }).from(czOrders).where(eq(czOrders.id, id)).limit(1))[0]; if (!row) fail("NOT_FOUND", "El pedido no existe"); return orderDto(db, id, userId); }
 
 export async function transitionOrder(userId: number, id: number, next: Exclude<OrderStatus, "pending">): Promise<OrderDTO> {
   const db = await database();
@@ -383,12 +384,12 @@ export async function transitionOrder(userId: number, id: number, next: Exclude<
     if (!canTransitionOrder(row.order.status as OrderStatus, next, actor)) fail("CONFLICT", "Transición de pedido no permitida");
     if (next === "cancelled" && row.order.stockRestored === 0) {
       const lines = await tx.select().from(czOrderItems).where(eq(czOrderItems.orderId, id));
-      const productIds = stableVariantOrder([...new Set(lines.map(line => line.productId))]);
+      const productIds = stableVariantOrder([...new Set(lines.flatMap(line => (line.productId == null ? [] : [line.productId])))]);
       for (const productId of productIds) {
         const product = (await tx.select({ id: czProducts.id }).from(czProducts).where(eq(czProducts.id, productId)).for("update").limit(1))[0];
         if (!product) fail("CONFLICT", "El producto del pedido no existe");
       }
-      for (const line of [...lines].sort((a, b) => a.variantId - b.variantId)) {
+      for (const line of [...lines].filter((l): l is typeof l & { variantId: number } => l.variantId != null).sort((a, b) => a.variantId - b.variantId)) {
         const variant = (await tx.select().from(czVariants).where(eq(czVariants.id, line.variantId)).for("update").limit(1))[0];
         if (!variant || !Number.isSafeInteger(variant.stock) || variant.stock > MAX_MONEY_CENTS - line.quantity) fail("CONFLICT", "El inventario excedería el límite permitido");
         const changed = await tx.update(czVariants).set({ stock: sql`${czVariants.stock} + ${line.quantity}` }).where(and(eq(czVariants.id, line.variantId), sql`${czVariants.stock} <= ${MAX_MONEY_CENTS - line.quantity}`));

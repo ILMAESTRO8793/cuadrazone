@@ -46,7 +46,10 @@ export const czOrders = mysqlTable("cz_orders", {
   id: int("id").autoincrement().primaryKey(),
   number: varchar("number", { length: 40 }).notNull().unique(),
   userId: int("userId").notNull().references(() => users.id),
-  storeId: int("storeId").notNull().references(() => czStores.id),
+  /** Vacío si el vendedor eliminó su tienda: el pedido se conserva sin sus datos. */
+  storeId: int("storeId").references(() => czStores.id, { onDelete: "set null" }),
+  /** «Tienda eliminada» cuando el vendedor eliminó su tienda. */
+  storeName: varchar("storeName", { length: 120 }).notNull().default(""),
   checkoutKey: varchar("checkoutKey", { length: 36 }).notNull(),
   status: mysqlEnum("status", ["pending", "confirmed", "shipped", "delivered", "cancelled"]).notNull().default("pending"),
   paymentMethod: mysqlEnum("paymentMethod", ["yappy", "transfer", "cod", "card_link", "card_on_delivery"]).notNull(),
@@ -81,8 +84,9 @@ export const czOrders = mysqlTable("cz_orders", {
 export const czOrderItems = mysqlTable("cz_order_items", {
   id: int("id").autoincrement().primaryKey(),
   orderId: int("orderId").notNull().references(() => czOrders.id),
-  productId: int("productId").notNull().references(() => czProducts.id),
-  variantId: int("variantId").notNull().references(() => czVariants.id),
+  /** Vacíos si el producto se eliminó con su tienda; el título y el precio quedan guardados. */
+  productId: int("productId").references(() => czProducts.id, { onDelete: "set null" }),
+  variantId: int("variantId").references(() => czVariants.id, { onDelete: "set null" }),
   title: varchar("title", { length: 240 }).notNull(),
   quantity: int("quantity").notNull(),
   unitPriceCents: int("unitPriceCents").notNull(),

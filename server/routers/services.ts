@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requestStatuses, serviceFiltersInput } from "@shared/services";
 import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { countStoreProducts } from "../services/catalog";
+import { deleteStore, storeDeletionCheck } from "../services/storeDeletion";
 import {
   changeStoreKind,
   deleteService,
@@ -50,6 +51,15 @@ export const servicesRouter = router({
     .mutation(({ ctx, input }) => {
       csrf(ctx);
       return setRequestStatus(ctx.user as any, input.id, input.status);
+    }),
+  /** Qué impide eliminar la tienda y qué se borraría. */
+  deletionCheck: protectedProcedure.query(({ ctx }) => storeDeletionCheck(ctx.user as any)),
+  /** Elimina la tienda para siempre; hay que escribir su nombre exacto. */
+  deleteStore: protectedProcedure
+    .input(z.object({ confirmName: z.string().trim().min(1).max(200) }).strict())
+    .mutation(({ ctx, input }) => {
+      csrf(ctx);
+      return deleteStore(ctx.user as any, input.confirmName);
     }),
   changeStoreKind: protectedProcedure
     .input(z.object({ storeKind: z.enum(["comercio", "servicios"]) }).strict())

@@ -345,7 +345,7 @@ export function validateDocumentExpiry(value: string): void {
     );
 }
 
-function validateBusinessRules(input: ApplicationInput) {
+export function validateBusinessRules(input: ApplicationInput) {
   const kindError = storeKindError(input);
   if (kindError) throw new MembershipError("BAD_REQUEST", kindError);
   const parsed = applicationInput.safeParse(input);
@@ -355,12 +355,16 @@ function validateBusinessRules(input: ApplicationInput) {
       parsed.error.issues[0]?.message ?? "La solicitud contiene datos no válidos"
     );
   }
-  const categories = businessSelectionsInput.safeParse(input.businessCategories);
-  if (!categories.success) {
-    throw new MembershipError(
-      "BAD_REQUEST",
-      categories.error.issues[0]?.message ?? "Selecciona al menos una categoría de negocio"
-    );
+  // Las categorías de servicio solo se validan en tiendas de servicios; las de
+  // comercio usan categorías de productos (revisadas por storeKindError).
+  if (input.storeKind === "servicios") {
+    const categories = businessSelectionsInput.safeParse(input.businessCategories);
+    if (!categories.success) {
+      throw new MembershipError(
+        "BAD_REQUEST",
+        categories.error.issues[0]?.message ?? "Selecciona al menos una categoría de servicios"
+      );
+    }
   }
   if (
     !provinceOptions.includes(
@@ -417,12 +421,16 @@ async function ensureSubmissionGuards(
   profile: MembershipProfile | undefined,
   stage: "submit" | "approve"
 ) {
-  const categories = businessSelectionsInput.safeParse(readBusinessSelections(app.details));
-  if (!categories.success || categories.data.length === 0)
-    throw new MembershipError(
-      "PRECONDITION_FAILED",
-      categories.error?.issues[0]?.message ?? "Debes seleccionar al menos una categoría de negocio"
-    );
+  if (app.storeKind === "servicios") {
+    const categories = businessSelectionsInput.safeParse(readBusinessSelections(app.details));
+    if (!categories.success || categories.data.length === 0)
+      throw new MembershipError(
+        "PRECONDITION_FAILED",
+        categories.error?.issues[0]?.message ?? "Debes seleccionar al menos una categoría de servicios"
+      );
+  } else if (!readProductCategories(app.details).length) {
+    throw new MembershipError("PRECONDITION_FAILED", "Debes seleccionar al menos una categoría de productos");
+  }
   assertConsentVersion(app.consentVersion);
   if (!profile)
     throw new MembershipError(
