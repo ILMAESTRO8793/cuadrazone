@@ -1,4 +1,5 @@
 import { sellerPlanLabel } from "@shared/pricing";
+import { isLegalTopic, legalDocs, legalOrder } from "@/data/legal";
 import { useMemo, useState } from "react";
 import {
   ArrowRight,
@@ -709,164 +710,8 @@ export function HelpPage() {
   );
 }
 
-/** Fecha desde la que rigen los documentos definitivos. */
-const LEGAL_EFFECTIVE_DATE = "23 de octubre de 2026";
-
-const legalContent: Record<
-  string,
-  { title: string; intro: string; final: boolean; sections: [string, string][] }
-> = {
-  fe: {
-    title: "Nuestra fe y valores",
-    intro: "CuadraZone nace de la comunidad cristiana de Panamá y está abierto a todos los que respeten sus valores.",
-    final: true,
-    sections: [
-      [
-        "Nuestra fe",
-        "Confesamos que Cristo es Rey y que Jesús es Dios, nuestro Señor y Salvador, y reconocemos la Biblia como la Palabra de Dios y fundamento de nuestra fe.",
-      ],
-      [
-        "Abierto a todos",
-        "Pueden comprar y vender en CuadraZone personas cristianas y no cristianas. No pedimos pertenecer a una iglesia: pedimos respetar los valores de la plataforma.",
-      ],
-      [
-        "Valores que no se negocian",
-        "Honestidad en lo que se ofrece y se cobra; respeto y trato justo con todos; cumplir lo prometido; y no publicar productos, servicios ni contenido contrarios a la fe cristiana, como ocultismo, contenido sexual, vicios o mensajes que ataquen la fe.",
-      ],
-      [
-        "Aceptación",
-        "Todo vendedor acepta estos valores al enviar su solicitud, y su aceptación queda registrada con la versión vigente. Incumplirlos puede llevar a ocultar publicaciones o cerrar la tienda.",
-      ],
-    ],
-  },
-  conducta: {
-    title: "Código de conducta",
-    intro: "Las reglas de convivencia y de comercio honesto que aceptan todas las personas que compran y venden en CuadraZone.",
-    final: true,
-    sections: [
-      [
-        "A quién aplica",
-        "A todos los vendedores y compradores de CuadraZone. Los vendedores lo aceptan al enviar su solicitud y es una condición para mantener su tienda activa.",
-      ],
-      [
-        "Respeto",
-        "Trata a todos con respeto y cortesía, como hermanos. No se permiten insultos, amenazas, acoso, lenguaje ofensivo ni discriminación. La mensajería de CuadraZone es solo para asuntos del pedido o de la publicación.",
-      ],
-      [
-        "Comercio honesto",
-        "Describe tus productos y servicios tal como son, con fotos reales de lo que vendes y precios claros. Mantén tu inventario al día, cumple lo que ofreces en entrega y tiempos, y no cobres recargos que no estén indicados en la publicación o en la tienda.",
-      ],
-      [
-        "Pagos seguros",
-        "Cobra solo por los métodos registrados en tu tienda: Yappy, link de pago de una plataforma permitida, tarjeta con datáfono al entregar, transferencia o efectivo. Nunca pidas ni envíes datos de tarjeta, contraseñas ni códigos de verificación por mensaje. CuadraZone no procesa ni guarda datos de tarjetas.",
-      ],
-      [
-        "Lo que no se puede publicar",
-        "Productos o servicios ilegales, robados o falsificados; armas, drogas o medicamentos que requieran receta; contenido sexual o violento; ocultismo; publicidad engañosa; y cualquier contenido contrario a los valores cristianos de CuadraZone, que aplican a todos los vendedores, sean o no cristianos.",
-      ],
-      [
-        "Obligaciones del vendedor",
-        "Mantener su información y sus datos de cobro correctos, pagar la mensualidad de su plan al terminar los 3 meses gratis y, si vende productos físicos, pagar la comisión por venta entregada (8% durante la prueba y 5% después, calculada solo sobre los productos, sin el envío).",
-      ],
-      [
-        "Incumplimientos",
-        "Si alguien no cumple este código, CuadraZone puede pedir correcciones, ocultar publicaciones, suspender o desactivar la tienda o la cuenta. Desactivar una tienda no cancela las comisiones pendientes.",
-      ],
-      [
-        "Reportes",
-        "Si ves una publicación o un trato que no cumple este código, comunícalo al equipo de CuadraZone con el nombre de la tienda y, si aplica, el número de pedido.",
-      ],
-    ],
-  },
-  privacidad: {
-    title: "Política de privacidad",
-    intro: "Qué datos personales recopila CuadraZone, para qué los usa, con quién los comparte y cómo puedes ejercer tus derechos según la Ley 81 de 2019 de Protección de Datos Personales de Panamá.",
-    final: true,
-    sections: [
-      [
-        "Responsable",
-        "CuadraZone, marketplace operado en Panamá, es responsable del tratamiento de los datos que se describen aquí. Puedes contactarnos por los canales publicados en la sección de Ayuda.",
-      ],
-      [
-        "Datos de tu cuenta",
-        "Puedes entrar con Google, con tu correo o con tu celular. Con Google recibimos tu nombre, tu correo verificado y un identificador de tu cuenta, nunca tu contraseña. Con correo o celular guardamos ese dato, verificado con un código de un solo uso; del código solo guardamos una huella cifrada. En tu perfil guardas además tu nombre visible y tu teléfono.",
-      ],
-      [
-        "Datos de los vendedores",
-        "Para revisar una solicitud de vendedor guardamos el tipo y nombre del negocio, sus categorías, el tipo y número de identificación, tus nombres y apellidos como aparecen en ella y su vencimiento, el país, provincia y ciudad, la iglesia, el pastor y la denominación si los indicas, la aceptación de los valores cristianos de CuadraZone, el código de conducta y esta política, y los documentos que subes: foto de tu cédula, captura de tu Yappy o banco con tu nombre y, si la agregas, carta pastoral. Para la verificación inmediata, un programa de lectura de texto que corre en nuestros propios servidores compara los nombres de esas imágenes; no se envían a terceros. De tu tienda guardamos su descripción, fotos, tarifas de entrega, tu Yappy y tu link de pago con tarjeta.",
-      ],
-      [
-        "Datos de compras",
-        "Al comprar guardamos el nombre de quien recibe, teléfono, dirección y provincia de entrega, los productos, el método de pago elegido, el estado del pedido, los mensajes con el vendedor y las reseñas que publiques. De los pagos a CuadraZone guardamos monto, método, fecha y número de comprobante. Nunca guardamos datos de tarjetas: los pagos con tarjeta se hacen en la plataforma del vendedor o en su datáfono.",
-      ],
-      [
-        "Para qué los usamos",
-        "Para crear tu cuenta e iniciar sesión; revisar y aprobar vendedores, incluida la verificación del correo y del teléfono; mostrar tiendas y publicaciones; gestionar pedidos, entregas y mensajes; cobrar mensualidades y comisiones; prevenir fraudes y mantener la seguridad del sitio. No vendemos tus datos ni los usamos para publicidad de terceros.",
-      ],
-      [
-        "Qué es público",
-        "El nombre de la tienda, su descripción, provincia y ciudad, sus publicaciones con fotos y precios, y las reseñas. El Yappy o el link de pago del vendedor solo lo ven los compradores con un pedido pagado por ese método. Tu CV de empleo no es público: solo lo ve la empresa a la que aplicas, que recibe una copia con tu nombre, celular, correo y experiencia. Si publicas una vacante, ves los CV de quienes aplicaron a ella. En los anuncios de bienes raíces y autos son públicos el precio, la ubicación aproximada (provincia y distrito, nunca la dirección exacta), las fotos y el celular que el anunciante pone para que lo contacten. Los documentos de identidad, la captura de Yappy o banco y la carta pastoral nunca son públicos: solo los ve el equipo de CuadraZone cuando una solicitud necesita revisión.",
-      ],
-      [
-        "Con quién compartimos datos",
-        "Con el vendedor o el comprador de tu pedido, solo lo necesario para pagar y entregar (nombre, teléfono y dirección de entrega). Con Google, para el inicio de sesión. Con Railway, que aloja el sitio, la base de datos y las fotos en servidores ubicados fuera de Panamá. Con Brevo, que envía en nuestro nombre los correos automáticos (tu correo, tu nombre y el contenido del aviso). Con el servicio de SMS que envía los códigos a tu celular (tu número y el código). Con las autoridades, únicamente cuando la ley lo exija.",
-      ],
-      [
-        "Cookies",
-        "Usamos una cookie para mantener tu sesión iniciada y otra temporal para proteger el inicio de sesión con Google. No usamos cookies de publicidad ni de seguimiento.",
-      ],
-      [
-        "Conservación",
-        "Guardamos tus datos mientras tu cuenta esté activa. Los datos de pedidos, pagos y verificación de vendedores pueden conservarse después durante el tiempo que exijan las obligaciones legales, contables o la atención de reclamos.",
-      ],
-      [
-        "Tus derechos",
-        "Puedes solicitar el acceso a tus datos, su rectificación, su cancelación, oponerte a su tratamiento y pedir su portabilidad, como establece la Ley 81 de 2019. Para hacerlo, escríbenos indicando el correo de tu cuenta; podremos pedirte que confirmes tu identidad antes de atender la solicitud. Tu nombre y teléfono puedes corregirlos en Mi cuenta, salvo mientras una solicitud de vendedor esté en revisión o aprobada.",
-      ],
-      [
-        "Seguridad",
-        "El sitio funciona con conexión cifrada (HTTPS), las sesiones están firmadas y los documentos de verificación se guardan de forma privada con acceso restringido al equipo de CuadraZone.",
-      ],
-      [
-        "Cambios",
-        "Si modificamos esta política publicaremos la nueva versión en esta página con su fecha de vigencia. Si el cambio afecta lo que aceptaste como vendedor, te pediremos aceptarlo de nuevo.",
-      ],
-    ],
-  },
-  terminos: {
-    title: "Términos de uso",
-    intro: "Estructura de borrador para explicar el uso de la plataforma.",
-    final: false,
-    sections: [
-      [
-        "Alcance",
-        "Este texto definirá las reglas de uso del marketplace, perfiles de tiendas, publicaciones y transacciones.",
-      ],
-      [
-        "Responsabilidades",
-        "Las responsabilidades de compradores, vendedores y plataforma quedarán detalladas después de la revisión jurídica.",
-      ],
-    ],
-  },
-  reclamos: {
-    title: "Reclamos y resolución",
-    intro:
-      "Estructura de borrador para explicar cómo se atenderán incidencias.",
-    final: false,
-    sections: [
-      [
-        "Canales",
-        "Se publicarán canales de soporte y los datos que conviene incluir para dar seguimiento a un caso.",
-      ],
-      [
-        "Tiempos y alcance",
-        "Los tiempos de respuesta, mediación y posibles resultados serán definidos más adelante.",
-      ],
-    ],
-  },
-};
 export function LegalPage({ topic }: { topic: string }) {
-  const content = legalContent[topic];
+  const content = isLegalTopic(topic) ? legalDocs[topic] : undefined;
   if (!content)
     return (
       <div className="market-page">
@@ -884,39 +729,49 @@ export function LegalPage({ topic }: { topic: string }) {
       <div className="container">
         <Crumbs current={content.title} parent="Legal" />
         <div className="legal-layout">
-          <aside className="legal-nav">
+          <aside className="legal-nav" aria-label="Documentos legales">
             <p className="eyebrow">Documentos</p>
-            {Object.entries(legalContent).map(([key, value]) => (
+            {legalOrder.map(key => (
               <Link
                 className={key === topic ? "active" : ""}
+                aria-current={key === topic ? "page" : undefined}
                 href={`/legal/${key}`}
                 key={key}
               >
-                <Scale size={15} /> {value.title}
+                <Scale size={15} /> {legalDocs[key].title}
               </Link>
             ))}
           </aside>
           <article className="legal-card">
-            <span className="demo-badge">
-              {content.final ? `Vigente desde el ${LEGAL_EFFECTIVE_DATE}` : "Borrador · pendiente de revisión"}
-            </span>
+            <span className="demo-badge">Vigente desde el {content.updated}</span>
             <h1>{content.title}</h1>
             <p className="legal-intro">{content.intro}</p>
-            {content.sections.map(([title, text]) => (
-              <section key={title}>
-                <h2>{title}</h2>
-                <p>{text}</p>
+            {content.sections.length > 4 && (
+              <nav className="legal-toc" aria-label="En este documento">
+                <p>En este documento</p>
+                <ol>
+                  {content.sections.map((section, index) => (
+                    <li key={section.title}>
+                      <a href={`#seccion-${index + 1}`}>{section.title}</a>
+                    </li>
+                  ))}
+                </ol>
+              </nav>
+            )}
+            {content.sections.map((section, index) => (
+              <section key={section.title} id={`seccion-${index + 1}`}>
+                <h2>
+                  <span className="legal-num">{index + 1}.</span> {section.title}
+                </h2>
+                {section.body?.map(text => <p key={text.slice(0, 40)}>{text}</p>)}
+                {section.list && (
+                  <ul className="legal-list">
+                    {section.list.map(item => <li key={item.slice(0, 40)}>{item}</li>)}
+                  </ul>
+                )}
               </section>
             ))}
-            {!content.final && (
-              <div className="notice-panel">
-                <Info size={18} />
-                <span>
-                  Este documento todavía es un borrador y no sustituye la
-                  versión final que se publique.
-                </span>
-              </div>
-            )}
+            <p className="legal-updated">Última actualización: {content.updated}.</p>
           </article>
         </div>
       </div>

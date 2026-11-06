@@ -28,6 +28,7 @@ import {
 } from "@/data/catalog";
 import { useMarket } from "@/contexts/MarketContext";
 import VerseOfDay from "./VerseOfDay";
+import { footerLegalLinks } from "@/data/legal";
 
 /*
  * La portada separa dos mundos: el Marketplace (productos físicos y libros) y
@@ -490,6 +491,8 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
             <h3>Confianza y ayuda</h3>
             <Link href="/legal/terminos">Términos y condiciones</Link>
             <Link href="/legal/privacidad">Privacidad</Link>
+            <Link href="/legal/datos-sensibles">Datos sensibles</Link>
+            <Link href="/legal/cookies">Cookies y preferencias</Link>
             <Link href="/legal/conducta">Código de conducta</Link>
             <Link href="/legal/reclamos">Reclamos y devoluciones</Link>
             <Link href="/legal/fe">Fe y valores</Link>
@@ -501,6 +504,18 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
             <ShieldCheck size={14} /> Vista previa · etapa 3 de 7
           </span>
         </div>
+        <nav className="footer-legal" aria-label="Avisos legales">
+          <div className="container">
+            <ul>
+              {footerLegalLinks.map(link => (
+                <li key={link.href}>
+                  <Link href={link.href}>{link.label}</Link>
+                </li>
+              ))}
+            </ul>
+            <p>© 2026 CuadraZone. Todos los derechos reservados.</p>
+          </div>
+        </nav>
       </footer>
     </>
   );

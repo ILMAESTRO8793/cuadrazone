@@ -1,5 +1,6 @@
 import type { PublicSnapshot } from "../contexts/PublicCatalogContext";
 import { listings, sellers } from "@/data/catalog";
+import { isLegalTopic, legalDocs } from "@/data/legal";
 export function getPageMeta(url: string, snapshot: PublicSnapshot = {}) {
   const path = new URL(url, "https://route-parser.invalid").pathname;
   let title = "CuadraZone | Comunidad, compras y propósito en Panamá";
@@ -77,17 +78,12 @@ export function getPageMeta(url: string, snapshot: PublicSnapshot = {}) {
       title = `${seller.name} | Tienda de ejemplo CuadraZone`;
       description = seller.about;
     } else status = 404;
-  } else if (
-    path.startsWith("/legal/") &&
-    !["terminos", "privacidad", "conducta", "reclamos", "fe"].includes(
-      path.split("/")[2]
-    )
-  ) {
+  } else if (path.startsWith("/legal/") && !isLegalTopic(path.split("/")[2] ?? "")) {
     status = 404;
   } else if (path.startsWith("/legal/")) {
-    title = "Documentos legales | CuadraZone Panamá";
-    description =
-      "Fe y valores, código de conducta y política de privacidad de CuadraZone.";
+    const doc = legalDocs[path.split("/")[2]];
+    title = `${doc.title} | CuadraZone Panamá`;
+    description = doc.intro.slice(0, 155);
   } else if (/^\/empleos\/[a-z0-9-]{1,160}$/.test(path)) {
     title = "Vacante de empleo | CuadraZone Panamá";
     description = "Vacantes de empleo en Panamá. Crea tu CV gratis y aplica con un clic.";
