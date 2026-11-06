@@ -1,0 +1,482 @@
+/*
+ * Generado por scripts/generate-type-floor.mjs — no editar a mano.
+ * Sube a un mínimo legible 127 tamaños de letra diminutos de las hojas
+ * originales, con sus mismos selectores y media queries.
+ */
+.eyebrow {
+    font-size: 12.5px
+}
+.pill {
+    font-size: 13px
+}
+.utility-strip {
+    font-size: 12.5px
+}
+.brand-scripture figcaption {
+    font-size: 12.5px
+}
+.header-location small {
+    font-size: 12.5px
+}
+.header-location select {
+    font-size: 13px
+}
+.search-results small {
+    font-size: 12.5px
+}
+.account-link small {
+    font-size: 12.5px
+}
+.count-badge {
+    font-size: 11.5px
+}
+.category-menu {
+    font-size: 13px
+}
+.main-nav nav > a {
+    font-size: 13px
+}
+.sell-nav {
+    font-size: 13px
+}
+.prototype-note {
+    font-size: 12px
+}
+.hero-actions .btn {
+    font-size: 13px
+}
+.hero-small {
+    font-size: 12px
+}
+.hero-label small {
+    font-size: 12.5px
+}
+.hero-edition {
+    font-size: 11.5px
+}
+.category-tile strong {
+    font-size: 13px
+}
+.category-tile small {
+    font-size: 12px
+}
+.filter-tabs button {
+    font-size: 13px
+}
+.product-kind {
+    font-size: 11.5px
+}
+.product-seller {
+    font-size: 11.5px
+}
+.product-seller span {
+    font-size: 11px
+}
+.stars {
+    font-size: 12px
+}
+.product-price-row del {
+    font-size: 12.5px
+}
+.price-prefix {
+    font-size: 12px
+}
+.product-province {
+    font-size: 11.5px
+}
+.product-card-bottom > span {
+    font-size: 11.5px
+}
+.demo-caption {
+    font-size: 12px
+}
+.values-inner small {
+    font-size: 12.5px
+}
+.service-photo > span {
+    font-size: 11.5px
+}
+.service-topics span {
+    font-size: 12px
+}
+.service-copy .btn {
+    font-size: 13px
+}
+.seller-invite p {
+    font-size: 13px
+}
+.seller-invite .btn {
+    font-size: 13px
+}
+.membership-card > span:first-child {
+    font-size: 11.5px
+}
+.membership-card > div small {
+    font-size: 13px
+}
+.membership-card > div:nth-last-child(2) {
+    font-size: 12.5px
+}
+.membership-small {
+    font-size: 11.5px
+}
+.footer-brand p {
+    font-size: 13px
+}
+.footer-social span {
+    font-size: 12px
+}
+.footer-top h3 {
+    font-size: 13px
+}
+.footer-top > div:not(:first-child) > a {
+    font-size: 12.5px
+}
+.footer-bottom {
+    font-size: 12px
+}
+@media (max-width: 1100px) {
+    .category-tile strong {
+        font-size: 12.5px
+    }
+}
+@media (max-width: 1100px) {
+    .category-tile small {
+        font-size: 11.5px
+    }
+}
+@media (max-width: 1100px) {
+    .hero-small {
+        font-size: 11.5px
+    }
+}
+@media (max-width: 800px) {
+    .brand-scripture blockquote {
+        font-size: 13px
+    }
+}
+@media (max-width: 800px) {
+    .main-nav nav > a {
+        font-size: 12.5px
+    }
+}
+@media (max-width: 800px) {
+    .prototype-note {
+        font-size: 11.5px
+    }
+}
+@media (max-width: 800px) {
+    .hero-copy > p {
+        font-size: 13px
+    }
+}
+@media (max-width: 800px) {
+    .hero-copy .eyebrow {
+        font-size: 11.5px
+    }
+}
+@media (max-width: 800px) {
+    .hero-label strong {
+        font-size: 12.5px
+    }
+}
+@media (max-width: 800px) {
+    .hero-label small {
+        font-size: 11.5px
+    }
+}
+@media (max-width: 800px) {
+    .values-inner strong {
+        font-size: 12.5px
+    }
+}
+@media (max-width: 800px) {
+    .values-inner small {
+        font-size: 11.5px
+    }
+}
+@media (max-width: 800px) {
+    .service-copy p {
+        font-size: 13px
+    }
+}
+@media (max-width: 800px) {
+    .service-topics span {
+        font-size: 11.5px
+    }
+}
+@media (max-width: 800px) {
+    .buyer-invite p {
+        font-size: 13px
+    }
+}
+@media (max-width: 560px) {
+    .hero-actions .btn {
+        font-size: 12.5px
+    }
+}
+@media (max-width: 560px) {
+    .hero-actions .text-link {
+        font-size: 13px
+    }
+}
+@media (max-width: 560px) {
+    .hero-edition {
+        font-size: 11px
+    }
+}
+@media (max-width: 560px) {
+    .hero-label strong {
+        font-size: 13px
+    }
+}
+@media (max-width: 560px) {
+    .hero-label small {
+        font-size: 12px
+    }
+}
+@media (max-width: 560px) {
+    .category-tile strong {
+        font-size: 12px
+    }
+}
+@media (max-width: 560px) {
+    .category-tile small {
+        font-size: 11px
+    }
+}
+@media (max-width: 560px) {
+    .section-heading > .text-link {
+        font-size: 12.5px
+    }
+}
+@media (max-width: 560px) {
+    .featured-section > .section-heading .eyebrow {
+        font-size: 11.5px
+    }
+}
+@media (max-width: 560px) {
+    .filter-tabs button {
+        font-size: 12.5px
+    }
+}
+@media (max-width: 560px) {
+    .product-kind {
+        font-size: 11px
+    }
+}
+@media (max-width: 560px) {
+    .product-seller {
+        font-size: 11px
+    }
+}
+@media (max-width: 560px) {
+    .product-title {
+        font-size: 12.5px
+    }
+}
+@media (max-width: 560px) {
+    .stars {
+        font-size: 11.5px
+    }
+}
+@media (max-width: 560px) {
+    .product-price-row del {
+        font-size: 12px
+    }
+}
+@media (max-width: 560px) {
+    .product-province {
+        font-size: 11px
+    }
+}
+@media (max-width: 560px) {
+    .product-card-bottom > span {
+        font-size: 11px
+    }
+}
+@media (max-width: 560px) {
+    .demo-caption {
+        font-size: 11.5px
+    }
+}
+@media (max-width: 560px) {
+    .values-inner strong {
+        font-size: 13px
+    }
+}
+@media (max-width: 560px) {
+    .values-inner small {
+        font-size: 12px
+    }
+}
+@media (max-width: 560px) {
+    .service-copy > .eyebrow {
+        font-size: 11.5px
+    }
+}
+@media (max-width: 560px) {
+    .service-topics span {
+        font-size: 12px
+    }
+}
+@media (max-width: 560px) {
+    .seller-invite .eyebrow {
+        font-size: 11.5px
+    }
+}
+@media (max-width: 560px) {
+    .seller-invite p {
+        font-size: 13px
+    }
+}
+@media (max-width: 560px) {
+    .footer-top h3 {
+        font-size: 13px
+    }
+}
+@media (max-width: 560px) {
+    .footer-top > div:not(:first-child) > a {
+        font-size: 12.5px
+    }
+}
+@media (max-width: 560px) {
+    .footer-bottom {
+        font-size: 11.5px
+    }
+}
+.feature-tools select {
+    font-size: 12.5px
+}
+@media (max-width: 560px) {
+    .feature-tools select {
+        font-size: 11.5px
+    }
+}
+@media (max-width: 560px) {
+    .feature-tools .text-link {
+        font-size: 12.5px
+    }
+}
+@media (max-width: 560px) {
+    .rating-demo {
+        font-size: 11px
+    }
+}
+.demo-badge,
+.pill {
+    font-size: 13px
+}
+.product-kind {
+    font-size: 13px
+}
+.product-seller {
+    font-size: 13px
+}
+.product-price-row del {
+    font-size: 13px
+}
+.price-prefix {
+    font-size: 13px
+}
+.product-province {
+    font-size: 13px
+}
+.product-card-bottom > span {
+    font-size: 13px
+}
+.demo-caption {
+    font-size: 13px
+}
+.small-note {
+    font-size: 13px
+}
+.seller-mini small,
+.muted {
+    font-size: 13px
+}
+.seller-mini .muted {
+    font-size: 13px
+}
+.review-list small {
+    font-size: 13px
+}
+.plan-kicker {
+    font-size: 13px
+}
+.cart-seller-head span {
+    font-size: 13px
+}
+.cart-row-main span {
+    font-size: 13px
+}
+.checkout-line span {
+    font-size: 13px
+}
+.account-links small {
+    font-size: 13px
+}
+.dashboard-role {
+    font-size: 13px
+}
+.requirement-grid span {
+    font-size: 13px
+}
+.help-categories span {
+    font-size: 13px
+}
+@media (max-width: 620px) {
+    .product-seller {
+        font-size: 12px
+    }
+}
+.rating-demo {
+    font-size: 11.5px
+}
+.live-book-meta dt {
+    font-size: 13px
+}
+@media (max-width: 700px) {
+    .live-store-name {
+        font-size: 13px
+    }
+}
+.seller-catalog-eyebrow {
+    font-size: 13px
+}
+.seller-catalog-nav span {
+    font-size: 13px
+}
+.seller-catalog-form-grid label > small {
+    font-size: 13px
+}
+.seller-catalog-status {
+    font-size: 13px
+}
+.member-eyebrow {
+    font-size: 13px
+}
+.member-field small {
+    font-size: 13px
+}
+.member-status {
+    font-size: 13px
+}
+.member-link-card span {
+    font-size: 13px
+}
+.business-category-card__label small {
+    font-size: 13px
+}
+.business-category-card__link {
+    font-size: 13px
+}
+.seller-classification li a {
+    font-size: 13px
+}
+.media-cover {
+    font-size: 13px
+}
+.cv-footer {
+    font-size: 13px
+}

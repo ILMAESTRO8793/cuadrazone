@@ -8,6 +8,8 @@ import App from "./App";
 import "./index.css";
 import "./features/commerce/commerce.css";
 import "./features/catalog/seller-catalog.css";
+import "./styles/type-floor.css";
+import "./styles/redesign.css";
 import type { PublicSnapshot } from "./contexts/PublicCatalogContext";
 let snapshot: PublicSnapshot = {};
 try {
