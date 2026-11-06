@@ -14,10 +14,6 @@ import {
   HeartHandshake,
   Package,
   ShieldCheck,
-  House,
-  Car,
-  BriefcaseBusiness,
-  ShoppingBag,
   Sparkles,
   Store,
   Truck,
@@ -56,6 +52,24 @@ const categoryLinks = [
     color: "blue",
   },
 ];
+/** Foto de cada entrada de la portada (decorativa: el título ya la describe). */
+function GatePhoto({ name }: { name: string }) {
+  return (
+    <span className="gate-photo" aria-hidden="true">
+      <img
+        src={`/assets/portada/${name}.webp`}
+        srcSet={`/assets/portada/${name}-640.webp 640w, /assets/portada/${name}.webp 1200w`}
+        sizes="(min-width: 1100px) 33vw, (min-width: 700px) 50vw, 100vw"
+        alt=""
+        width={1200}
+        height={900}
+        loading="lazy"
+        decoding="async"
+      />
+    </span>
+  );
+}
+
 export default function Home() {
   const [kind, setKind] = useState<ListingKind | "todo">("todo");
   const [collection, setCollection] = useState("destacados");
@@ -86,7 +100,7 @@ export default function Home() {
               <CountryPicker />
               <div className="gate-choices">
                 <Link href="/mercado" className="gate-choice gate-choice--market">
-                  <span className="gate-icon" aria-hidden="true"><ShoppingBag size={34} strokeWidth={1.6} /></span>
+                  <GatePhoto name="comercios" />
                   <span className="gate-text">
                     <strong>COMERCIOS</strong>
                     <span className="gate-detail">Productos, artesanías, ropa, tecnología y libros cristianos de tiendas verificadas.</span>
@@ -94,7 +108,7 @@ export default function Home() {
                   <span className="gate-arrow" aria-hidden="true"><ArrowRight size={26} /></span>
                 </Link>
                 <Link href="/servicios" className="gate-choice gate-choice--services">
-                  <span className="gate-icon" aria-hidden="true"><Wrench size={34} strokeWidth={1.6} /></span>
+                  <GatePhoto name="servicios" />
                   <span className="gate-text">
                     <strong>SERVICIOS</strong>
                     <span className="gate-detail">Clases, tutorías, trabajos a domicilio, consultas profesionales y eventos.</span>
@@ -102,7 +116,7 @@ export default function Home() {
                   <span className="gate-arrow" aria-hidden="true"><ArrowRight size={26} /></span>
                 </Link>
                 <Link href="/bienes-raices" className="gate-choice gate-choice--estate">
-                  <span className="gate-icon" aria-hidden="true"><House size={34} strokeWidth={1.6} /></span>
+                  <GatePhoto name="bienes-raices" />
                   <span className="gate-text">
                     <strong>BIENES RAÍCES</strong>
                     <span className="gate-detail">Casas, apartamentos, terrenos y locales en venta o alquiler.</span>
@@ -110,7 +124,7 @@ export default function Home() {
                   <span className="gate-arrow" aria-hidden="true"><ArrowRight size={26} /></span>
                 </Link>
                 <Link href="/autos" className="gate-choice gate-choice--cars">
-                  <span className="gate-icon" aria-hidden="true"><Car size={34} strokeWidth={1.6} /></span>
+                  <GatePhoto name="autos" />
                   <span className="gate-text">
                     <strong>AUTOS</strong>
                     <span className="gate-detail">Compra, venta y alquiler de autos y motos.</span>
@@ -118,7 +132,7 @@ export default function Home() {
                   <span className="gate-arrow" aria-hidden="true"><ArrowRight size={26} /></span>
                 </Link>
                 <Link href="/empleos" className="gate-choice gate-choice--jobs">
-                  <span className="gate-icon" aria-hidden="true"><BriefcaseBusiness size={34} strokeWidth={1.6} /></span>
+                  <GatePhoto name="empleo" />
                   <span className="gate-text">
                     <strong>BUSCAR EMPLEO</strong>
                     <span className="gate-detail">Crea tu CV, aplica a vacantes o publica un empleo.</span>
@@ -126,7 +140,7 @@ export default function Home() {
                   <span className="gate-arrow" aria-hidden="true"><ArrowRight size={26} /></span>
                 </Link>
                 <Link href="/vender" className="gate-choice gate-choice--store">
-                  <span className="gate-icon" aria-hidden="true"><Store size={34} strokeWidth={1.6} /></span>
+                  <GatePhoto name="crear-tienda" />
                   <span className="gate-text">
                     <strong>CREAR TU TIENDA</strong>
                     <span className="gate-detail">Vende tus productos u ofrece tus servicios. Los primeros 3 meses son gratis.</span>
