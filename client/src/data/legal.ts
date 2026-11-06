@@ -31,8 +31,16 @@ export type LegalDoc = {
 
 const NORMAL = sellerPlanLabel("normal");
 const MAYOR = sellerPlanLabel("mayor_visibilidad");
-const CONTACT =
-  "Puedes escribirnos por los canales de contacto publicados en el Centro de ayuda (cuadrazone.com/ayuda), indicando el correo o el celular con el que usas tu cuenta.";
+/** Titular de CuadraZone. */
+export const LEGAL_OWNER = {
+  name: "Salem Pierre",
+  ruc: "E-8-224525",
+  dv: "51",
+  email: "info@cuadrazone.com",
+  country: "República de Panamá",
+};
+const OWNER_LINE = `${LEGAL_OWNER.name}, RUC ${LEGAL_OWNER.ruc} DV ${LEGAL_OWNER.dv}, con domicilio en la ${LEGAL_OWNER.country}`;
+const CONTACT = `Para cualquier consulta, solicitud o reclamo escríbenos a ${LEGAL_OWNER.email}, indicando el correo o el celular con el que usas tu cuenta.`;
 
 export const legalDocs: Record<string, LegalDoc> = {
   terminos: {
@@ -45,7 +53,7 @@ export const legalDocs: Record<string, LegalDoc> = {
       {
         title: "Quiénes somos y qué hacemos",
         body: [
-          "CuadraZone es una plataforma digital operada en la República de Panamá que conecta a vendedores independientes —tiendas, emprendedores, profesionales y anunciantes de inmuebles, autos y empleos— con compradores. En estos documentos, «CuadraZone», «nosotros» o «la plataforma» se refiere a CuadraZone y a quienes la operan; «usuario» es toda persona que la usa.",
+          `CuadraZone es una plataforma digital de ${OWNER_LINE} (en adelante, «CuadraZone»), que conecta a vendedores independientes —tiendas, emprendedores, profesionales y anunciantes de inmuebles, autos y empleos— con compradores. En estos documentos, «CuadraZone», «nosotros» o «la plataforma» se refiere a CuadraZone y a quienes la operan; «usuario» es toda persona que la usa.`,
           "CuadraZone actúa como intermediario tecnológico. No fabricamos, vendemos, almacenamos, transportamos ni prestamos los productos o servicios que publican los vendedores, y no somos parte de los contratos de compraventa, servicio, arrendamiento o empleo que celebran los usuarios entre sí. Los únicos servicios que CuadraZone presta y cobra son los planes y comisiones de los vendedores descritos más abajo.",
         ],
       },
@@ -190,7 +198,7 @@ export const legalDocs: Record<string, LegalDoc> = {
       {
         title: "Responsable",
         body: [
-          "CuadraZone, plataforma operada en Panamá, es responsable del tratamiento de los datos que se describen aquí. " + CONTACT,
+          `El responsable del tratamiento de los datos que se describen aquí es ${OWNER_LINE}, titular de CuadraZone. ` + CONTACT,
         ],
       },
       {

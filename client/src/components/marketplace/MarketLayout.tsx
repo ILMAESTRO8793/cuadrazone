@@ -28,7 +28,7 @@ import {
 } from "@/data/catalog";
 import { useMarket } from "@/contexts/MarketContext";
 import VerseOfDay from "./VerseOfDay";
-import { footerLegalLinks } from "@/data/legal";
+import { footerLegalLinks, LEGAL_OWNER } from "@/data/legal";
 
 /*
  * La portada separa dos mundos: el Marketplace (productos físicos y libros) y
@@ -513,7 +513,10 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
                 </li>
               ))}
             </ul>
-            <p>© 2026 CuadraZone. Todos los derechos reservados.</p>
+            <p>
+              © 2026 CuadraZone · {LEGAL_OWNER.name} · RUC {LEGAL_OWNER.ruc} DV {LEGAL_OWNER.dv} ·{" "}
+              <a href={`mailto:${LEGAL_OWNER.email}`}>{LEGAL_OWNER.email}</a>. Todos los derechos reservados.
+            </p>
           </div>
         </nav>
       </footer>

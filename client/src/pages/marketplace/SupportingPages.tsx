@@ -1,5 +1,5 @@
 import { sellerPlanLabel } from "@shared/pricing";
-import { isLegalTopic, legalDocs, legalOrder } from "@/data/legal";
+import { isLegalTopic, LEGAL_OWNER, legalDocs, legalOrder } from "@/data/legal";
 import { useMemo, useState } from "react";
 import {
   ArrowRight,
@@ -643,7 +643,7 @@ const faqs = [
   },
   {
     q: "¿Dónde puedo pedir soporte?",
-    a: "El centro de soporte se habilitará con canales verificados en una etapa posterior. Por ahora puedes revisar estas preguntas frecuentes.",
+    a: "Escríbenos a info@cuadrazone.com con el correo o el celular de tu cuenta y, si aplica, el número de pedido o el nombre de la tienda.",
   },
 ];
 export function HelpPage() {
@@ -682,21 +682,15 @@ export function HelpPage() {
             <CircleHelp size={23} />
             <h2>¿Necesitas otra guía?</h2>
             <p>
-              Las categorías de ayuda y un canal de soporte se conectarán más
-              adelante, sin enviar nada desde esta vista.
+              Escríbenos y te respondemos por correo. Indica el correo o el
+              celular de tu cuenta para atenderte más rápido.
             </p>
-            <button
+            <a
               className="btn btn-outline btn-wide"
-              type="button"
-              onClick={() =>
-                toast.info("Soporte en preparación", {
-                  description:
-                    "El contacto se habilitará en una etapa posterior.",
-                })
-              }
+              href={`mailto:${LEGAL_OWNER.email}`}
             >
-              <Mail size={16} /> Ver contacto futuro
-            </button>
+              <Mail size={16} /> {LEGAL_OWNER.email}
+            </a>
             <div className="help-categories">
               <span>Compras</span>
               <span>Vendedores</span>

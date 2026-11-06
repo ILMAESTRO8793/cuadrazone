@@ -23,6 +23,15 @@ describe("documentos legales", () => {
     expect(text).toContain(sellerPlanLabel("mayor_visibilidad"));
   });
 
+  it("identifican al titular, su RUC y el correo de contacto", () => {
+    for (const key of ["terminos", "privacidad"]) {
+      const text = legalDocs[key].sections.flatMap(s => s.body ?? []).join(" ");
+      expect(text).toContain("Salem Pierre");
+      expect(text).toContain("RUC E-8-224525 DV 51");
+      expect(text).toContain("info@cuadrazone.com");
+    }
+  });
+
   it("la privacidad declara que el nombre de la iglesia puede ser público", () => {
     const text = legalDocs.privacidad.sections.flatMap(s => s.body ?? []).join(" ");
     expect(text).toContain("nombre de la iglesia");
