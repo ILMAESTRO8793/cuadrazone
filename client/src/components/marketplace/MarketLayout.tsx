@@ -27,6 +27,7 @@ import {
   normalizeSearch,
 } from "@/data/catalog";
 import { useMarket } from "@/contexts/MarketContext";
+import VerseOfDay from "./VerseOfDay";
 
 /*
  * La portada separa dos mundos: el Marketplace (productos físicos y libros) y
@@ -157,7 +158,8 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
       </a>
       <div className="utility-strip">
         <div className="container utility-inner">
-          <span>Unidos por la fe. Conectados por lo que hacemos.</span>
+          <span className="utility-motto">Unidos por la fe. Conectados por lo que hacemos.</span>
+          <VerseOfDay />
           <span className="utility-right">
             Panamá <span className="utility-dot" /> USD{" "}
             <span className="utility-dot" />{" "}

@@ -224,9 +224,136 @@ textarea:focus-visible {
 .utility-inner {
   min-height: 34px;
 }
-.site-header {
+/* Versículo del día: se desliza en bucle por la barra superior */
+.utility-motto,
+.utility-right {
+  flex: none;
+  white-space: nowrap;
+}
+.verse-ticker {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 760px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 auto;
+}
+.verse-ticker-label {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(234, 209, 141, 0.14);
+  color: var(--cz-gold-light);
+  font-weight: 700;
+  font-size: 11.5px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.verse-ticker-viewport {
   position: relative;
-  z-index: 40;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 4px;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+.verse-ticker-viewport:focus-visible {
+  outline: 2px solid var(--cz-gold-light);
+  outline-offset: 2px;
+}
+.verse-ticker-track {
+  display: flex;
+  width: max-content;
+  animation: cz-ticker 40s linear infinite;
+  will-change: transform;
+}
+.verse-ticker:hover .verse-ticker-track,
+.verse-ticker-viewport:focus-visible .verse-ticker-track {
+  animation-play-state: paused;
+}
+.verse-ticker-item {
+  flex: none;
+  padding-right: 72px;
+  white-space: nowrap;
+  color: #e3ebf4;
+  font-family: var(--cz-font-display);
+  font-style: italic;
+  font-size: 13px;
+}
+.verse-ticker-item q {
+  quotes: "“" "”";
+}
+.verse-ticker-item cite {
+  margin-left: 8px;
+  font-family: var(--cz-font-body);
+  font-style: normal;
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--cz-gold-light);
+}
+@keyframes cz-ticker {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+@media (max-width: 1100px) {
+  .utility-motto {
+    display: none;
+  }
+}
+@media (max-width: 800px) {
+  .utility-inner {
+    flex-wrap: wrap;
+    row-gap: 4px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+  .verse-ticker {
+    order: 2;
+    flex-basis: 100%;
+    max-width: none;
+  }
+  .utility-right {
+    order: 1;
+    margin: 0 auto;
+  }
+}
+@media (max-width: 420px) {
+  .verse-ticker-label {
+    padding: 3px 8px;
+  }
+}
+/* Con menos movimiento: el versículo queda quieto y se lee completo al pasar. */
+@media (prefers-reduced-motion: reduce) {
+  .verse-ticker-track {
+    width: auto;
+    animation: none !important;
+  }
+  .verse-ticker-viewport {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  .verse-ticker-item {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 0;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+  .verse-ticker-item[aria-hidden="true"] {
+    display: none;
+  }
+}
+
+.site-header {
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset;
 }
 .header-main {
