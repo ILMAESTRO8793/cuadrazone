@@ -141,6 +141,13 @@
       "when": 1793915608620,
       "tag": "0019_eliminar_tienda",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "5",
+      "when": 1793939069350,
+      "tag": "0020_videos_autos",
+      "breakpoints": true
     }
   ]
 }

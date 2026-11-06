@@ -33,3 +33,17 @@ describe("anuncios de autos", () => {
     expect(km(45000)).toBe("45,000 km");
   });
 });
+
+describe("videos de autos", () => {
+  const auto = {
+    operation: "venta", vehicleType: "sedan", make: "Toyota", model: "Corolla", year: 2020, condition: "usado", mileageKm: 45000,
+    transmission: "automatica", fuel: "gasolina", title: "Toyota Corolla 2020 automático", description: "Un solo dueño, mantenimientos en agencia.",
+    priceCents: 1_850_000, province: "Panamá", district: "San Miguelito", contactPhone: "+50761234567",
+  };
+  it("acepta hasta 3 videos", () => {
+    const v = (n: number) => Array.from({ length: n }, (_, i) => `/media/catalog/vehicles/1/videos/v${i}.mp4`);
+    expect(saveVehicleInput.safeParse({ ...auto, videos: v(3) }).success).toBe(true);
+    expect(saveVehicleInput.safeParse({ ...auto, videos: v(4) }).success).toBe(false);
+    expect(saveVehicleInput.parse(auto).videos).toEqual([]);
+  });
+});

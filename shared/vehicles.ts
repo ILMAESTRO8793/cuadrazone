@@ -50,6 +50,8 @@ export const vehicleStatusLabels: Record<VehicleStatus, string> = {
 };
 
 export const MAX_VEHICLE_IMAGES = 12;
+export const MAX_VEHICLE_VIDEOS = 3;
+export const MAX_VEHICLE_VIDEO_BYTES = 40 * 1024 * 1024;
 const THIS_YEAR = new Date().getFullYear();
 const cents = z.number().int().min(0).max(10_000_000_000);
 
@@ -84,6 +86,7 @@ export const saveVehicleInput = z
     sellerType: z.enum(vehicleSellerTypes).default("particular"),
     contactPhone: z.string().trim().regex(/^\+507\d{8}$/, "Usa un celular de Panamá: +507 y 8 dígitos"),
     images: z.array(z.string().max(500)).max(MAX_VEHICLE_IMAGES).default([]),
+    videos: z.array(z.string().max(500)).max(MAX_VEHICLE_VIDEOS).default([]),
   })
   .strict()
   .superRefine((v, ctx) => {

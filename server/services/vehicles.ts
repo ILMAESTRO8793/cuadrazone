@@ -7,6 +7,8 @@ import { czVehicles } from "../../drizzle/catalog-schema";
 import type { User } from "../../drizzle/schema";
 import {
   MAX_VEHICLE_IMAGES,
+  MAX_VEHICLE_VIDEOS,
+  MAX_VEHICLE_VIDEO_BYTES,
   saveVehicleInput,
   type OwnVehicleDTO,
   type SaveVehicleInput,
@@ -15,8 +17,9 @@ import {
 } from "@shared/vehicles";
 import { sdk } from "../_core/sdk";
 import { getDb } from "../db";
-import { storagePut } from "../storage";
+import { storagePut, storageRemove } from "../storage";
 import { validateCatalogImageBytes } from "./catalogImages";
+import { validateVideoBytes } from "./catalogVideos";
 import { publishPlans, slugify } from "./realEstate";
 
 const PAGE_SIZE = 24;
@@ -70,6 +73,7 @@ function toDTO(row: any, featured: boolean): VehicleDTO {
     sellerType: row.sellerType,
     contactPhone: row.contactPhone,
     images: jsonList(row.images),
+    videos: jsonList(row.videos),
     publishedAt: row.publishedAt ? new Date(row.publishedAt).toISOString() : null,
     updatedAt: new Date(row.updatedAt).toISOString(),
   };
@@ -114,6 +118,12 @@ async function ownVehicle(db: any, userId: number, id: number) {
   return rows[0];
 }
 
+/** Solo videos subidos para ese mismo anuncio. */
+function cleanVideos(id: number, videos: string[]) {
+  const prefix = `/media/catalog/vehicles/${id}/videos/`;
+  return videos.filter(url => url.startsWith(prefix) && /^[A-Za-z0-9/._-]+$/.test(url)).slice(0, MAX_VEHICLE_VIDEOS);
+}
+
 function cleanImages(id: number, images: string[]) {
   const prefix = `/media/catalog/vehicles/${id}/`;
   return images.filter(url => url.startsWith(prefix) && /^[A-Za-z0-9/._-]+$/.test(url)).slice(0, MAX_VEHICLE_IMAGES);
@@ -126,7 +136,7 @@ export async function saveVehicle(user: User, raw: unknown): Promise<OwnVehicleD
   const db = await requireDb();
   const plan = (await publishPlans(db, [user.id])).get(user.id);
   if (!input.id) {
-    const inserted = await db.insert(czVehicles).values({ userId: user.id, slug: `tmp-${crypto.randomUUID()}`, ...columns(input), images: [] });
+    const inserted = await db.insert(czVehicles).values({ userId: user.id, slug: `tmp-${crypto.randomUUID()}`, ...columns(input), images: [], videos: [] });
     const id = Number((Array.isArray(inserted) ? inserted[0] : inserted).insertId);
     await db.update(czVehicles).set({ slug: `${slugify(input.title)}-${id}` }).where(eq(czVehicles.id, id));
     return toOwnDTO(await ownVehicle(db, user.id, id), Boolean(plan?.featured));
@@ -136,7 +146,7 @@ export async function saveVehicle(user: User, raw: unknown): Promise<OwnVehicleD
     fail("CONFLICT", "El anuncio cambió en otra ventana. Recarga y vuelve a intentarlo.");
   const result = await db
     .update(czVehicles)
-    .set({ ...columns(input), images: cleanImages(input.id, input.images), slug: `${slugify(input.title)}-${input.id}`, revision: current.revision + 1 })
+    .set({ ...columns(input), images: cleanImages(input.id, input.images), videos: cleanVideos(input.id, input.videos), slug: `${slugify(input.title)}-${input.id}`, revision: current.revision + 1 })
     .where(and(eq(czVehicles.id, input.id), eq(czVehicles.userId, user.id), eq(czVehicles.revision, current.revision)));
   if (!changed(result)) fail("CONFLICT", "El anuncio cambió en otra ventana. Recarga y vuelve a intentarlo.");
   return toOwnDTO(await ownVehicle(db, user.id, input.id), Boolean(plan?.featured));
@@ -162,6 +172,8 @@ export async function deleteVehicle(user: User, id: number) {
   const db = await requireDb();
   await ownVehicle(db, user.id, id);
   await db.delete(czVehicles).where(and(eq(czVehicles.id, id), eq(czVehicles.userId, user.id)));
+  // Fotos y videos del anuncio: se borran del disco.
+  await storageRemove(`catalog/vehicles/${id}`).catch(error => console.error("[Autos] No se pudieron borrar los archivos:", error));
   return { deleted: true };
 }
 
@@ -231,6 +243,38 @@ async function uploadImage(req: Request, res: Response) {
   }
 }
 
+const VIDEO_EXT: Record<string, string> = { "video/mp4": "mp4", "video/webm": "webm", "video/quicktime": "mov" };
+
+async function uploadVideo(req: Request, res: Response) {
+  try {
+    if (req.headers["x-cz-request"] !== "1") return res.status(412).json({ error: "Falta la cabecera x-cz-request: 1" });
+    const user = await sdk.authenticateRequest(req).catch(() => null);
+    if (!user) return res.status(401).json({ error: "Inicia sesión" });
+    const id = Number(req.params.id);
+    if (!Number.isSafeInteger(id) || id <= 0) return res.status(400).json({ error: "Anuncio inválido" });
+    const mimeType = String(req.headers["content-type"] ?? "").split(";", 1)[0]!.toLowerCase();
+    if (!VIDEO_EXT[mimeType]) return res.status(415).json({ error: "Solo se aceptan videos MP4, WEBM o MOV" });
+    validateVideoBytes(req.body, mimeType);
+    const db = await requireDb();
+    const row = await ownVehicle(db, user.id, id);
+    const videos = jsonList(row.videos);
+    if (videos.length >= MAX_VEHICLE_VIDEOS) return res.status(409).json({ error: `Máximo ${MAX_VEHICLE_VIDEOS} videos por anuncio` });
+    const saved = await storagePut(`catalog/vehicles/${id}/videos/${crypto.randomUUID()}.${VIDEO_EXT[mimeType]}`, req.body, mimeType);
+    await db.update(czVehicles).set({ videos: [...videos, saved.url], revision: row.revision + 1 }).where(eq(czVehicles.id, id));
+    return res.status(201).json({ url: saved.url });
+  } catch (error) {
+    const code = (error as { code?: string }).code;
+    const status = code === "NOT_FOUND" ? 404 : code === "PAYLOAD_TOO_LARGE" ? 413 : code === "UNSUPPORTED_MEDIA_TYPE" ? 415 : 400;
+    return res.status(status).json({ error: error instanceof Error ? error.message : "No se pudo subir el video" });
+  }
+}
+
 export function registerVehicleImageRoutes(app: Express) {
   app.post("/api/vehicles/:id/images", express.raw({ type: () => true, limit: 5 * 1024 * 1024 }), uploadImage);
+  app.post(
+    "/api/vehicles/:id/videos",
+    (req, res, next) =>
+      express.raw({ type: () => true, limit: MAX_VEHICLE_VIDEO_BYTES })(req, res, error => (error ? res.status(413).json({ error: "El video supera el límite de 40 MB" }) : next())),
+    uploadVideo
+  );
 }

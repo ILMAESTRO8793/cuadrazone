@@ -1,0 +1,1 @@
+ALTER TABLE `cz_vehicles` ADD `videos` json;

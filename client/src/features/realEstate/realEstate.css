@@ -79,3 +79,16 @@
 .re-status--published { background: #E3F1EC; color: #0F5132; }
 .re-status--closed { background: #F1EADB; color: #5C430F; }
 @media (max-width: 640px) { .re-filters .re-search { grid-column: auto; } }
+
+/* Fotos y videos en los editores de anuncios */
+.media-title { font-size: 14px; color: #0B1F3B; }
+.media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+.media-grid--video { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+.media-grid--public { gap: 12px; }
+.media-item { position: relative; display: flex; flex-direction: column; gap: 6px; }
+.media-item img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 10px; }
+.media-item video, .media-grid--public video { width: 100%; aspect-ratio: 16 / 9; border-radius: 10px; background: #0B1F3B; }
+.media-cover { position: absolute; top: 6px; left: 6px; padding: 2px 8px; border-radius: 999px; background: #0B1F3B; color: #fff; font-size: 11px; font-weight: 700; }
+.media-remove { min-height: 34px; border: 1px solid #E5A9A9; border-radius: 8px; background: #fff; color: #8A1C1C; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.media-remove:hover { background: #FFF5F5; }
+.re-badge--video { top: auto; bottom: 10px; left: 10px; background: rgba(181, 140, 60, .95); color: #0B1F3B; }

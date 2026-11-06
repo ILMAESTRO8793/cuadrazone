@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useSearch } from "wouter";
-import { Calendar, Fuel, Gauge, MapPin, Phone, Settings2, Star } from "lucide-react";
+import { Calendar, Fuel, Gauge, MapPin, Phone, Settings2, Star, Video } from "lucide-react";
 import { toast } from "sonner";
 import { provinceOptions } from "@shared/marketplace";
 import {
   MAX_VEHICLE_IMAGES,
+  MAX_VEHICLE_VIDEOS,
+  MAX_VEHICLE_VIDEO_BYTES,
   conditionLabels,
   featureLabels,
   fuelLabels,
@@ -51,6 +53,7 @@ function VehicleCard({ v }: { v: VehicleDTO }) {
         {v.images[0] ? <img src={v.images[0]} alt={v.title} loading="lazy" /> : <div className="re-card-nophoto">Sin foto</div>}
         <span className="re-badge">{vehicleOperationLabels[v.operation]}</span>
         {v.featured && <span className="re-badge re-badge--gold"><Star size={12} /> Destacado</span>}
+        {(v.videos ?? []).length > 0 && <span className="re-badge re-badge--video"><Video size={12} /> Con video</span>}
       </div>
       <div className="re-card-body">
         <strong className="re-price">{vehiclePriceLabel(v)}</strong>
@@ -250,6 +253,14 @@ export function VehicleDetailPage({ slug }: { slug: string }) {
               ))}
             </div>
           )}
+          {(v.videos ?? []).length > 0 && (
+            <section className="re-section">
+              <h2>Videos</h2>
+              <div className="media-grid media-grid--video media-grid--public">
+                {v.videos.map((src, i) => <video key={src} src={src} controls preload="metadata" playsInline aria-label={`Video ${i + 1} de ${v.title}`} />)}
+              </div>
+            </section>
+          )}
           <section className="re-section">
             <h2>Descripción</h2>
             <p className="re-description">{v.description}</p>
@@ -287,13 +298,13 @@ type Form = {
   fuel: (typeof fuels)[number]; color: string; engine: string; doors: string; title: string; description: string; price: string;
   negotiable: boolean; titleInSellerName: boolean; rentPeriod: "" | RentPeriod; deposit: string; minDriverAge: string;
   features: string[]; province: string; district: string; sellerType: "particular" | "concesionario" | "rentadora";
-  contactPhone: string; images: string[];
+  contactPhone: string; images: string[]; videos: string[];
 };
 const emptyForm: Form = {
   operation: "venta", vehicleType: "sedan", make: "Toyota", otherMake: "", model: "", year: String(THIS_YEAR - 3), condition: "usado",
   mileage: "", transmission: "automatica", fuel: "gasolina", color: "", engine: "", doors: "4", title: "", description: "", price: "",
   negotiable: false, titleInSellerName: true, rentPeriod: "", deposit: "", minDriverAge: "", features: [], province: "Panamá",
-  district: "", sellerType: "particular", contactPhone: "", images: [],
+  district: "", sellerType: "particular", contactPhone: "", images: [], videos: [],
 };
 function formFrom(v: OwnVehicleDTO): Form {
   return {
@@ -302,7 +313,7 @@ function formFrom(v: OwnVehicleDTO): Form {
     fuel: v.fuel, color: v.color, engine: v.engine, doors: v.doors == null ? "" : String(v.doors), title: v.title, description: v.description,
     price: String(v.priceCents / 100), negotiable: v.negotiable, titleInSellerName: v.titleInSellerName, rentPeriod: v.rentPeriod ?? "",
     deposit: v.depositCents == null ? "" : String(v.depositCents / 100), minDriverAge: v.minDriverAge == null ? "" : String(v.minDriverAge),
-    features: v.features, province: v.province, district: v.district, sellerType: v.sellerType, contactPhone: v.contactPhone, images: v.images,
+    features: v.features, province: v.province, district: v.district, sellerType: v.sellerType, contactPhone: v.contactPhone, images: v.images, videos: v.videos ?? [],
   };
 }
 function normalizePhone(v: string) {
@@ -333,7 +344,7 @@ function MineContent() {
     priceCents: centsFrom(x.price) ?? 0, negotiable: x.negotiable, titleInSellerName: x.titleInSellerName,
     rentPeriod: x.operation === "alquiler" ? x.rentPeriod || null : null, depositCents: x.deposit.trim() ? centsFrom(x.deposit) : null,
     minDriverAge: intOrNull(x.minDriverAge), features: x.features, province: x.province, district: x.district,
-    sellerType: x.sellerType, contactPhone: normalizePhone(x.contactPhone), images: x.images,
+    sellerType: x.sellerType, contactPhone: normalizePhone(x.contactPhone), images: x.images, videos: x.videos,
   });
 
   async function submit(e: React.FormEvent) {
@@ -360,6 +371,33 @@ function MineContent() {
       if (updated) setForm(formFrom(updated));
       toast.success("Fotos agregadas");
     } catch (error) { toast.error(errorText(error)); } finally { setUploading(false); }
+  }
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+  async function uploadVideo(files: FileList | null) {
+    const file = files?.[0];
+    if (!form?.id || !file) return;
+    if (file.size > MAX_VEHICLE_VIDEO_BYTES) { toast.error("El video supera el límite de 40 MB"); return; }
+    setUploadingVideo(true);
+    try {
+      const r = await fetch(`/api/vehicles/${form.id}/videos`, { method: "POST", credentials: "include", headers: { "Content-Type": file.type || "video/mp4", "x-cz-request": "1" }, body: file });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(data.error || "No se pudo subir el video");
+      const fresh = await utils.vehicles.mine.fetch();
+      const updated = fresh.vehicles.find(x => x.id === form.id);
+      if (updated) setForm(formFrom(updated));
+      toast.success("Video agregado");
+    } catch (error) { toast.error(errorText(error)); } finally { setUploadingVideo(false); }
+  }
+  /** Quita una foto o un video y guarda el anuncio al instante. */
+  async function removeMedia(kind: "images" | "videos", src: string) {
+    if (!form?.id) return;
+    const next = { ...form, [kind]: form[kind].filter(x => x !== src) };
+    try {
+      const saved = await save.mutateAsync(payload(next));
+      setForm(formFrom(saved));
+      await utils.vehicles.mine.invalidate();
+      toast.success(kind === "images" ? "Foto quitada" : "Video quitado");
+    } catch (error) { toast.error(errorText(error)); }
   }
   async function changeStatus(id: number, status: "published" | "paused" | "closed" | "draft") {
     try { await setStatus.mutateAsync({ id, status }); await utils.vehicles.mine.invalidate(); toast.success(status === "published" ? "¡Anuncio publicado!" : "Estado actualizado"); }
@@ -435,12 +473,37 @@ function MineContent() {
           </div>
           {form.id && (
             <fieldset>
-              <legend>Fotos ({form.images.length} de {MAX_VEHICLE_IMAGES})</legend>
-              <div className="re-thumbs re-thumbs--edit">{form.images.map(src => <img key={src} src={src} alt="" />)}</div>
+              <legend>Fotos y videos del vehículo</legend>
+              <p className="re-muted re-small">Fotos por fuera, por dentro, del motor y del tablero con el kilometraje. Un video corto del auto encendido y de un recorrido ayuda mucho a vender o alquilar.</p>
+              <strong className="media-title">Fotos ({form.images.length} de {MAX_VEHICLE_IMAGES})</strong>
+              <div className="media-grid">
+                {form.images.map((src, i) => (
+                  <div key={src} className="media-item">
+                    <img src={src} alt={`Foto ${i + 1}`} />
+                    {i === 0 && <span className="media-cover">Portada</span>}
+                    <button type="button" className="media-remove" disabled={save.isPending} onClick={() => void removeMedia("images", src)} aria-label={`Quitar foto ${i + 1}`}>Quitar</button>
+                  </div>
+                ))}
+              </div>
               {form.images.length < MAX_VEHICLE_IMAGES && (
                 <label className="re-upload">
                   {uploading ? "Subiendo…" : "+ Agregar fotos (JPG, PNG o WEBP, máx. 5 MB)"}
                   <input type="file" accept="image/jpeg,image/png,image/webp" multiple disabled={uploading} onChange={e => void upload(e.target.files)} />
+                </label>
+              )}
+              <strong className="media-title">Videos ({form.videos.length} de {MAX_VEHICLE_VIDEOS})</strong>
+              <div className="media-grid media-grid--video">
+                {form.videos.map((src, i) => (
+                  <div key={src} className="media-item">
+                    <video src={src} controls preload="metadata" playsInline aria-label={`Video ${i + 1}`} />
+                    <button type="button" className="media-remove" disabled={save.isPending} onClick={() => void removeMedia("videos", src)} aria-label={`Quitar video ${i + 1}`}>Quitar</button>
+                  </div>
+                ))}
+              </div>
+              {form.videos.length < MAX_VEHICLE_VIDEOS && (
+                <label className="re-upload">
+                  {uploadingVideo ? "Subiendo video…" : "+ Agregar video (MP4, WEBM o MOV, máx. 40 MB)"}
+                  <input type="file" accept="video/mp4,video/webm,video/quicktime" disabled={uploadingVideo} onChange={e => void uploadVideo(e.target.files)} />
                 </label>
               )}
             </fieldset>

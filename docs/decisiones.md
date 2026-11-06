@@ -273,3 +273,9 @@ Decisiones del propietario: las ventas pasadas y los pagos se conservan sin dato
 - Se borra para siempre: tienda, productos, variantes, fotos y videos (también del disco), servicios y sus solicitudes, reseñas, preguntas, favoritos, carritos, conversaciones y mensajes del vendedor, la solicitud de vendedor, sus documentos (cédula, Yappy), su historial y el plan elegido. Correo de confirmación.
 - Se conserva: los pedidos pasados como «Tienda eliminada» (migración 0019: `cz_orders.storeId` y `cz_order_items.productId/variantId` pasan a admitir vacío, `cz_orders.storeName`), con título y precio; solo los ve el comprador. Los pagos de mensualidades y comisiones quedan como registro contable. La cuenta sigue y puede abrir una tienda nueva desde cero.
 - Arreglo encontrado en las pruebas: las solicitudes de comercio exigían categorías de servicio (validación vieja); ahora cada tipo valida sus propias categorías.
+
+## Videos en autos — 6 de noviembre de 2026
+
+- Los anuncios de autos (venta y alquiler) aceptan hasta 3 videos además de las 12 fotos (`cz_vehicles.videos`, migración 0020). MP4, WEBM o MOV, máximo 40 MB, con verificación de la firma del archivo (`/api/vehicles/:id/videos`); solo el dueño del anuncio puede subir.
+- En el editor, sección «Fotos y videos del vehículo»: la primera foto es la portada y cada foto o video tiene «Quitar» (guarda al instante). En la ficha pública los videos van debajo de las fotos; en la búsqueda, etiqueta «Con video».
+- Al borrar un anuncio de autos se borran también sus fotos y videos del disco.

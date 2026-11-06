@@ -249,6 +249,8 @@ export const czVehicles = mysqlTable(
     sellerType: mysqlEnum("sellerType", ["particular", "concesionario", "rentadora"]).notNull().default("particular"),
     contactPhone: varchar("contactPhone", { length: 20 }).notNull(),
     images: json("images").$type<string[]>(),
+    /** Videos del vehículo (recorrido, motor encendido, interior). */
+    videos: json("videos").$type<string[]>(),
     publishedAt: timestamp("publishedAt"),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
