@@ -5,7 +5,11 @@
  */
 import { safeReturnPath } from "./const";
 
-const PUBLIC_PATHS = [/^\/entrar\/?$/, /^\/ayuda\/?$/, /^\/legal\/[a-z0-9-]+\/?$/];
+const PUBLIC_PATHS = [
+  /^\/entrar\/?$/,
+  /^\/ayuda\/?$/,
+  /^\/legal\/[a-z0-9-]+\/?$/,
+];
 
 /** ¿Se puede ver esta ruta sin haber iniciado sesión? */
 export function isPublicPath(pathname: string): boolean {

@@ -38,7 +38,8 @@ import { loginRedirectFor } from "@shared/accessGate";
  */
 type Section = "market" | "services" | "estate" | "cars" | "jobs" | "home";
 const SERVICES_PATH = /^\/(servicios|servicio|eventos|evento)(\/|$)/;
-const MARKET_PATH = /^\/(mercado|articulo|catalogo|libros|producto|tiendas|tienda)(\/|$)/;
+const MARKET_PATH =
+  /^\/(mercado|articulo|catalogo|libros|producto|tiendas|tienda)(\/|$)/;
 export function sectionFor(path: string): Section {
   if (/^\/bienes-raices(\/|$)/.test(path)) return "estate";
   if (/^\/autos(\/|$)/.test(path)) return "cars";
@@ -160,7 +161,9 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
       </a>
       <div className="utility-strip">
         <div className="container utility-inner">
-          <span className="utility-motto">Unidos por la fe. Conectados por lo que hacemos.</span>
+          <span className="utility-motto">
+            Unidos por la fe. Conectados por lo que hacemos.
+          </span>
           <VerseOfDay />
           <span className="utility-right">
             Panamá <span className="utility-dot" /> USD{" "}
@@ -346,7 +349,13 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
               </Link>
             ) : (
               <Link
-                href={location === "/entrar" ? "/entrar" : loginRedirectFor(`${location}${currentSearch ? `?${currentSearch.replace(/^\?/, "")}` : ""}`)}
+                href={
+                  location === "/entrar"
+                    ? "/entrar"
+                    : loginRedirectFor(
+                        `${location}${currentSearch ? `?${currentSearch.replace(/^\?/, "")}` : ""}`
+                      )
+                }
                 className="login-cta"
               >
                 <UserRound size={18} aria-hidden="true" />
@@ -406,8 +415,26 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
               ))}
             </nav>
             {section !== "home" && (
-              <Link className="section-switch" href={section === "market" ? "/servicios" : section === "estate" || section === "cars" || section === "jobs" ? "/" : "/mercado"}>
-                {section === "market" ? "Ir a Servicios" : section === "estate" || section === "cars" || section === "jobs" ? "Volver al inicio" : "Ir a Comercios"} <ArrowRight size={14} />
+              <Link
+                className="section-switch"
+                href={
+                  section === "market"
+                    ? "/servicios"
+                    : section === "estate" ||
+                        section === "cars" ||
+                        section === "jobs"
+                      ? "/"
+                      : "/mercado"
+                }
+              >
+                {section === "market"
+                  ? "Ir a Servicios"
+                  : section === "estate" ||
+                      section === "cars" ||
+                      section === "jobs"
+                    ? "Volver al inicio"
+                    : "Ir a Comercios"}{" "}
+                <ArrowRight size={14} />
               </Link>
             )}
             {auth.user?.role === "admin" && (
@@ -466,7 +493,13 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
         <div className="container footer-top">
           <div className="footer-brand">
             <Link href="/" aria-label="Inicio CuadraZone">
-              <img className="footer-logo" src={assets.logo} alt="CuadraZone" width={230} height={75} />
+              <img
+                className="footer-logo"
+                src={assets.logo}
+                alt="CuadraZone"
+                width={230}
+                height={75}
+              />
             </Link>
             <p>
               Un espacio para descubrir, comprar y apoyar el talento de nuestra
@@ -525,8 +558,10 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
               ))}
             </ul>
             <p>
-              © 2026 CuadraZone · {LEGAL_OWNER.name} · RUC {LEGAL_OWNER.ruc} DV {LEGAL_OWNER.dv} ·{" "}
-              <a href={`mailto:${LEGAL_OWNER.email}`}>{LEGAL_OWNER.email}</a>. Todos los derechos reservados.
+              © 2026 CuadraZone · {LEGAL_OWNER.name} · RUC {LEGAL_OWNER.ruc} DV{" "}
+              {LEGAL_OWNER.dv} ·{" "}
+              <a href={`mailto:${LEGAL_OWNER.email}`}>{LEGAL_OWNER.email}</a>.
+              Todos los derechos reservados.
             </p>
           </div>
         </nav>
