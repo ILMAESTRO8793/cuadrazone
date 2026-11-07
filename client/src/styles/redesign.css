@@ -906,9 +906,14 @@ textarea:focus-visible {
   grid-row: 1;
   display: block;
   position: relative;
-  aspect-ratio: 16 / 10;
+  /* Foto más baja: se ve completa la escena sin ocupar media pantalla */
+  aspect-ratio: 5 / 2;
+  max-height: 190px;
   overflow: hidden;
   background: var(--door-wash, var(--cz-surface));
+}
+.gate-photo img {
+  object-position: center 40%;
 }
 .gate-photo img {
   width: 100%;
