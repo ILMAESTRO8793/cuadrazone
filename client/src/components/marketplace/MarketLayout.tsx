@@ -29,6 +29,7 @@ import {
 import { useMarket } from "@/contexts/MarketContext";
 import VerseOfDay from "./VerseOfDay";
 import { footerLegalLinks, LEGAL_OWNER } from "@/data/legal";
+import { loginRedirectFor } from "@shared/accessGate";
 
 /*
  * La portada separa dos mundos: el Marketplace (productos físicos y libros) y
@@ -331,17 +332,27 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
             )}
           </div>
           <div className="header-actions">
-            <Link
-              href="/mi-cuenta"
-              className="account-link"
-              aria-label="Mi cuenta"
-            >
-              <UserRound size={23} />
-              <span>
-                <small>{auth.user ? `Hola, ${(auth.user.name || auth.user.email || "").split(/[ @]/)[0] || "de nuevo"}` : "Hola, explora"}</small>
-                <strong>Mi cuenta</strong>
-              </span>
-            </Link>
+            {auth.user ? (
+              <Link
+                href="/mi-cuenta"
+                className="account-link"
+                aria-label="Mi cuenta"
+              >
+                <UserRound size={23} />
+                <span>
+                  <small>{`Hola, ${(auth.user.name || auth.user.email || "").split(/[ @]/)[0] || "de nuevo"}`}</small>
+                  <strong>Mi cuenta</strong>
+                </span>
+              </Link>
+            ) : (
+              <Link
+                href={location === "/entrar" ? "/entrar" : loginRedirectFor(`${location}${currentSearch ? `?${currentSearch.replace(/^\?/, "")}` : ""}`)}
+                className="login-cta"
+              >
+                <UserRound size={18} aria-hidden="true" />
+                Iniciar sesión
+              </Link>
+            )}
             <Link
               href="/mi-lista"
               className="header-icon"
@@ -455,7 +466,7 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
         <div className="container footer-top">
           <div className="footer-brand">
             <Link href="/" aria-label="Inicio CuadraZone">
-              <img className="footer-logo" src="/assets/logo-cuadrazone-fondo.png" alt="CuadraZone" width={230} height={80} />
+              <img className="footer-logo" src={assets.logo} alt="CuadraZone" width={230} height={75} />
             </Link>
             <p>
               Un espacio para descubrir, comprar y apoyar el talento de nuestra

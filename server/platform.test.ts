@@ -97,7 +97,7 @@ describe("Google", () => {
         String(input).startsWith(base) ? realFetch(input, init) : request(input, init));
       const forged = await fetch(`${base}/api/auth/google/callback?code=abc&state=${location.searchParams.get("state")}`, { redirect: "manual" });
       expect(forged.status).toBe(302);
-      expect(forged.headers.get("location")).toBe("/?login_error=estado");
+      expect(forged.headers.get("location")).toBe("/entrar?login_error=estado");
       expect(request).not.toHaveBeenCalled();
     } finally {
       server.close();

@@ -506,6 +506,47 @@ textarea:focus-visible {
 .live-panel-heading .btn {
   white-space: nowrap;
 }
+/* «Iniciar sesión»: visible arriba a la derecha para quien no tiene sesión */
+.login-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: var(--cz-gold-light);
+  color: var(--cz-navy-deep);
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 6px 16px -8px rgba(0, 0, 0, 0.6);
+  transition:
+    background-color var(--cz-fast) var(--cz-ease-out),
+    transform var(--cz-fast) var(--cz-ease-out);
+}
+.login-cta:hover {
+  background: #f3dea4;
+}
+.login-cta:active {
+  transform: scale(0.97);
+}
+.login-cta:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+@media (max-width: 560px) {
+  .login-cta {
+    min-height: 38px;
+    padding: 0 12px;
+    font-size: 13px;
+  }
+}
+.footer-brand img.footer-logo {
+  width: 210px;
+  height: auto;
+  border-radius: 0;
+}
+
 .header-actions .count-badge {
   font-family: var(--cz-font-body);
   font-variant-numeric: tabular-nums;
@@ -733,11 +774,13 @@ textarea:focus-visible {
   transition: transform var(--cz-slow) var(--cz-ease-out);
   z-index: -1;
 }
+/* Misma letra que el título de la portada («¿Qué estás buscando hoy?») */
 .gate .gate-choices .gate-choice strong {
-  font-family: var(--cz-font-body);
-  font-size: clamp(17px, 1.45vw, 21px);
-  font-weight: 800;
-  letter-spacing: 0.06em;
+  font-family: var(--cz-font-display);
+  font-optical-sizing: auto;
+  font-size: clamp(19px, 1.6vw, 24px);
+  font-weight: 600;
+  letter-spacing: 0.02em;
   line-height: 1.15;
   color: var(--cz-navy);
 }

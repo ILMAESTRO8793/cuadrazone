@@ -43,6 +43,8 @@ import {
   LegalPage,
 } from "./pages/marketplace/SupportingPages";
 import { getPageMeta } from "./lib/pageMeta";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { isPublicPath, loginRedirectFor } from "@shared/accessGate";
 import { AccountPage } from "./features/membership/AccountPage";
 import { SellerApplicationPage } from "./features/membership/SellerApplicationPage";
 import { SellerPlanPage } from "./features/membership/SellerPlanPage";
@@ -82,11 +84,26 @@ function NotFound() {
     </div>
   );
 }
+/**
+ * Para ver CuadraZone hay que tener cuenta. El servidor ya redirige al cargar
+ * una página; esto cubre la navegación dentro de la app y el cierre de sesión.
+ */
+function RequireAccount() {
+  const [location, navigate] = useLocation();
+  const search = useSearch();
+  const { ready, loading, isAuthenticated } = useAuth();
+  useEffect(() => {
+    if (!ready || loading || isAuthenticated || isPublicPath(location)) return;
+    navigate(loginRedirectFor(`${location}${search ? `?${search.replace(/^\?/, "")}` : ""}`), { replace: true });
+  }, [ready, loading, isAuthenticated, location, search, navigate]);
+  return null;
+}
 function Router() {
   const search = useSearch();
   return (
     <>
       <PageMetadata />
+      <RequireAccount />
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/mercado" component={LiveCatalogPage} />

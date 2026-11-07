@@ -52,7 +52,7 @@ function sameNonce(a: string, b: string | undefined) {
 }
 
 function loginError(res: Response, code: string) {
-  res.redirect(302, `/?login_error=${encodeURIComponent(code)}`);
+  res.redirect(302, `/entrar?login_error=${encodeURIComponent(code)}`);
 }
 
 export function registerOAuthRoutes(app: Express) {

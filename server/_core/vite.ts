@@ -10,6 +10,23 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import viteConfig from "../../vite.config";
 import { renderPage } from "../../client/src/entry-server";
+import { parse as parseCookieHeader } from "cookie";
+import type { Request } from "express";
+import { COOKIE_NAME } from "@shared/const";
+import { isPublicPath, loginRedirectFor } from "@shared/accessGate";
+import { sdk } from "./sdk";
+
+/**
+ * Para ver CuadraZone hay que iniciar sesión. Si quien pide una página no
+ * tiene sesión válida, devuelve a dónde redirigirlo; si puede pasar, null.
+ */
+export async function loginRedirectIfNeeded(req: Request): Promise<string | null> {
+  const pathname = req.originalUrl.split("?")[0] || "/";
+  if (isPublicPath(pathname)) return null;
+  const cookies = parseCookieHeader(req.headers.cookie ?? "");
+  const session = await sdk.verifySession(cookies[COOKIE_NAME]);
+  return session ? null : loginRedirectFor(req.originalUrl);
+}
 
 function escapeHtml(value: string) {
   return value
@@ -72,6 +89,11 @@ export async function setupVite(app: Express, server: Server) {
       res.status(404).end();
       return;
     }
+    const loginRedirect = await loginRedirectIfNeeded(req);
+    if (loginRedirect) {
+      res.set("Cache-Control", "no-store").redirect(302, loginRedirect);
+      return;
+    }
     try {
       const clientTemplate = path.resolve(
         import.meta.dirname,
@@ -118,6 +140,11 @@ export function serveStatic(app: Express) {
     }
     if (missingAsset(req.originalUrl)) {
       res.status(404).end();
+      return;
+    }
+    const loginRedirect = await loginRedirectIfNeeded(req);
+    if (loginRedirect) {
+      res.set("Cache-Control", "no-store").redirect(302, loginRedirect);
       return;
     }
     try {
