@@ -1370,6 +1370,33 @@ textarea:focus-visible {
   letter-spacing: -0.02em;
   color: var(--cz-navy);
 }
+/*
+ * Misma letra de títulos en todas las secciones (Comercios, tiendas, fichas,
+ * cuentas…), igual que en Servicios: las hojas antiguas forzaban Manrope.
+ */
+.live-page h1,
+.live-page h2,
+.live-page h3,
+.market-page h1,
+.market-page h2,
+.market-page h3,
+.cz-demo-dialog h2 {
+  font-family: var(--cz-font-display);
+  font-optical-sizing: auto;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--cz-navy);
+}
+.live-page h1 {
+  letter-spacing: -0.025em;
+}
+.live-page h2 {
+  font-size: 23px;
+}
+.live-page h3 {
+  font-size: 18px;
+}
+
 .filter-panel,
 .member-card,
 .member-state {
