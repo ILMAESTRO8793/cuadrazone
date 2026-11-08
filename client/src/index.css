@@ -1889,15 +1889,7 @@ img {
     padding-bottom: 60px;
   }
 }
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
-  * {
-    animation: none !important;
-    transition: none !important;
-  }
-}
+/* «Menos movimiento»: la regla está en styles/redesign.css, que carga después. */
 
 @media (max-width: 560px) {
   .seller-invite {

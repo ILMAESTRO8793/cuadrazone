@@ -1826,22 +1826,18 @@
 .gate-text { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .gate-choice strong { font-size: clamp(28px, 4vw, 44px); line-height: 1; letter-spacing: .02em; font-weight: 800; }
 .gate-detail { font-size: 16px; line-height: 1.5; }
-.gate-icon { display: inline-flex; width: 72px; height: 72px; align-items: center; justify-content: center; border-radius: 20px; }
 .gate-arrow { display: inline-flex; width: 52px; height: 52px; align-items: center; justify-content: center; border-radius: 999px; }
 .gate-choice--market { background: #0B1F3B; color: #FFFFFF; }
-.gate-choice--market .gate-icon { background: rgba(226, 184, 102, .18); color: #E2B866; }
 .gate-choice--market .gate-detail { color: #D5DCE6; }
 .gate-choice--market .gate-arrow { background: #B58C3C; color: #0B1F3B; }
 .gate-choice--services { background: #FFFFFF; color: #0B1F3B; border: 2px solid #0B1F3B; }
-.gate-choice--services .gate-icon { background: #E3EAF2; color: #0B1F3B; }
 .gate-choice--services .gate-detail { color: #4A5568; }
 .gate-choice--services .gate-arrow { background: #0B1F3B; color: #FFFFFF; }
 .gate-choice--store { background: #B58C3C; color: #0B1F3B; }
-.gate-choice--store .gate-icon { background: rgba(11, 31, 59, .12); color: #0B1F3B; }
 .gate-choice--store .gate-detail { color: #2B2414; }
 .gate-choice--store .gate-arrow { background: #0B1F3B; color: #E2B866; }
 .gate-small { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; margin-top: 6px; }
-@media (max-width: 640px) { .gate { padding: 36px 0 44px; } .gate-choice { grid-template-columns: auto minmax(0, 1fr); gap: 16px; min-height: 0; padding: 22px 20px; } .gate-icon { width: 56px; height: 56px; border-radius: 16px; } .gate-arrow { display: none; } .gate-detail { font-size: 15px; } .gate-choice strong { font-size: 24px; letter-spacing: .01em; } }
+@media (max-width: 640px) { .gate { padding: 36px 0 44px; } .gate-choice { grid-template-columns: auto minmax(0, 1fr); gap: 16px; min-height: 0; padding: 22px 20px; } .gate-arrow { display: none; } .gate-detail { font-size: 15px; } .gate-choice strong { font-size: 24px; letter-spacing: .01em; } }
 
 /* Cambiar entre Marketplace y Servicios desde el menú */
 .section-switch { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; margin-right: 12px; padding: 6px 14px; border: 1px solid #E2B866; border-radius: 999px; color: #E2B866; font-size: 13px; font-weight: 700; text-decoration: none; white-space: nowrap; }
@@ -1884,7 +1880,6 @@
   .gate-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; max-width: none; }
   .gate-choices .gate-choice { grid-template-columns: auto minmax(0, 1fr); min-height: 0; padding: 20px 22px; gap: 16px; }
   .gate-choices .gate-arrow { display: none; }
-  .gate-choices .gate-icon { width: 56px; height: 56px; border-radius: 16px; }
   .gate-choices .gate-choice strong { font-size: clamp(22px, 2vw, 30px); }
   .gate-choices .gate-detail { font-size: 14.5px; }
 
@@ -1892,9 +1887,6 @@
 }
 .gate-choice--estate, .gate-choice--cars, .gate-choice--jobs { background: rgba(255, 255, 255, .96); color: #0B1F3B; border: 2px solid rgba(226, 184, 102, .85); }
 .gate-choice--estate .gate-detail, .gate-choice--cars .gate-detail, .gate-choice--jobs .gate-detail { color: #4A5568; }
-.gate-choice--estate .gate-icon { background: #E3F1EC; color: #0F5132; }
-.gate-choice--cars .gate-icon { background: #E3EAF2; color: #0B1F3B; }
-.gate-choice--jobs .gate-icon { background: #F1EADB; color: #7A5A1C; }
 .gate-choice--estate .gate-arrow, .gate-choice--cars .gate-arrow, .gate-choice--jobs .gate-arrow { background: #0B1F3B; color: #fff; }
 
 /* Pantallas grandes: los 6 botones en 3 columnas a todo el ancho */

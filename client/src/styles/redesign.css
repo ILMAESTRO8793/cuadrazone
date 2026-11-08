@@ -789,18 +789,6 @@ textarea:focus-visible {
   line-height: 1.5;
   color: var(--cz-ink-2);
 }
-.gate .gate-choices .gate-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 14px;
-  background: var(--door-wash, var(--cz-gold-wash));
-  color: var(--door-accent, var(--cz-gold));
-  transition: transform var(--cz-base) var(--cz-ease-out);
-}
-.gate .gate-choices .gate-icon svg {
-  width: 28px;
-  height: 28px;
-}
 .gate .gate-choices .gate-arrow {
   display: inline-flex;
   width: 38px;
@@ -867,9 +855,6 @@ textarea:focus-visible {
   .gate .gate-choices .gate-choice:hover::before {
     transform: scaleX(1);
   }
-  .gate .gate-choices .gate-choice:hover .gate-icon {
-    transform: scale(1.06) rotate(-3deg);
-  }
   .gate .gate-choices .gate-choice:hover .gate-arrow {
     transform: translateX(3px);
     background: var(--cz-navy);
@@ -886,6 +871,23 @@ textarea:focus-visible {
 .gate .gate-choices .gate-choice:active {
   transform: translateY(-1px) scale(0.99);
   transition-duration: var(--cz-fast);
+}
+/* Con menos movimiento la tarjeta no salta ni la foto se acerca: el borde, la
+   sombra y la flecha que cambia de color bastan para saber dónde estás. */
+@media (prefers-reduced-motion: reduce) {
+  html .gate .gate-choices .gate-choice:hover,
+  html .gate .gate-choices .gate-choice:active,
+  html .gate .gate-choices .gate-choice:hover .gate-arrow,
+  html .gate .gate-choices .gate-choice:hover .gate-photo img {
+    transform: none;
+  }
+  html .gate .gate-choices .gate-choice::before {
+    transform: scaleX(1);
+    opacity: 0;
+  }
+  html .gate .gate-choices .gate-choice:hover::before {
+    opacity: 1;
+  }
 }
 
 /* Tarjetas con foto real: la foto arriba, el texto debajo */
@@ -1077,10 +1079,6 @@ textarea:focus-visible {
     padding: 26px;
     row-gap: 22px;
   }
-  .gate .gate-choices .gate-icon {
-    grid-column: 1;
-    grid-row: 1;
-  }
   .gate .gate-choices .gate-arrow {
     grid-column: 2;
     grid-row: 1;
@@ -1115,15 +1113,6 @@ textarea:focus-visible {
     min-height: 0;
     padding: 18px 16px;
     gap: 14px;
-  }
-  .gate .gate-choices .gate-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-  }
-  .gate .gate-choices .gate-icon svg {
-    width: 24px;
-    height: 24px;
   }
   .gate .gate-choices .gate-arrow {
     display: inline-flex;
@@ -1675,13 +1664,30 @@ textarea {
   }
 }
 
-/* Quien pide menos movimiento ve todo en su sitio, sin desplazamientos. */
+/*
+ * Quien pide menos movimiento ve todo en su sitio: nada entra animado ni se
+ * desplaza, pero los cambios de color, borde y sombra siguen avisando de lo
+ * que pasa (pasar el ratón, enfocar, abrir un aviso), y los indicadores de
+ * carga siguen girando, más despacio, para que se note que algo está pasando.
+ */
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
   *,
   *::before,
   *::after {
     animation: none !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
+    transition-property: color, background-color, border-color, outline-color,
+      text-decoration-color, box-shadow, opacity, fill, stroke !important;
+  }
+  .animate-spin {
+    animation: spin 1.6s linear infinite !important;
+  }
+  .seller-catalog-spin {
+    animation: seller-catalog-spin 1.6s linear infinite !important;
+  }
+  .member-spin {
+    animation: member-spin 1.6s linear infinite !important;
   }
 }
