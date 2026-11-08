@@ -11,12 +11,26 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 function readableError(response: Response) {
-  if (response.status === 401) return "Tu sesión expiró. Inicia sesión nuevamente.";
-  if (response.status === 403) return "No tienes permiso para ver este documento.";
+  if (response.status === 401)
+    return "Tu sesión expiró. Inicia sesión nuevamente.";
+  if (response.status === 403)
+    return "No tienes permiso para ver este documento.";
   return `No se pudo abrir el documento (HTTP ${response.status}).`;
 }
 
-export function DocumentViewer({ document }: { document: DocumentSnapshot }) {
+/**
+ * Abre un archivo privado (documento de verificación o comprobante de pago) en
+ * un diálogo, descargándolo con la sesión. `src` cambia la ruta de descarga.
+ */
+export function DocumentViewer({
+  document,
+  src,
+  label = "Mostrar documento",
+}: {
+  document: Pick<DocumentSnapshot, "id" | "fileName" | "mimeType">;
+  src?: string;
+  label?: string;
+}) {
   const [open, setOpen] = useState(false);
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -37,7 +51,9 @@ export function DocumentViewer({ document }: { document: DocumentSnapshot }) {
     let active = true;
     setLoading(true);
     setError(null);
-    void authFetch(`/api/verification/documents/${document.id}`, { signal: controller.signal })
+    void authFetch(src ?? `/api/verification/documents/${document.id}`, {
+      signal: controller.signal,
+    })
       .then(async response => {
         if (!response.ok) throw new Error(readableError(response));
         const blob = await response.blob();
@@ -49,7 +65,10 @@ export function DocumentViewer({ document }: { document: DocumentSnapshot }) {
       })
       .catch(reason => {
         if (!active || reason?.name === "AbortError") return;
-        const message = reason instanceof Error ? reason.message : "No se pudo abrir el documento.";
+        const message =
+          reason instanceof Error
+            ? reason.message
+            : "No se pudo abrir el documento.";
         setError(message);
         toast.error("Documento no disponible", { description: message });
       })
@@ -65,25 +84,72 @@ export function DocumentViewer({ document }: { document: DocumentSnapshot }) {
         return null;
       });
     };
-  }, [document.id, open]);
+  }, [document.id, open, src]);
 
   const close = () => setOpen(false);
-  const isImage = document.mimeType === "image/png" || document.mimeType === "image/jpeg" || document.mimeType === "image/webp";
+  const isImage =
+    document.mimeType === "image/png" ||
+    document.mimeType === "image/jpeg" ||
+    document.mimeType === "image/webp";
 
   return (
     <>
-      <button className="member-button member-button--small member-button--outline" type="button" onClick={() => setOpen(true)}>
-        <Eye size={15} aria-hidden="true" /> Mostrar documento
+      <button
+        className="member-button member-button--small member-button--outline"
+        type="button"
+        onClick={() => setOpen(true)}
+      >
+        <Eye size={15} aria-hidden="true" /> {label}
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="member-document-dialog">
           <DialogTitle>Documento: {document.fileName}</DialogTitle>
-          <DialogDescription>Vista privada para el titular de la solicitud o un administrador.</DialogDescription>
+          <DialogDescription>
+            Vista privada para el titular de la solicitud o un administrador.
+          </DialogDescription>
           <div className="member-document-viewer" aria-live="polite">
-            {loading && <div className="member-viewer-state"><LoaderCircle className="member-spin" size={26} /> Cargando documento…</div>}
-            {!loading && error && <div className="member-viewer-state member-viewer-state--error"><p>{error}</p><button className="member-button member-button--outline" type="button" onClick={close}>Cerrar</button></div>}
-            {!loading && !error && objectUrl && isImage && <img className="member-document-image" src={objectUrl} alt={`Vista previa de ${document.fileName}`} />}
-            {!loading && !error && objectUrl && !isImage && <><iframe className="member-document-pdf" title={`Vista previa de ${document.fileName}`} src={objectUrl} sandbox="" /><a className="member-inline-link member-download-link" href={objectUrl} download={document.fileName}>Descargar una copia</a></>}
+            {loading && (
+              <div className="member-viewer-state">
+                <LoaderCircle className="member-spin" size={26} /> Cargando
+                documento…
+              </div>
+            )}
+            {!loading && error && (
+              <div className="member-viewer-state member-viewer-state--error">
+                <p>{error}</p>
+                <button
+                  className="member-button member-button--outline"
+                  type="button"
+                  onClick={close}
+                >
+                  Cerrar
+                </button>
+              </div>
+            )}
+            {!loading && !error && objectUrl && isImage && (
+              <img
+                className="member-document-image"
+                src={objectUrl}
+                alt={`Vista previa de ${document.fileName}`}
+              />
+            )}
+            {!loading && !error && objectUrl && !isImage && (
+              <>
+                <iframe
+                  className="member-document-pdf"
+                  title={`Vista previa de ${document.fileName}`}
+                  src={objectUrl}
+                  sandbox=""
+                />
+                <a
+                  className="member-inline-link member-download-link"
+                  href={objectUrl}
+                  download={document.fileName}
+                >
+                  Descargar una copia
+                </a>
+              </>
+            )}
           </div>
         </DialogContent>
       </Dialog>

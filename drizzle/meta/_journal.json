@@ -148,6 +148,13 @@
       "when": 1793939069350,
       "tag": "0020_videos_autos",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "5",
+      "when": 1794101361742,
+      "tag": "0021_pagos_vendedores",
+      "breakpoints": true
     }
   ]
 }

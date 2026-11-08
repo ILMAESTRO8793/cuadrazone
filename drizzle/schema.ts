@@ -93,8 +93,12 @@ export const czApplications = mysqlTable("cz_membership_applications", {
   /** Captura de Yappy o del banco donde se ve el nombre del titular. */
   payoutDocumentId: int("payoutDocumentId"),
   /** Nombres y apellidos tal como aparecen en el documento de identidad. */
-  legalGivenNames: varchar("legalGivenNames", { length: 120 }).notNull().default(""),
-  legalSurnames: varchar("legalSurnames", { length: 120 }).notNull().default(""),
+  legalGivenNames: varchar("legalGivenNames", { length: 120 })
+    .notNull()
+    .default(""),
+  legalSurnames: varchar("legalSurnames", { length: 120 })
+    .notNull()
+    .default(""),
   /** País donde vende (ISO 3166-1, p. ej. PA). */
   country: varchar("country", { length: 2 }).notNull().default("PA"),
   /** Resultado de la última verificación automática de documentos. */
@@ -122,37 +126,63 @@ export const czApplications = mysqlTable("cz_membership_applications", {
   subscriptionEndsAt: timestamp("subscriptionEndsAt"),
   /** Fin de la prueba gratuita (3 meses desde la aprobación). Mientras no llegue, la comisión es 8%. */
   trialEndsAt: timestamp("trialEndsAt"),
+  /**
+   * Por qué está oculta una tienda con subscriptionStatus "past_due":
+   * null = venció la mensualidad; "commission" = comisión sin pagar 15 días
+   * después del cierre del mes. Al pagar la comisión vuelve a "active".
+   */
+  holdReason: varchar("holdReason", { length: 16 }),
   details: json("details"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
-export const czVerificationDocuments = mysqlTable("cz_verification_documents", {
-  id: int("id").autoincrement().primaryKey(),
-  applicationId: int("applicationId").notNull(),
-  userId: int("userId")
-    .notNull()
-    .references(() => users.id),
-  kind: mysqlEnum("kind", ["identity", "pastoral", "payout"]).notNull(),
-  fileName: varchar("fileName", { length: 200 }).notNull(),
-  mimeType: varchar("mimeType", { length: 80 }).notNull(),
-  size: int("size").notNull(),
-  bytes: mediumBlob("bytes").notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-}, table => [foreignKey({ name: "cz_documents_app_fk", columns: [table.applicationId], foreignColumns: [czApplications.id] })]);
+export const czVerificationDocuments = mysqlTable(
+  "cz_verification_documents",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    applicationId: int("applicationId").notNull(),
+    userId: int("userId")
+      .notNull()
+      .references(() => users.id),
+    kind: mysqlEnum("kind", ["identity", "pastoral", "payout"]).notNull(),
+    fileName: varchar("fileName", { length: 200 }).notNull(),
+    mimeType: varchar("mimeType", { length: 80 }).notNull(),
+    size: int("size").notNull(),
+    bytes: mediumBlob("bytes").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => [
+    foreignKey({
+      name: "cz_documents_app_fk",
+      columns: [table.applicationId],
+      foreignColumns: [czApplications.id],
+    }),
+  ]
+);
 
-export const czMembershipAudit = mysqlTable("cz_membership_audit", {
-  id: int("id").autoincrement().primaryKey(),
-  applicationId: int("applicationId"),
-  userId: int("userId")
-    .notNull()
-    .references(() => users.id),
-  actorUserId: int("actorUserId").references(() => users.id),
-  action: varchar("action", { length: 80 }).notNull(),
-  reason: text("reason"),
-  metadata: json("metadata"),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-}, table => [foreignKey({ name: "cz_audit_app_fk", columns: [table.applicationId], foreignColumns: [czApplications.id] })]);
+export const czMembershipAudit = mysqlTable(
+  "cz_membership_audit",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    applicationId: int("applicationId"),
+    userId: int("userId")
+      .notNull()
+      .references(() => users.id),
+    actorUserId: int("actorUserId").references(() => users.id),
+    action: varchar("action", { length: 80 }).notNull(),
+    reason: text("reason"),
+    metadata: json("metadata"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => [
+    foreignKey({
+      name: "cz_audit_app_fk",
+      columns: [table.applicationId],
+      foreignColumns: [czApplications.id],
+    }),
+  ]
+);
 
 export const czPlanSelections = mysqlTable("cz_plan_selections", {
   id: int("id").autoincrement().primaryKey(),
@@ -188,7 +218,13 @@ export const czSubscriptionPayments = mysqlTable(
     planId: varchar("planId", { length: 32 }).notNull(),
     months: int("months").notNull(),
     amountCents: int("amountCents").notNull(),
-    method: mysqlEnum("method", ["yappy", "transferencia", "efectivo", "otro"]).notNull(),
+    method: mysqlEnum("method", [
+      "yappy",
+      "transferencia",
+      "tarjeta",
+      "efectivo",
+      "otro",
+    ]).notNull(),
     /** Número de comprobante; único por método para evitar registrar dos veces el mismo pago. */
     reference: varchar("reference", { length: 120 }),
     paidOn: varchar("paidOn", { length: 10 }).notNull(),
@@ -199,12 +235,78 @@ export const czSubscriptionPayments = mysqlTable(
     createdAt: timestamp("createdAt").defaultNow().notNull(),
   },
   table => ({
-    byApplication: index("cz_subscription_payments_app_idx").on(table.applicationId, table.createdAt),
-    uniqueReference: uniqueIndex("cz_subscription_payments_reference_uq").on(table.method, table.reference),
+    byApplication: index("cz_subscription_payments_app_idx").on(
+      table.applicationId,
+      table.createdAt
+    ),
+    uniqueReference: uniqueIndex("cz_subscription_payments_reference_uq").on(
+      table.method,
+      table.reference
+    ),
   })
 );
 
 export type SubscriptionPayment = typeof czSubscriptionPayments.$inferSelect;
+
+/**
+ * Avisos de pago («Ya pagué»): el vendedor dice que pagó la mensualidad, la
+ * comisión o las dos, con su comprobante. Un administrador lo aprueba (y el
+ * pago queda registrado en czSubscriptionPayments / czCommissionPayments) o lo
+ * rechaza con un motivo. Los montos los calcula el servidor, no el vendedor.
+ */
+export const czPaymentClaims = mysqlTable(
+  "cz_payment_claims",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    applicationId: int("applicationId").notNull(),
+    userId: int("userId")
+      .notNull()
+      .references(() => users.id),
+    concept: mysqlEnum("concept", [
+      "subscription",
+      "commission",
+      "both",
+    ]).notNull(),
+    planId: varchar("planId", { length: 32 }),
+    months: int("months"),
+    subscriptionCents: int("subscriptionCents").notNull().default(0),
+    commissionCents: int("commissionCents").notNull().default(0),
+    /** Pedidos entregados antes de esta fecha son los que cubre la comisión del aviso. */
+    commissionCutoff: timestamp("commissionCutoff"),
+    amountCents: int("amountCents").notNull(),
+    method: mysqlEnum("method", [
+      "yappy",
+      "transferencia",
+      "tarjeta",
+    ]).notNull(),
+    reference: varchar("reference", { length: 120 }).notNull(),
+    paidOn: varchar("paidOn", { length: 10 }).notNull(),
+    note: text("note"),
+    receiptName: varchar("receiptName", { length: 200 }).notNull(),
+    receiptMime: varchar("receiptMime", { length: 80 }).notNull(),
+    receiptSize: int("receiptSize").notNull(),
+    receiptBytes: mediumBlob("receiptBytes").notNull(),
+    status: mysqlEnum("status", ["pending", "approved", "rejected"])
+      .notNull()
+      .default("pending"),
+    reviewedBy: int("reviewedBy"),
+    reviewedAt: timestamp("reviewedAt"),
+    rejectReason: text("rejectReason"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => ({
+    byStatus: index("cz_payment_claims_status_idx").on(
+      table.status,
+      table.createdAt
+    ),
+    byUser: index("cz_payment_claims_user_idx").on(
+      table.userId,
+      table.createdAt
+    ),
+  })
+);
+
+export type PaymentClaim = typeof czPaymentClaims.$inferSelect;
 
 /**
  * Bandeja de salida de correos. Cada correo se guarda en la misma transacción
@@ -221,7 +323,9 @@ export const czEmailOutbox = mysqlTable(
     subject: varchar("subject", { length: 300 }).notNull(),
     html: text("html").notNull(),
     textBody: text("textBody").notNull(),
-    status: mysqlEnum("status", ["pending", "sent", "failed"]).notNull().default("pending"),
+    status: mysqlEnum("status", ["pending", "sent", "failed"])
+      .notNull()
+      .default("pending"),
     attempts: int("attempts").notNull().default(0),
     lastError: varchar("lastError", { length: 500 }),
     sendAfter: timestamp("sendAfter").defaultNow().notNull(),
@@ -254,7 +358,10 @@ export const czAuthCodes = mysqlTable(
     createdAt: timestamp("createdAt").defaultNow().notNull(),
   },
   table => ({
-    byDestination: index("cz_auth_codes_destination_idx").on(table.destination, table.createdAt),
+    byDestination: index("cz_auth_codes_destination_idx").on(
+      table.destination,
+      table.createdAt
+    ),
     byIp: index("cz_auth_codes_ip_idx").on(table.ip, table.createdAt),
   })
 );
@@ -270,7 +377,10 @@ export const czCountryWaitlist = mysqlTable(
     createdAt: timestamp("createdAt").defaultNow().notNull(),
   },
   table => ({
-    uniqueEmailCountry: uniqueIndex("cz_country_waitlist_uq").on(table.email, table.country),
+    uniqueEmailCountry: uniqueIndex("cz_country_waitlist_uq").on(
+      table.email,
+      table.country
+    ),
     byIp: index("cz_country_waitlist_ip_idx").on(table.ip, table.createdAt),
   })
 );

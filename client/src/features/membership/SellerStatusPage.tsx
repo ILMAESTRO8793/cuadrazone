@@ -1,4 +1,13 @@
-import { commissionPercentLabel, getSellerPlan, isInTrial, PAID_COMMISSION_BPS, sellerPlanLabel, TRIAL_COMMISSION_BPS, TRIAL_MONTHS, TRIAL_PLAN_ID } from "@shared/pricing";
+import {
+  commissionPercentLabel,
+  getSellerPlan,
+  isInTrial,
+  PAID_COMMISSION_BPS,
+  sellerPlanLabel,
+  TRIAL_COMMISSION_BPS,
+  TRIAL_MONTHS,
+  TRIAL_PLAN_ID,
+} from "@shared/pricing";
 import { Link } from "wouter";
 import { Store, ShieldCheck } from "lucide-react";
 import { trpc } from "@/lib/trpc";
@@ -6,21 +15,189 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { REVIEW_RESPONSE_MESSAGE, sellerStatus } from "@shared/membership";
 import { businessSelectionLabels } from "@shared/businessCategories";
 import { AuthGate } from "./AuthGate";
+import { SellerBilling } from "./SellerBilling";
 export function SellerStatusPage() {
   const auth = useAuth();
-  const me = trpc.membership.me.useQuery(undefined, { enabled: !auth.loading && Boolean(auth.user) });
+  const me = trpc.membership.me.useQuery(undefined, {
+    enabled: !auth.loading && Boolean(auth.user),
+  });
   const app = me.data?.application;
-  const sub = trpc.membership.subscription.mine.useQuery(undefined, { enabled: !auth.loading && Boolean(auth.user) && app?.status === "approved" });
+  const sub = trpc.membership.subscription.mine.useQuery(undefined, {
+    enabled: !auth.loading && Boolean(auth.user) && app?.status === "approved",
+  });
   const subscription = sub.data?.subscription;
-  const contact = sub.data?.paymentContact;
-  const commission = trpc.membership.commission.mine.useQuery(undefined, { enabled: !auth.loading && Boolean(auth.user) && app?.status === "approved" });
-  const owed = commission.data?.totalCents ?? 0;
-  const inTrial = subscription?.status === "active" && isInTrial(subscription.trialEndsAt);
+  const heldForCommission =
+    subscription?.status === "past_due" &&
+    subscription.holdReason === "commission";
+  const inTrial =
+    subscription?.status === "active" && isInTrial(subscription.trialEndsAt);
   const prepaid = inTrial && subscription?.planId !== TRIAL_PLAN_ID;
-  const trialEnds = subscription?.trialEndsAt ? new Date(subscription.trialEndsAt).toLocaleDateString("es-PA", { timeZone: "America/Panama", day: "numeric", month: "long", year: "numeric" }) : null;
-  const money = (cents: number) => `US$${(cents / 100).toFixed(2)}`;
+  const trialEnds = subscription?.trialEndsAt
+    ? new Date(subscription.trialEndsAt).toLocaleDateString("es-PA", {
+        timeZone: "America/Panama",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+    : null;
   const planId = me.data?.planSelection?.planId ?? "normal";
-  const endsAt = subscription?.endsAt ? new Date(subscription.endsAt).toLocaleDateString("es-PA", { timeZone: "America/Panama", day: "numeric", month: "long", year: "numeric" }) : null;
-  const classifications = app ? businessSelectionLabels(app.businessCategories) : [];
-  return <AuthGate><div className="member-page container"><p className="eyebrow">Mi tienda · Estado de verificación</p><h1>Tu camino como vendedor</h1><section className="member-card"><Store size={32} /><h2>{app ? sellerStatus(app).label : "Aún no tienes una solicitud"}</h2>{me.isLoading && <p role="status">Consultando tu estado…</p>}{me.error && <p className="member-error" role="alert">{me.error.message}<button onClick={() => me.refetch()}>Reintentar</button></p>}<p>{app?.status === "approved" ? (inTrial ? `Tu tienda está publicada. Estás en tu prueba gratis hasta el ${trialEnds}.` : subscription?.status === "active" ? `Tu tienda está publicada. Suscripción activa hasta el ${endsAt}.` : "Tu revisión fue aprobada, pero tu tienda está oculta hasta que se registre el pago de tu mensualidad.") : app?.status === "pending" ? REVIEW_RESPONSE_MESSAGE.replace(" y también puedes ver el estado en Mi tienda.", ".") : "Completa tu perfil, registra una solicitud con tu iglesia y tu pastor, y adjunta tu identificación de forma privada."}</p>{app && <section className="seller-classification" aria-labelledby="seller-classification-title"><h3 id="seller-classification-title">Clasificación pública de tu negocio</h3>{classifications.length ? <ul>{classifications.map(item => <li key={item.categoryId}><strong>{item.category}</strong>{item.specialties.length > 0 && <span>{item.specialties.join(", ")}</span>}<Link href={`/tiendas?category=${encodeURIComponent(item.categoryId)}`}>Ver tiendas de esta categoría</Link></li>)}</ul> : <p className="member-notice member-notice--warning">Aún no hay una clasificación válida. Abre la solicitud para completarla.</p>}</section>}{app?.reviewReason && <p className="member-notice">Motivo: {app.reviewReason}</p>}<div className="admin-actions"><Link href="/vendedor/tienda" className="btn btn-outline">Preparar mi tienda</Link><Link href="/vendedor/productos" className="btn btn-outline">Productos e inventario</Link><Link href="/vendedor/pedidos" className="btn btn-outline">Pedidos</Link><Link href="/solicitud-vendedor" className="btn btn-gold">{app ? "Abrir mi solicitud" : "Comenzar solicitud"}</Link><Link href="/mi-cuenta" className="btn btn-outline">Mi perfil</Link></div></section><section className="member-card"><ShieldCheck size={26} /><h2>{getSellerPlan(me.data?.planSelection?.planId ?? "normal").name} · {sellerPlanLabel(me.data?.planSelection?.planId ?? "normal")} al mes después de la prueba gratis</h2><p>{me.data?.planSelection ? "Este es el plan que elegiste." : "Todavía no has elegido un plan; el precio mostrado corresponde al Normal."}</p><Link href="/vendedor/plan" className="btn btn-outline">Elegir o cambiar plan</Link>{app?.status === "approved" && <div className="member-notice">{inTrial ? <p><strong>Prueba gratis</strong> hasta el {trialEnds}: no pagas mensualidad y la comisión es de {commissionPercentLabel(TRIAL_COMMISSION_BPS)} por venta. Después pagarás {sellerPlanLabel(planId)} al mes y la comisión baja a {commissionPercentLabel(PAID_COMMISSION_BPS)}. {prepaid ? `Ya pagaste por adelantado: tu mensualidad cubre hasta el ${endsAt}.` : "Para no quedar oculto, paga tu primera mensualidad antes de esa fecha."}</p> : subscription?.status === "active" ? <p><strong>Suscripción activa</strong> hasta el {endsAt}, con comisión de {commissionPercentLabel(PAID_COMMISSION_BPS)} por venta entregada. Para renovar, paga antes de esa fecha y tus meses se suman al período actual.</p> : <p><strong>{subscription?.status === "past_due" ? "Tu suscripción venció y tu tienda está oculta." : subscription?.status === "cancelled" ? "Tu suscripción fue desactivada; tu tienda está oculta." : "Falta tu primer pago para publicar tu tienda."}</strong></p>}<p>Cómo pagar: envía {sellerPlanLabel(planId)} por mes (y tu comisión pendiente, si tienes) por Yappy{contact ? <> a <strong>{contact.label}</strong></> : " a CuadraZone"}. En el mensaje del Yappy escribe el nombre de tu tienda para que identifiquemos tu pago{contact?.whatsapp ? <>, y si quieres envía el comprobante por <a className="member-inline-link" href={`https://wa.me/${contact.whatsapp}`} target="_blank" rel="noopener noreferrer">WhatsApp</a></> : ""}. Un administrador confirma el pago y actualiza tu cuenta.</p></div>}{app?.status === "approved" && <div className="member-notice"><p><strong>Comisión por pagar: {money(owed)}</strong>{commission.data && commission.data.orderCount > 0 ? ` de ${commission.data.orderCount} ${commission.data.orderCount === 1 ? "pedido entregado" : "pedidos entregados"}` : ""}.</p><p>La comisión se calcula solo sobre el precio de los productos, sin el envío, y se paga igual que la mensualidad. Si se acumula sin pagar, tu tienda puede ser desactivada.</p></div>}<p>Los primeros {TRIAL_MONTHS} meses desde tu aprobación son gratis con {commissionPercentLabel(TRIAL_COMMISSION_BPS)} de comisión en productos físicos; después, mensualidad del plan y {commissionPercentLabel(PAID_COMMISSION_BPS)} de comisión por venta de productos. Los servicios no pagan comisión.</p></section></div></AuthGate>;
+  const endsAt = subscription?.endsAt
+    ? new Date(subscription.endsAt).toLocaleDateString("es-PA", {
+        timeZone: "America/Panama",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+    : null;
+  const classifications = app
+    ? businessSelectionLabels(app.businessCategories)
+    : [];
+  return (
+    <AuthGate>
+      <div className="member-page container">
+        <p className="eyebrow">Mi tienda · Estado de verificación</p>
+        <h1>Tu camino como vendedor</h1>
+        <section className="member-card">
+          <Store size={32} />
+          <h2>
+            {app ? sellerStatus(app).label : "Aún no tienes una solicitud"}
+          </h2>
+          {me.isLoading && <p role="status">Consultando tu estado…</p>}
+          {me.error && (
+            <p className="member-error" role="alert">
+              {me.error.message}
+              <button onClick={() => me.refetch()}>Reintentar</button>
+            </p>
+          )}
+          <p>
+            {app?.status === "approved"
+              ? inTrial
+                ? `Tu tienda está publicada. Estás en tu prueba gratis hasta el ${trialEnds}.`
+                : subscription?.status === "active"
+                  ? `Tu tienda está publicada. Suscripción activa hasta el ${endsAt}.`
+                  : heldForCommission
+                    ? "Tu tienda está oculta porque la comisión venció. Vuelve a mostrarse en cuanto confirmemos el pago."
+                    : "Tu revisión fue aprobada, pero tu tienda está oculta hasta que se registre el pago de tu mensualidad."
+              : app?.status === "pending"
+                ? REVIEW_RESPONSE_MESSAGE.replace(
+                    " y también puedes ver el estado en Mi tienda.",
+                    "."
+                  )
+                : "Completa tu perfil, registra una solicitud con tu iglesia y tu pastor, y adjunta tu identificación de forma privada."}
+          </p>
+          {app && (
+            <section
+              className="seller-classification"
+              aria-labelledby="seller-classification-title"
+            >
+              <h3 id="seller-classification-title">
+                Clasificación pública de tu negocio
+              </h3>
+              {classifications.length ? (
+                <ul>
+                  {classifications.map(item => (
+                    <li key={item.categoryId}>
+                      <strong>{item.category}</strong>
+                      {item.specialties.length > 0 && (
+                        <span>{item.specialties.join(", ")}</span>
+                      )}
+                      <Link
+                        href={`/tiendas?category=${encodeURIComponent(item.categoryId)}`}
+                      >
+                        Ver tiendas de esta categoría
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="member-notice member-notice--warning">
+                  Aún no hay una clasificación válida. Abre la solicitud para
+                  completarla.
+                </p>
+              )}
+            </section>
+          )}
+          {app?.reviewReason && (
+            <p className="member-notice">Motivo: {app.reviewReason}</p>
+          )}
+          <div className="admin-actions">
+            <Link href="/vendedor/tienda" className="btn btn-outline">
+              Preparar mi tienda
+            </Link>
+            <Link href="/vendedor/productos" className="btn btn-outline">
+              Productos e inventario
+            </Link>
+            <Link href="/vendedor/pedidos" className="btn btn-outline">
+              Pedidos
+            </Link>
+            <Link href="/solicitud-vendedor" className="btn btn-gold">
+              {app ? "Abrir mi solicitud" : "Comenzar solicitud"}
+            </Link>
+            <Link href="/mi-cuenta" className="btn btn-outline">
+              Mi perfil
+            </Link>
+          </div>
+        </section>
+        <section className="member-card">
+          <ShieldCheck size={26} />
+          <h2>
+            {getSellerPlan(me.data?.planSelection?.planId ?? "normal").name} ·{" "}
+            {sellerPlanLabel(me.data?.planSelection?.planId ?? "normal")} al mes
+            después de la prueba gratis
+          </h2>
+          <p>
+            {me.data?.planSelection
+              ? "Este es el plan que elegiste."
+              : "Todavía no has elegido un plan; el precio mostrado corresponde al Normal."}
+          </p>
+          <Link href="/vendedor/plan" className="btn btn-outline">
+            Elegir o cambiar plan
+          </Link>
+          {app?.status === "approved" && (
+            <div className="member-notice">
+              {inTrial ? (
+                <p>
+                  <strong>Prueba gratis</strong> hasta el {trialEnds}: no pagas
+                  mensualidad y la comisión es de{" "}
+                  {commissionPercentLabel(TRIAL_COMMISSION_BPS)} por venta.
+                  Después pagarás {sellerPlanLabel(planId)} al mes y la comisión
+                  baja a {commissionPercentLabel(PAID_COMMISSION_BPS)}.{" "}
+                  {prepaid
+                    ? `Ya pagaste por adelantado: tu mensualidad cubre hasta el ${endsAt}.`
+                    : "Para no quedar oculto, paga tu primera mensualidad antes de esa fecha."}
+                </p>
+              ) : subscription?.status === "active" ? (
+                <p>
+                  <strong>Suscripción activa</strong> hasta el {endsAt}, con
+                  comisión de {commissionPercentLabel(PAID_COMMISSION_BPS)} por
+                  venta entregada. Para renovar, paga antes de esa fecha y tus
+                  meses se suman al período actual.
+                </p>
+              ) : (
+                <p>
+                  <strong>
+                    {heldForCommission
+                      ? "Tu tienda está oculta por la comisión vencida."
+                      : subscription?.status === "past_due"
+                        ? "Tu suscripción venció y tu tienda está oculta."
+                        : subscription?.status === "cancelled"
+                          ? "Tu suscripción fue desactivada; tu tienda está oculta."
+                          : "Falta tu primer pago para publicar tu tienda."}
+                  </strong>
+                </p>
+              )}
+            </div>
+          )}
+          {app?.status === "approved" && <SellerBilling />}
+          <p>
+            Los primeros {TRIAL_MONTHS} meses desde tu aprobación son gratis con{" "}
+            {commissionPercentLabel(TRIAL_COMMISSION_BPS)} de comisión en
+            productos físicos; después, mensualidad del plan y{" "}
+            {commissionPercentLabel(PAID_COMMISSION_BPS)} de comisión por venta
+            de productos. Los servicios no pagan comisión.
+          </p>
+        </section>
+      </div>
+    </AuthGate>
+  );
 }

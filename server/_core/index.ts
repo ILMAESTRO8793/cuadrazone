@@ -5,6 +5,7 @@ import { registerServiceImageRoutes } from "../services/serviceListings";
 import { registerPropertyImageRoutes } from "../services/realEstate";
 import { registerVehicleImageRoutes } from "../services/vehicles";
 import { registerDocumentRoutes } from "../services/privateDocuments";
+import { registerBillingRoutes } from "../services/billing";
 import express from "express";
 import { createServer } from "http";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
@@ -22,7 +23,8 @@ import { serveStatic, setupVite } from "./vite";
 
 async function startServer() {
   // Crea o actualiza las tablas al arrancar (local y producción).
-  if (process.env.DATABASE_URL || process.env.NODE_ENV === "production") await runMigrations();
+  if (process.env.DATABASE_URL || process.env.NODE_ENV === "production")
+    await runMigrations();
   if (process.env.DATABASE_URL) {
     startSubscriptionSweeper();
     startEmailWorker();
@@ -33,6 +35,7 @@ async function startServer() {
   app.disable("x-powered-by");
   registerMediaRoutes(app);
   registerDocumentRoutes(app);
+  registerBillingRoutes(app);
   registerCatalogImageRoutes(app);
   registerCatalogVideoRoutes(app);
   registerServiceImageRoutes(app);
@@ -48,7 +51,10 @@ async function startServer() {
   registerBackupRoutes(app);
   registerWaitlistRoutes(app);
   // tRPC API
-  app.use("/api/trpc", (_req, res, next) => { res.setHeader("Cache-Control", "private, no-store"); next(); });
+  app.use("/api/trpc", (_req, res, next) => {
+    res.setHeader("Cache-Control", "private, no-store");
+    next();
+  });
   app.use(
     "/api/trpc",
     createExpressMiddleware({
@@ -64,9 +70,18 @@ async function startServer() {
   }
 
   const port = Number(process.env.PORT || "3000");
-  if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error("Invalid PORT");
-  server.on("error", error => { console.error("Server failed:", error.message); process.exit(1); });
-  server.listen(port, "0.0.0.0", () => console.log(`Server listening on port ${port}`));
+  if (!Number.isInteger(port) || port < 1 || port > 65535)
+    throw new Error("Invalid PORT");
+  server.on("error", error => {
+    console.error("Server failed:", error.message);
+    process.exit(1);
+  });
+  server.listen(port, "0.0.0.0", () =>
+    console.log(`Server listening on port ${port}`)
+  );
 }
 
-startServer().catch(error => { console.error(error); process.exit(1); });
+startServer().catch(error => {
+  console.error(error);
+  process.exit(1);
+});

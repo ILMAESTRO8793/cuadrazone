@@ -233,3 +233,61 @@
 .member-link-card--primary { background: #0B1F3B; color: #fff; border-color: #0B1F3B; }
 .member-link-card--primary span { color: #E2B866; }
 .member-link-card--primary svg { color: #E2B866; }
+
+/* ───────── Pagar a CuadraZone (Mi tienda) ───────── */
+.billing { margin-top: 26px; padding-top: 22px; border-top: 1px solid #e9e2d4; }
+.billing h2 { margin: 0 0 16px; }
+.billing h3 { margin: 24px 0 12px; }
+.billing-due { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.billing-due > div { display: grid; gap: 4px; padding: 15px 16px; border: 1px solid #e9e2d4; border-radius: 10px; background: #fcfbf8; }
+.billing-due span { color: #6f777d; font-size: 12px; font-weight: 700; }
+.billing-due strong { color: #202a35; font-size: 24px; font-variant-numeric: tabular-nums; }
+.billing-due small { color: #6f777d; font-size: 12px; line-height: 1.45; }
+.billing-due > .billing-due--alert { border-color: #e2c5a8; background: #fff5e9; }
+.billing-due > .billing-due--alert strong { color: #7a3f12; }
+.billing-methods { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.billing-method { display: grid; align-content: start; gap: 10px; padding: 18px; border: 1px solid #e9e2d4; border-radius: 10px; background: #fff; }
+.billing-method > svg { color: #9b7228; }
+.billing-method h4 { margin: 0; color: #202a35; font-size: 15px; }
+.billing-method p { margin: 0; font-size: 13px; }
+.billing-method .member-button { justify-self: start; }
+.billing-copy { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 2px 10px; }
+.billing-copy span { grid-column: 1; color: #6f777d; font-size: 11px; font-weight: 700; }
+.billing-copy strong { grid-column: 1; color: #202a35; font-size: 15px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; user-select: all; }
+.billing-copy button { grid-column: 2; grid-row: 1 / span 2; }
+.billing-claim-cta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 22px; padding: 16px 18px; border-radius: 10px; background: #faf6ec; }
+.billing-claim-cta p { margin: 0; color: #34414b; }
+.billing-claim-form { margin-top: 22px; padding: 20px; border: 1px solid #e9e2d4; border-radius: 12px; background: #fcfbf8; }
+.billing-claim-form h3 { margin: 0; }
+.billing-concepts { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 0; padding: 0; border: 0; }
+.billing-concepts legend { margin-bottom: 8px; color: #2d3942; font-size: 13px; font-weight: 700; }
+.billing-concepts label { display: inline-flex; align-items: center; gap: 7px; min-height: 32px; color: #34414b; font-size: 14px; }
+.billing-concepts input { width: 16px; height: 16px; accent-color: #9b7228; }
+.billing-total { margin: 0; color: #34414b; }
+.billing-total strong { color: #202a35; font-size: 18px; font-variant-numeric: tabular-nums; }
+.billing-total small { color: #6f777d; }
+.billing-claims { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.billing-claims li { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 13px 15px; border: 1px solid #e9e2d4; border-radius: 9px; }
+.billing-claims li > div { display: grid; gap: 4px; min-width: 0; color: #34414b; font-size: 14px; }
+.billing-claims small { color: #6f777d; font-size: 12px; overflow-wrap: anywhere; }
+.billing-claims .billing-claims__reason { color: #701f1f; }
+.billing-status--rejected { background: #fff0f0; color: #8a2424; }
+@media (max-width: 820px) {
+  .billing-due { grid-template-columns: 1fr; }
+}
+
+/* ───────── Pagos por revisar (admin) ───────── */
+.admin-claims__count { display: inline-grid; place-items: center; min-width: 24px; height: 24px; margin-left: 6px; padding: 0 7px; border-radius: 999px; background: #9b7228; color: #fff; font-size: 13px; vertical-align: middle; }
+.admin-claims__list { display: grid; gap: 12px; margin: 16px 0 0; padding: 0; list-style: none; }
+.admin-claim { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px 18px; padding: 16px; border: 1px solid #e9e3d9; border-radius: 10px; background: #fff; }
+.admin-claim__summary { display: grid; gap: 4px; min-width: 0; }
+.admin-claim__summary small { color: #655d51; line-height: 1.5; overflow-wrap: anywhere; }
+.admin-claim__amount { color: #202a35; font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.admin-claim__actions { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: flex-end; gap: 8px; }
+.admin-claim__confirm { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; padding: 12px 14px; border-radius: 8px; background: #faf6ec; }
+.admin-claim__confirm p { flex-basis: 100%; margin: 0; color: #34414b; }
+.admin-claim__confirm .member-field { flex: 1 1 280px; }
+@media (max-width: 640px) {
+  .admin-claim { grid-template-columns: 1fr; }
+  .admin-claim__actions { justify-content: flex-start; }
+}

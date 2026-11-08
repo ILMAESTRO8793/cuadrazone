@@ -11,7 +11,18 @@ import {
   paymentContact,
   subscriptionForUser,
 } from "../services/subscriptions";
-import { adminCommissionDetail, adminRecordCommissionPayment, commissionForSeller } from "../services/commissions";
+import {
+  adminCommissionDetail,
+  adminRecordCommissionPayment,
+  commissionForSeller,
+} from "../services/commissions";
+import {
+  adminApproveClaim,
+  adminListClaims,
+  adminRejectClaim,
+  sellerBilling,
+} from "../services/billing";
+import { CLAIM_STATUSES } from "@shared/billing";
 import {
   saveApplicationInput,
   splitApplicationSave,
@@ -145,9 +156,15 @@ export const membershipRouter = router({
         csrf(ctx);
         // revision y consentVersion son campos de control: no forman parte de la
         // solicitud que el servicio valida de forma estricta.
-        const { revision, consentVersion, application } = splitApplicationSave(input);
+        const { revision, consentVersion, application } =
+          splitApplicationSave(input);
         return serviceCall(() =>
-          saveApplication(realUser(ctx.user) as any, application, revision, consentVersion)
+          saveApplication(
+            realUser(ctx.user) as any,
+            application,
+            revision,
+            consentVersion
+          )
         );
       }),
     submit: protectedProcedure
@@ -174,7 +191,9 @@ export const membershipRouter = router({
   }),
   commission: router({
     /** Comisión pendiente del propio vendedor. */
-    mine: protectedProcedure.query(({ ctx }) => commissionForSeller(realUser(ctx.user).id)),
+    mine: protectedProcedure.query(({ ctx }) =>
+      commissionForSeller(realUser(ctx.user).id)
+    ),
     detail: adminProcedure
       .input(z.object({ applicationId: z.number().int().positive() }).strict())
       .query(({ ctx, input }) => {
@@ -183,25 +202,73 @@ export const membershipRouter = router({
       }),
     recordPayment: adminProcedure
       .input(
-        z.object({
-          applicationId: z.number().int().positive(),
-          amountCents: z.number().int().positive().max(100_000_000),
-          method: z.enum(PAYMENT_METHODS),
-          reference: z.string().max(120),
-          paidOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-          note: z.string().max(500),
-        }).strict()
+        z
+          .object({
+            applicationId: z.number().int().positive(),
+            amountCents: z.number().int().positive().max(100_000_000),
+            method: z.enum(PAYMENT_METHODS),
+            reference: z.string().max(120),
+            paidOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+            note: z.string().max(500),
+          })
+          .strict()
       )
       .mutation(({ ctx, input }) => {
         csrf(ctx);
         return adminRecordCommissionPayment(realUser(ctx.user) as any, input);
       }),
   }),
+  /** Cobro de la plataforma: datos de pago, lo que debe el vendedor y sus avisos «Ya pagué». */
+  billing: router({
+    mine: protectedProcedure.query(({ ctx }) =>
+      sellerBilling(realUser(ctx.user).id)
+    ),
+    claims: adminProcedure
+      .input(
+        z
+          .object({
+            status: z
+              .union([z.literal("all"), z.enum(CLAIM_STATUSES)])
+              .default("pending"),
+          })
+          .strict()
+      )
+      .query(({ ctx, input }) => {
+        realUser(ctx.user);
+        return serviceCall(() => adminListClaims(input.status));
+      }),
+    approve: adminProcedure
+      .input(z.object({ claimId: z.number().int().positive() }).strict())
+      .mutation(({ ctx, input }) => {
+        csrf(ctx);
+        return serviceCall(() =>
+          adminApproveClaim(realUser(ctx.user), input.claimId)
+        );
+      }),
+    reject: adminProcedure
+      .input(
+        z
+          .object({
+            claimId: z.number().int().positive(),
+            reason: z.string().trim().min(5).max(500),
+          })
+          .strict()
+      )
+      .mutation(({ ctx, input }) => {
+        csrf(ctx);
+        return serviceCall(() =>
+          adminRejectClaim(realUser(ctx.user), input.claimId, input.reason)
+        );
+      }),
+  }),
   subscription: router({
     /** Estado de la suscripción del propio vendedor y a quién pagarle. */
     mine: protectedProcedure.query(async ({ ctx }) => {
       const user = realUser(ctx.user);
-      return { subscription: await subscriptionForUser(user.id), paymentContact: paymentContact() };
+      return {
+        subscription: await subscriptionForUser(user.id),
+        paymentContact: paymentContact(),
+      };
     }),
     list: adminProcedure.query(({ ctx }) => {
       realUser(ctx.user);
@@ -215,16 +282,18 @@ export const membershipRouter = router({
       }),
     recordPayment: adminProcedure
       .input(
-        z.object({
-          applicationId: z.number().int().positive(),
-          planId: z.enum(sellerPlanIds),
-          months: z.number().int().min(1).max(MAX_MONTHS_PER_PAYMENT),
-          amountCents: z.number().int().positive().max(1_000_000),
-          method: z.enum(PAYMENT_METHODS),
-          reference: z.string().max(120),
-          paidOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-          note: z.string().max(500),
-        }).strict()
+        z
+          .object({
+            applicationId: z.number().int().positive(),
+            planId: z.enum(sellerPlanIds),
+            months: z.number().int().min(1).max(MAX_MONTHS_PER_PAYMENT),
+            amountCents: z.number().int().positive().max(1_000_000),
+            method: z.enum(PAYMENT_METHODS),
+            reference: z.string().max(120),
+            paidOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+            note: z.string().max(500),
+          })
+          .strict()
       )
       .mutation(({ ctx, input }) => {
         csrf(ctx);
@@ -232,11 +301,22 @@ export const membershipRouter = router({
         return adminRecordPayment(admin as any, input);
       }),
     deactivate: adminProcedure
-      .input(z.object({ applicationId: z.number().int().positive(), reason: z.string().trim().min(5).max(500) }).strict())
+      .input(
+        z
+          .object({
+            applicationId: z.number().int().positive(),
+            reason: z.string().trim().min(5).max(500),
+          })
+          .strict()
+      )
       .mutation(({ ctx, input }) => {
         csrf(ctx);
         const admin = realUser(ctx.user);
-        return adminDeactivateSubscription(admin as any, input.applicationId, input.reason);
+        return adminDeactivateSubscription(
+          admin as any,
+          input.applicationId,
+          input.reason
+        );
       }),
   }),
   admin: router({
@@ -276,18 +356,26 @@ export const membershipRouter = router({
     }),
     phoneVerification: adminProcedure
       .input(
-        z.object({
-          id: z.number().int().positive(),
-          revision: z.number().int().positive(),
-          verified: z.boolean(),
-          note: z.string().trim().min(5).max(500),
-        }).strict()
+        z
+          .object({
+            id: z.number().int().positive(),
+            revision: z.number().int().positive(),
+            verified: z.boolean(),
+            note: z.string().trim().min(5).max(500),
+          })
+          .strict()
       )
       .mutation(({ ctx, input }) => {
         csrf(ctx);
         const admin = realUser(ctx.user);
         return serviceCall(() =>
-          adminSetPhoneVerification(admin as any, input.id, input.revision, input.verified, input.note)
+          adminSetPhoneVerification(
+            admin as any,
+            input.id,
+            input.revision,
+            input.verified,
+            input.note
+          )
         );
       }),
     saveDenomination: adminProcedure
