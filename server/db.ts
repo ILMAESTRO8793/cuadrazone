@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
-import { ENV } from './_core/env';
+import { czMembershipProfiles, InsertUser, users } from "../drizzle/schema";
+import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -16,6 +16,26 @@ export async function getDb() {
     }
   }
   return _db;
+}
+
+/** Nombre completo que la persona guardó en su perfil, si lo hay. */
+export async function profileDisplayName(
+  userId: number
+): Promise<string | null> {
+  const db = await getDb();
+  if (!db) return null;
+  try {
+    const rows = await db
+      .select({ displayName: czMembershipProfiles.displayName })
+      .from(czMembershipProfiles)
+      .where(eq(czMembershipProfiles.userId, userId))
+      .limit(1);
+    return rows[0]?.displayName?.trim() || null;
+  } catch (error) {
+    // Sin el nombre del perfil, la cabecera usa el de la cuenta: no es motivo para fallar.
+    console.warn("[Database] Failed to read profile name:", error);
+    return null;
+  }
 }
 
 export async function upsertUser(user: InsertUser): Promise<void> {
@@ -80,7 +100,11 @@ export async function getUserByOpenId(openId: string) {
     return undefined;
   }
 
-  const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
+  const result = await db
+    .select()
+    .from(users)
+    .where(eq(users.openId, openId))
+    .limit(1);
 
   return result.length > 0 ? result[0] : undefined;
 }
@@ -91,6 +115,10 @@ export async function getUserByOpenId(openId: string) {
 export async function getUserByEmailLogin(email: string) {
   const db = await getDb();
   if (!db) return undefined;
-  const rows = await db.select().from(users).where(and(eq(users.email, email), eq(users.loginMethod, "email"))).limit(1);
+  const rows = await db
+    .select()
+    .from(users)
+    .where(and(eq(users.email, email), eq(users.loginMethod, "email")))
+    .limit(1);
   return rows[0];
 }

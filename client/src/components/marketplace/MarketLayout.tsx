@@ -30,6 +30,7 @@ import { useMarket } from "@/contexts/MarketContext";
 import VerseOfDay from "./VerseOfDay";
 import { footerLegalLinks, LEGAL_OWNER } from "@/data/legal";
 import { loginRedirectFor } from "@shared/accessGate";
+import { greetingName } from "@shared/greeting";
 
 /*
  * La portada separa dos mundos: el Marketplace (productos físicos y libros) y
@@ -343,7 +344,7 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
               >
                 <UserRound size={23} />
                 <span>
-                  <small>{`Hola, ${(auth.user.name || auth.user.email || "").split(/[ @]/)[0] || "de nuevo"}`}</small>
+                  <small>{`Hola, ${greetingName(auth.user.name) ?? "de nuevo"}`}</small>
                   <strong>Mi cuenta</strong>
                 </span>
               </Link>

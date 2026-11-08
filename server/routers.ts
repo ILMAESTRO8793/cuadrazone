@@ -9,9 +9,10 @@ import { realEstateRouter } from "./routers/realEstate";
 import { vehiclesRouter } from "./routers/vehicles";
 import { jobsRouter } from "./routers/jobs";
 import { servicesRouter } from "./routers/services";
+import { profileDisplayName } from "./db";
 
 export const appRouter = router({
-    // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
+  // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
   system: systemRouter,
   membership: membershipRouter,
   catalog: catalogRouter,
@@ -21,7 +22,14 @@ export const appRouter = router({
   jobs: jobsRouter,
   services: servicesRouter,
   auth: router({
-    me: publicProcedure.query(opts => opts.ctx.user),
+    // El nombre que la persona escribe en su perfil manda sobre el de la cuenta
+    // (que en las cuentas por código está vacío): así lo saluda la cabecera.
+    me: publicProcedure.query(async ({ ctx }) => {
+      const user = ctx.user;
+      if (!user?.id) return user;
+      const displayName = await profileDisplayName(user.id);
+      return displayName ? { ...user, name: displayName } : user;
+    }),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
