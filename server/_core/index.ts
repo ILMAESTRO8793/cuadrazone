@@ -2,6 +2,7 @@ import "dotenv/config";
 import { registerCatalogImageRoutes } from "../services/catalogImages";
 import { registerCatalogVideoRoutes } from "../services/catalogVideos";
 import { registerServiceImageRoutes } from "../services/serviceListings";
+import { registerEventImageRoutes } from "../services/events";
 import { registerPropertyImageRoutes } from "../services/realEstate";
 import { registerVehicleImageRoutes } from "../services/vehicles";
 import { registerDocumentRoutes } from "../services/privateDocuments";
@@ -39,6 +40,7 @@ async function startServer() {
   registerCatalogImageRoutes(app);
   registerCatalogVideoRoutes(app);
   registerServiceImageRoutes(app);
+  registerEventImageRoutes(app);
   registerPropertyImageRoutes(app);
   registerVehicleImageRoutes(app);
   const server = createServer(app);

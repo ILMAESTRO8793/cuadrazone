@@ -52,6 +52,8 @@ import { LoginPage } from "./features/membership/LoginPage";
 import { ComingSoonPage, RealEstateDetailPage, RealEstateListPage, RealEstateMinePage } from "./features/realEstate/RealEstatePages";
 import { VehicleDetailPage, VehicleListPage, VehicleMinePage } from "./features/vehicles/VehiclePages";
 import { ServiceDetailPage, ServiceListPage } from "./features/services/ServicePages";
+import { EventDetailPage, EventListPage, MyTicketsPage } from "./features/events/EventPages";
+import { SellerEventsPage, TicketScannerPage } from "./features/events/SellerEventPages";
 import { JobDetailPage, JobListPage, MyApplicationsPage, MyJobsPage, ResumePage } from "./features/jobs/JobPages";
 import { SellerStatusPage } from "./features/membership/SellerStatusPage";
 import { AdminVerificationPage } from "./features/membership/AdminVerificationPage";
@@ -136,15 +138,18 @@ function Router() {
         <Route path="/libros">
           {() => <CatalogPage initialKind="libro" />}
         </Route>
-        <Route path="/eventos">
-          {() => <CatalogPage initialKind="evento" />}
+        <Route path="/eventos" component={EventListPage} />
+        <Route path="/mis-boletos" component={MyTicketsPage} />
+        <Route path="/vendedor/eventos" component={SellerEventsPage} />
+        <Route path="/vendedor/escanear/:id">
+          {p => <TicketScannerPage key={p.id} eventId={Number(p.id)} />}
         </Route>
         <Route path="/servicios" component={ServiceListPage} />
         <Route path="/producto/:slug">
           {params => <DetailPage slug={params.slug} key={params.slug} />}
         </Route>
         <Route path="/evento/:slug">
-          {params => <DetailPage slug={params.slug} key={params.slug} />}
+          {params => <EventDetailPage slug={params.slug} key={params.slug} />}
         </Route>
         <Route path="/servicio/:slug">
           {params => <ServiceDetailPage slug={params.slug} key={params.slug} />}

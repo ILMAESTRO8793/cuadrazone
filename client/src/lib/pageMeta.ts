@@ -23,6 +23,8 @@ export function getPageMeta(url: string, snapshot: PublicSnapshot = {}) {
     "/catalogo": "Catálogo de ejemplo",
     "/libros": "Libros cristianos",
     "/eventos": "Eventos y conciertos",
+    "/mis-boletos": "Mis boletos",
+    "/vendedor/eventos": "Mis eventos",
     "/servicios": "Servicios en Panamá",
     "/suscripciones": "Planes Normal US$19.99 y Mayor Visibilidad US$39.99",
     "/vendedor/plan": "Mi selección de plan",
@@ -66,7 +68,13 @@ export function getPageMeta(url: string, snapshot: PublicSnapshot = {}) {
     // Servicio real de una tienda de servicios: se carga en el navegador.
     title = "Servicio | CuadraZone Panamá";
     description = "Servicios de emprendedores en Panamá: clases, reparaciones, consultas y más. Solicítalo y te contactan.";
-  } else if (/^\/(producto|evento)\//.test(path)) {
+  } else if (/^\/evento\/[a-z0-9-]{1,180}$/.test(path)) {
+    // Evento real de una tienda: se carga en el navegador.
+    title = "Evento | CuadraZone Panamá";
+    description = "Conciertos, conferencias y encuentros en Panamá. Aparta tus boletos con código QR.";
+  } else if (/^\/vendedor\/escanear\/\d+$/.test(path)) {
+    title = "Escanear boletos | CuadraZone";
+  } else if (/^\/producto\//.test(path)) {
     const item = listings.find(item => item.slug === path.split("/")[2]);
     if (item) {
       title = `${item.title} | CuadraZone`;
@@ -108,7 +116,10 @@ export function getPageMeta(url: string, snapshot: PublicSnapshot = {}) {
     status,
     private:
       path.startsWith("/pedidos/") ||
+      path.startsWith("/vendedor/escanear/") ||
       [
+        "/mis-boletos",
+        "/vendedor/eventos",
         "/mercado-privado",
         "/mi-carrito",
         "/mi-lista",

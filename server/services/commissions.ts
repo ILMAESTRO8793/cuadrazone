@@ -1,4 +1,5 @@
-// Comisiones por venta (8% en la prueba gratuita, 5% después).
+// Comisiones por venta (8% en la prueba gratuita, 5% después), de pedidos de
+// productos entregados y de boletos de eventos pagados.
 // El comprador paga directo al vendedor, así que la comisión es una deuda del
 // vendedor con CuadraZone: se acumula con cada pedido entregado y se cobra por
 // mes cerrado (ver shared/billing.ts). El vendedor la paga por Yappy,
@@ -8,7 +9,7 @@
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, gt, inArray, isNull, lt, sql } from "drizzle-orm";
 import { panamaMonthStart, splitCommission } from "@shared/billing";
-import { czStores } from "../../drizzle/catalog-schema";
+import { czStores, czTicketOrders } from "../../drizzle/catalog-schema";
 import { czCommissionPayments, czOrders } from "../../drizzle/commerce-schema";
 import {
   czApplications,
@@ -23,6 +24,7 @@ import {
   type PaymentMethod,
 } from "./subscriptions";
 import { queueEmail, recipientFor } from "./email";
+import { pendingTicketCommission } from "./events";
 import {
   commissionPaymentReceipt,
   commissionReminder,
@@ -53,6 +55,8 @@ const pendingCondition = and(
 );
 
 export type PendingCommissionOrder = {
+  /** «order»: pedido de productos entregado; «ticket»: venta de boletos pagada. */
+  kind: "order" | "ticket";
   id: number;
   number: string;
   subtotalCents: number;
@@ -65,8 +69,7 @@ export async function pendingCommissionOrders(
   db: any,
   sellerUserId: number
 ): Promise<PendingCommissionOrder[]> {
-  return (
-    db
+  const orders: Omit<PendingCommissionOrder, "kind">[] = await db
       .select({
         id: czOrders.id,
         number: czOrders.number,
@@ -79,8 +82,39 @@ export async function pendingCommissionOrders(
       .innerJoin(czStores, eq(czStores.id, czOrders.storeId))
       .where(and(eq(czStores.userId, sellerUserId), pendingCondition))
       // Sin límite: el total que se cobra tiene que coincidir con el que se salda al aprobar.
-      .orderBy(czOrders.deliveredAt)
-  );
+      .orderBy(czOrders.deliveredAt);
+  // Boletos: la comisión se fija al marcar pagado; esa fecha hace de «entregado».
+  const tickets: Array<{
+    id: number;
+    totalCents: number;
+    commissionBps: number;
+    commissionCents: number;
+    paidAt: Date | null;
+  }> = await db
+    .select({
+      id: czTicketOrders.id,
+      totalCents: czTicketOrders.totalCents,
+      commissionBps: czTicketOrders.commissionBps,
+      commissionCents: czTicketOrders.commissionCents,
+      paidAt: czTicketOrders.paidAt,
+    })
+    .from(czTicketOrders)
+    .innerJoin(czStores, eq(czStores.id, czTicketOrders.storeId))
+    .where(and(eq(czStores.userId, sellerUserId), pendingTicketCommission))
+    .orderBy(czTicketOrders.paidAt);
+  const time = (d: Date | null) => (d ? new Date(d).getTime() : 0);
+  return [
+    ...orders.map(order => ({ ...order, kind: "order" as const })),
+    ...tickets.map(ticket => ({
+      kind: "ticket" as const,
+      id: ticket.id,
+      number: `Boletos #${ticket.id}`,
+      subtotalCents: ticket.totalCents,
+      commissionBps: ticket.commissionBps,
+      commissionCents: ticket.commissionCents,
+      deliveredAt: ticket.paidAt,
+    })),
+  ].sort((a, b) => time(a.deliveredAt) - time(b.deliveredAt));
 }
 
 function summarize(orders: Array<{ commissionCents: number }>) {
@@ -240,7 +274,23 @@ export async function recordCommissionPaymentTx(
       )
     )
     .for("update");
-  const { totalCents, orderCount } = summarize(pending);
+  const pendingTickets = await tx
+    .select({
+      id: czTicketOrders.id,
+      commissionCents: czTicketOrders.commissionCents,
+    })
+    .from(czTicketOrders)
+    .where(
+      and(
+        inArray(czTicketOrders.storeId, storeIds),
+        pendingTicketCommission,
+        ...(input.deliveredBefore
+          ? [lt(czTicketOrders.paidAt, input.deliveredBefore)]
+          : [])
+      )
+    )
+    .for("update");
+  const { totalCents, orderCount } = summarize([...pending, ...pendingTickets]);
   if (!orderCount)
     fail("CONFLICT", "Este vendedor no tiene comisión pendiente");
   if (input.amountCents !== totalCents)
@@ -262,13 +312,31 @@ export async function recordCommissionPaymentTx(
   const paymentId = Number((header as { insertId?: number }).insertId);
   if (!paymentId) fail("INTERNAL_SERVER_ERROR", "No se pudo registrar el pago");
   const ids = pending.map((order: { id: number }) => order.id);
-  const updated = await tx
-    .update(czOrders)
-    .set({ commissionPaymentId: paymentId })
-    .where(
-      and(inArray(czOrders.id, ids), isNull(czOrders.commissionPaymentId))
-    );
-  if (affected(updated) !== orderCount)
+  const updated = ids.length
+    ? affected(
+        await tx
+          .update(czOrders)
+          .set({ commissionPaymentId: paymentId })
+          .where(
+            and(inArray(czOrders.id, ids), isNull(czOrders.commissionPaymentId))
+          )
+      )
+    : 0;
+  const ticketIds = pendingTickets.map((order: { id: number }) => order.id);
+  const updatedTickets = ticketIds.length
+    ? affected(
+        await tx
+          .update(czTicketOrders)
+          .set({ commissionPaymentId: paymentId })
+          .where(
+            and(
+              inArray(czTicketOrders.id, ticketIds),
+              isNull(czTicketOrders.commissionPaymentId)
+            )
+          )
+      )
+    : 0;
+  if (updated + updatedTickets !== orderCount)
     fail("CONFLICT", "Los pedidos cambiaron durante el registro");
   await tx.insert(czMembershipAudit).values({
     applicationId: input.applicationId,
@@ -356,7 +424,7 @@ export async function sweepCommissionDeadlines(
   let lastUserId = 0;
   // Por páginas de 200 vendedores, en orden, para llegar a todos.
   for (;;) {
-    const page = (await db
+    const fromOrders = (await db
       .selectDistinct({ userId: czStores.userId })
       .from(czOrders)
       .innerJoin(czStores, eq(czStores.id, czOrders.storeId))
@@ -369,6 +437,25 @@ export async function sweepCommissionDeadlines(
       )
       .orderBy(czStores.userId)
       .limit(200)) as Array<{ userId: number }>;
+    const fromTickets = (await db
+      .selectDistinct({ userId: czStores.userId })
+      .from(czTicketOrders)
+      .innerJoin(czStores, eq(czStores.id, czTicketOrders.storeId))
+      .where(
+        and(
+          pendingTicketCommission,
+          lt(czTicketOrders.paidAt, panamaMonthStart(now)),
+          gt(czStores.userId, lastUserId)
+        )
+      )
+      .orderBy(czStores.userId)
+      .limit(200)) as Array<{ userId: number }>;
+    const page = Array.from(
+      new Set([...fromOrders, ...fromTickets].map(row => row.userId))
+    )
+      .sort((a, b) => a - b)
+      .slice(0, 200)
+      .map(userId => ({ userId }));
     if (!page.length) break;
     for (const { userId } of page) {
       lastUserId = userId;
@@ -468,10 +555,20 @@ export async function pendingTotalsBySeller(): Promise<Map<number, number>> {
     .innerJoin(czStores, eq(czStores.id, czOrders.storeId))
     .where(pendingCondition)
     .groupBy(czStores.userId);
-  return new Map(
-    rows.map((row: { userId: number; total: number | string }) => [
-      row.userId,
-      Number(row.total),
-    ])
-  );
+  const ticketRows = await db
+    .select({
+      userId: czStores.userId,
+      total: sql<number>`coalesce(sum(${czTicketOrders.commissionCents}), 0)`,
+    })
+    .from(czTicketOrders)
+    .innerJoin(czStores, eq(czStores.id, czTicketOrders.storeId))
+    .where(pendingTicketCommission)
+    .groupBy(czStores.userId);
+  const totals = new Map<number, number>();
+  for (const row of [...rows, ...ticketRows] as Array<{
+    userId: number;
+    total: number | string;
+  }>)
+    totals.set(row.userId, (totals.get(row.userId) ?? 0) + Number(row.total));
+  return totals;
 }

@@ -384,3 +384,110 @@ export const czServiceRequests = mysqlTable(
   },
   table => [index("cz_service_requests_service_ix").on(table.serviceId, table.createdAt)]
 );
+
+/* ═══════════ Etapa 4: eventos y boletos con QR ═══════════ */
+
+/** Evento publicado por un vendedor aprobado (concierto, conferencia, culto…). */
+export const czEvents = mysqlTable(
+  "cz_events",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    storeId: int("storeId").notNull().references(() => czStores.id),
+    userId: int("userId").notNull().references(() => users.id),
+    slug: varchar("slug", { length: 180 }).notNull(),
+    status: mysqlEnum("status", ["draft", "published", "cancelled"]).notNull().default("draft"),
+    revision: int("revision").notNull().default(0),
+    title: varchar("title", { length: 140 }).notNull(),
+    artist: varchar("artist", { length: 140 }).notNull().default(""),
+    description: text("description").notNull(),
+    startsAt: timestamp("startsAt").notNull(),
+    endsAt: timestamp("endsAt"),
+    venueName: varchar("venueName", { length: 140 }).notNull(),
+    address: varchar("address", { length: 240 }).notNull().default(""),
+    province: varchar("province", { length: 60 }).notNull(),
+    city: varchar("city", { length: 80 }).notNull().default(""),
+    mapUrl: varchar("mapUrl", { length: 500 }).notNull().default(""),
+    images: json("images").$type<string[]>(),
+    publishedAt: timestamp("publishedAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    uniqueIndex("cz_events_slug_uq").on(table.slug),
+    index("cz_events_store_ix").on(table.storeId),
+    index("cz_events_public_ix").on(table.status, table.startsAt),
+  ]
+);
+
+/** Tipos de entrada de un evento (General, VIP…) con su precio y aforo. */
+export const czEventTicketTypes = mysqlTable(
+  "cz_event_ticket_types",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    eventId: int("eventId").notNull().references(() => czEvents.id, { onDelete: "cascade" }),
+    name: varchar("name", { length: 60 }).notNull(),
+    priceCents: int("priceCents").notNull().default(0),
+    capacity: int("capacity").notNull(),
+    /** Boletos apartados o pagados; nunca puede superar capacity. */
+    taken: int("taken").notNull().default(0),
+    position: int("position").notNull().default(0),
+  },
+  table => [index("cz_event_ticket_types_event_ix").on(table.eventId)]
+);
+
+/** Reserva de boletos: pendiente de pago, pagada o cancelada. */
+export const czTicketOrders = mysqlTable(
+  "cz_ticket_orders",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    eventId: int("eventId").notNull().references(() => czEvents.id),
+    ticketTypeId: int("ticketTypeId").notNull().references(() => czEventTicketTypes.id),
+    storeId: int("storeId").notNull().references(() => czStores.id),
+    buyerUserId: int("buyerUserId").notNull().references(() => users.id),
+    quantity: int("quantity").notNull(),
+    unitPriceCents: int("unitPriceCents").notNull(),
+    totalCents: int("totalCents").notNull(),
+    status: mysqlEnum("status", ["reserved", "paid", "cancelled"]).notNull().default("reserved"),
+    buyerName: varchar("buyerName", { length: 120 }).notNull(),
+    buyerPhone: varchar("buyerPhone", { length: 20 }).notNull(),
+    commissionBps: int("commissionBps").notNull().default(0),
+    commissionCents: int("commissionCents").notNull().default(0),
+    /** Pago de comisión (cz_commission_payments) que saldó esta venta. */
+    commissionPaymentId: int("commissionPaymentId"),
+    /** Una reserva sin pagar se libera sola al vencer. */
+    expiresAt: timestamp("expiresAt"),
+    paidAt: timestamp("paidAt"),
+    cancelledAt: timestamp("cancelledAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    index("cz_ticket_orders_event_ix").on(table.eventId, table.status),
+    index("cz_ticket_orders_buyer_ix").on(table.buyerUserId),
+    index("cz_ticket_orders_store_ix").on(table.storeId, table.status, table.paidAt),
+    index("cz_ticket_orders_commission_ix").on(table.storeId, table.commissionPaymentId),
+    index("cz_ticket_orders_expiry_ix").on(table.status, table.expiresAt),
+  ]
+);
+
+/** Cada boleto con su código QR único. Solo vale una vez en la entrada. */
+export const czTickets = mysqlTable(
+  "cz_tickets",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    orderId: int("orderId").notNull().references(() => czTicketOrders.id, { onDelete: "cascade" }),
+    eventId: int("eventId").notNull().references(() => czEvents.id),
+    ticketTypeId: int("ticketTypeId").notNull().references(() => czEventTicketTypes.id),
+    holderUserId: int("holderUserId").notNull().references(() => users.id),
+    code: varchar("code", { length: 32 }).notNull(),
+    status: mysqlEnum("status", ["valid", "used", "cancelled"]).notNull().default("valid"),
+    usedAt: timestamp("usedAt"),
+    usedByUserId: int("usedByUserId"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => [
+    uniqueIndex("cz_tickets_code_uq").on(table.code),
+    index("cz_tickets_event_ix").on(table.eventId, table.status),
+    index("cz_tickets_holder_ix").on(table.holderUserId),
+  ]
+);

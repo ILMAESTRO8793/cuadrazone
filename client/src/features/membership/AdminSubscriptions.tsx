@@ -667,7 +667,7 @@ function CommissionSection({
           {data.orders.length > 0 && (
             <ul className="admin-audit">
               {data.orders.map(order => (
-                <li key={order.id}>
+                <li key={`${order.kind}-${order.id}`}>
                   {order.number}: {money(order.commissionCents)} (
                   {commissionPercentLabel(order.commissionBps)} de{" "}
                   {money(order.subtotalCents)}) · entregado el{" "}

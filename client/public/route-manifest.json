@@ -55,6 +55,15 @@
       "path": "/eventos"
     },
     {
+      "path": "/mis-boletos"
+    },
+    {
+      "path": "/vendedor/eventos"
+    },
+    {
+      "path": "/vendedor/escanear/:id"
+    },
+    {
       "path": "/servicios"
     },
     {

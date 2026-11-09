@@ -17,6 +17,7 @@ export function CommerceNav() {
       <Link href="/mi-carrito">Mi carrito</Link>
       <Link href="/mi-lista">Mis deseos</Link>
       <Link href="/pedidos">Mis pedidos</Link>
+      <Link href="/mis-boletos">Mis boletos</Link>
       <Link href="/mensajes">Mensajes</Link>
       <Link href="/notificaciones">Notificaciones</Link>
       <Link href="/vendedor/productos">Mi tienda</Link>

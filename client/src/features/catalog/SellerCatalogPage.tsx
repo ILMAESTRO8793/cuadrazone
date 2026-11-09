@@ -36,6 +36,7 @@ import {
   Trash2,
   UploadCloud,
   X,
+  CalendarDays,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -784,6 +785,9 @@ function SellerCatalogContent({
         >
           <Package size={17} /> {storeKind === "servicios" ? "Mis servicios" : <>Publicaciones <span>{productCountLabel}</span></>}
         </button>
+        <Link href="/vendedor/eventos">
+          <CalendarDays size={17} /> Mis eventos
+        </Link>
         {storeKind !== "servicios" && (
           <>
             <Link href="/vendedor/pedidos">

@@ -34,6 +34,7 @@ import {
   pendingTotalsBySeller,
   sweepCommissionDeadlines,
 } from "./commissions";
+import { sweepExpiredReservations } from "./events";
 import type { PlatformPaymentDetails } from "@shared/billing";
 
 export const PAYMENT_METHODS = [
@@ -480,6 +481,16 @@ export function startSubscriptionSweeper(intervalMs = 15 * 60 * 1000) {
       .catch(error =>
         console.error(
           "[Suscripciones] Error al vencer:",
+          error instanceof Error ? error.message : error
+        )
+      );
+    void sweepExpiredReservations()
+      .then(count => {
+        if (count > 0) console.log(`[Eventos] ${count} reserva(s) vencida(s) liberada(s)`);
+      })
+      .catch(error =>
+        console.error(
+          "[Eventos] Error al liberar reservas:",
           error instanceof Error ? error.message : error
         )
       );

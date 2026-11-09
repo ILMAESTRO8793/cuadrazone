@@ -9,6 +9,7 @@ import { realEstateRouter } from "./routers/realEstate";
 import { vehiclesRouter } from "./routers/vehicles";
 import { jobsRouter } from "./routers/jobs";
 import { servicesRouter } from "./routers/services";
+import { eventsRouter } from "./routers/events";
 import { profileDisplayName } from "./db";
 
 export const appRouter = router({
@@ -21,6 +22,7 @@ export const appRouter = router({
   vehicles: vehiclesRouter,
   jobs: jobsRouter,
   services: servicesRouter,
+  events: eventsRouter,
   auth: router({
     // El nombre que la persona escribe en su perfil manda sobre el de la cuenta
     // (que en las cuentas por código está vacío): así lo saluda la cabecera.
