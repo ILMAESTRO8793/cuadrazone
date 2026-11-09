@@ -6,6 +6,8 @@
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, inArray, lt } from "drizzle-orm";
 import {
+  TRIAL_MONTHS,
+  TRIAL_PLAN_ID,
   getSellerPlan,
   sellerPlanIds,
   sellerPlanLabel,
@@ -425,12 +427,52 @@ export async function sweepExpiredSubscriptions(
 }
 
 /**
+ * Aprobado = activo al instante: los primeros 3 meses son gratis, así que una
+ * tienda aprobada nunca debe quedar inactiva por «no haber pagado». Si alguna
+ * quedó aprobada sin su prueba gratuita (aprobaciones antiguas o por otra vía),
+ * se la activa ahora con sus 3 meses completos. Devuelve cuántas activó.
+ */
+export async function startMissingTrials(now = new Date()): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  const trialEndsAt = addMonths(now, TRIAL_MONTHS);
+  const result: any = await db
+    .update(czApplications)
+    .set({
+      subscriptionStatus: "active",
+      subscriptionPlanId: TRIAL_PLAN_ID,
+      subscriptionEndsAt: trialEndsAt,
+      trialEndsAt,
+      holdReason: null,
+    })
+    .where(
+      and(
+        eq(czApplications.status, "approved"),
+        eq(czApplications.subscriptionStatus, "not_started")
+      )
+    );
+  const header = Array.isArray(result) ? result[0] : result;
+  return Number(header?.affectedRows ?? 0);
+}
+
+/**
  * Ejecuta el vencimiento al arrancar y cada 15 minutos (una sola instancia en
  * Railway): mensualidades vencidas y plazos de la comisión mensual.
  */
 export function startSubscriptionSweeper(intervalMs = 15 * 60 * 1000) {
   // Los dos barridos son independientes: si uno falla, el otro corre igual.
   const run = () => {
+    void startMissingTrials()
+      .then(count => {
+        if (count > 0)
+          console.log(`[Suscripciones] ${count} tienda(s) aprobada(s) activada(s) con su prueba gratis`);
+      })
+      .catch(error =>
+        console.error(
+          "[Suscripciones] Error al activar pruebas:",
+          error instanceof Error ? error.message : error
+        )
+      );
     void sweepExpiredSubscriptions()
       .then(count => {
         if (count > 0) console.log(`[Suscripciones] ${count} vencida(s)`);

@@ -5,9 +5,20 @@
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import express, { type Express, type Request, type Response } from "express";
-import { czServiceRequests, czServices, czStores } from "../../drizzle/catalog-schema";
-import { czApplications, czMembershipProfiles, type User } from "../../drizzle/schema";
-import { getBusinessCategory, getBusinessSpecialty } from "@shared/businessCategories";
+import {
+  czServiceRequests,
+  czServices,
+  czStores,
+} from "../../drizzle/catalog-schema";
+import {
+  czApplications,
+  czMembershipProfiles,
+  type User,
+} from "../../drizzle/schema";
+import {
+  getBusinessCategory,
+  getBusinessSpecialty,
+} from "@shared/businessCategories";
 import {
   MAX_SERVICE_IMAGES,
   saveServiceInput,
@@ -26,7 +37,11 @@ import { queueEmail, recipientFor } from "./email";
 import { slugify } from "./realEstate";
 
 const PAGE_SIZE = 24;
-const IMAGE_EXT: Record<string, string> = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" };
+const IMAGE_EXT: Record<string, string> = {
+  "image/png": "png",
+  "image/jpeg": "jpg",
+  "image/webp": "webp",
+};
 
 function fail(code: TRPCError["code"], message: string): never {
   throw new TRPCError({ code, message });
@@ -36,9 +51,19 @@ async function requireDb() {
   if (!db) fail("INTERNAL_SERVER_ERROR", "La base de datos no está disponible");
   return db;
 }
-const changed = (r: unknown) => Number(((Array.isArray(r) ? r[0] : r) as { affectedRows?: number })?.affectedRows ?? 0) > 0;
+const changed = (r: unknown) =>
+  Number(
+    ((Array.isArray(r) ? r[0] : r) as { affectedRows?: number })
+      ?.affectedRows ?? 0
+  ) > 0;
 function list<T = string>(value: unknown): T[] {
-  if (typeof value === "string") { try { value = JSON.parse(value); } catch { return []; } }
+  if (typeof value === "string") {
+    try {
+      value = JSON.parse(value);
+    } catch {
+      return [];
+    }
+  }
   return Array.isArray(value) ? (value as T[]) : [];
 }
 
@@ -55,8 +80,13 @@ async function serviceStore(db: any, userId: number) {
 
 async function requireServiceStore(db: any, userId: number) {
   const found = await serviceStore(db, userId);
-  if (!found) fail("PRECONDITION_FAILED", "Primero guarda la información de tu tienda");
-  if (found.store.storeKind !== "servicios") fail("PRECONDITION_FAILED", "Tu tienda es de comercio: publica productos, no servicios");
+  if (!found)
+    fail("PRECONDITION_FAILED", "Primero guarda la información de tu tienda");
+  if (found.store.storeKind !== "servicios")
+    fail(
+      "PRECONDITION_FAILED",
+      "Tu tienda es de comercio: publica productos, no servicios"
+    );
   return found;
 }
 
@@ -72,7 +102,9 @@ function dto(row: any, store: any, phone: string | null): ServiceDTO {
     categoryId: row.categoryId,
     specialtyId: row.specialtyId ?? null,
     categoryLabel: category?.label ?? row.categoryId,
-    specialtyLabel: row.specialtyId ? getBusinessSpecialty(row.specialtyId)?.label ?? null : null,
+    specialtyLabel: row.specialtyId
+      ? (getBusinessSpecialty(row.specialtyId)?.label ?? null)
+      : null,
     priceType: row.priceType,
     priceCents: row.priceCents ?? null,
     durationMinutes: row.durationMinutes ?? null,
@@ -80,15 +112,25 @@ function dto(row: any, store: any, phone: string | null): ServiceDTO {
     coverageProvinces: list(row.coverageProvinces),
     schedule: row.schedule ?? "",
     images: list(row.images),
-    store: { name: store.name, slug: store.slug, province: store.province, city: store.city, phone },
-    publishedAt: row.publishedAt ? new Date(row.publishedAt).toISOString() : null,
+    store: {
+      name: store.name,
+      slug: store.slug,
+      province: store.province,
+      city: store.city,
+      phone,
+    },
+    publishedAt: row.publishedAt
+      ? new Date(row.publishedAt).toISOString()
+      : null,
     updatedAt: new Date(row.updatedAt).toISOString(),
   };
 }
 
 function cleanImages(id: number, images: string[]) {
   const prefix = `/media/catalog/services/${id}/`;
-  return images.filter(u => u.startsWith(prefix) && /^[A-Za-z0-9/._-]+$/.test(u)).slice(0, MAX_SERVICE_IMAGES);
+  return images
+    .filter(u => u.startsWith(prefix) && /^[A-Za-z0-9/._-]+$/.test(u))
+    .slice(0, MAX_SERVICE_IMAGES);
 }
 
 function columns(v: ReturnType<typeof saveServiceInput.parse>) {
@@ -103,61 +145,112 @@ function columns(v: ReturnType<typeof saveServiceInput.parse>) {
     durationMinutes: v.durationMinutes,
     modalities: v.modalities,
     // Las provincias solo aplican cuando va a domicilio.
-    coverageProvinces: v.modalities.includes("a_domicilio") ? v.coverageProvinces : [],
+    coverageProvinces: v.modalities.includes("a_domicilio")
+      ? v.coverageProvinces
+      : [],
     schedule: v.schedule,
   };
 }
 
 async function ownService(db: any, userId: number, id: number) {
-  const rows = await db.select().from(czServices).where(and(eq(czServices.id, id), eq(czServices.userId, userId))).limit(1);
+  const rows = await db
+    .select()
+    .from(czServices)
+    .where(and(eq(czServices.id, id), eq(czServices.userId, userId)))
+    .limit(1);
   if (!rows[0]) fail("NOT_FOUND", "El servicio no existe");
   return rows[0];
 }
 
 export async function saveService(user: User, raw: unknown) {
   const parsed = saveServiceInput.safeParse(raw);
-  if (!parsed.success) fail("BAD_REQUEST", parsed.error.issues[0]?.message ?? "Datos inválidos");
+  if (!parsed.success)
+    fail("BAD_REQUEST", parsed.error.issues[0]?.message ?? "Datos inválidos");
   const v = parsed.data;
   const db = await requireDb();
   const { store, app } = await requireServiceStore(db, user.id);
   if (!v.id) {
     // Si la tienda ya puede publicar, el servicio nuevo sale publicado: antes
     // quedaba en borrador y muchos vendedores no veían el segundo botón «Publicar».
-    const canPublish = app.status === "approved" && app.subscriptionStatus === "active";
+    const canPublish =
+      app.status === "approved" && app.subscriptionStatus === "active";
     const inserted = await db.insert(czServices).values({
       storeId: store.id,
       userId: user.id,
       slug: `tmp-${crypto.randomUUID()}`,
       ...columns(v),
       images: [],
-      ...(canPublish ? { status: "published" as const, publishedAt: new Date() } : {}),
+      ...(canPublish
+        ? { status: "published" as const, publishedAt: new Date() }
+        : {}),
     });
-    const id = Number((Array.isArray(inserted) ? inserted[0] : inserted).insertId);
-    await db.update(czServices).set({ slug: `${slugify(v.title)}-${id}` }).where(eq(czServices.id, id));
+    const id = Number(
+      (Array.isArray(inserted) ? inserted[0] : inserted).insertId
+    );
+    await db
+      .update(czServices)
+      .set({ slug: `${slugify(v.title)}-${id}` })
+      .where(eq(czServices.id, id));
     return { id, published: canPublish };
   }
   const current = await ownService(db, user.id, v.id);
-  if (v.expectedRevision !== undefined && v.expectedRevision !== current.revision)
-    fail("CONFLICT", "El servicio cambió en otra ventana. Recarga y vuelve a intentarlo.");
+  if (
+    v.expectedRevision !== undefined &&
+    v.expectedRevision !== current.revision
+  )
+    fail(
+      "CONFLICT",
+      "El servicio cambió en otra ventana. Recarga y vuelve a intentarlo."
+    );
   const result = await db
     .update(czServices)
-    .set({ ...columns(v), images: cleanImages(v.id, v.images), slug: `${slugify(v.title)}-${v.id}`, revision: current.revision + 1 })
-    .where(and(eq(czServices.id, v.id), eq(czServices.userId, user.id), eq(czServices.revision, current.revision)));
-  if (!changed(result)) fail("CONFLICT", "El servicio cambió en otra ventana. Recarga y vuelve a intentarlo.");
+    .set({
+      ...columns(v),
+      images: cleanImages(v.id, v.images),
+      slug: `${slugify(v.title)}-${v.id}`,
+      revision: current.revision + 1,
+    })
+    .where(
+      and(
+        eq(czServices.id, v.id),
+        eq(czServices.userId, user.id),
+        eq(czServices.revision, current.revision)
+      )
+    );
+  if (!changed(result))
+    fail(
+      "CONFLICT",
+      "El servicio cambió en otra ventana. Recarga y vuelve a intentarlo."
+    );
   return { id: v.id };
 }
 
-export async function setServiceStatus(user: User, id: number, status: ServiceStatus) {
+export async function setServiceStatus(
+  user: User,
+  id: number,
+  status: ServiceStatus
+) {
   const db = await requireDb();
   const row = await ownService(db, user.id, id);
   if (status === "published") {
     const { app } = await requireServiceStore(db, user.id);
-    if (app.status !== "approved") fail("PRECONDITION_FAILED", "Tu tienda todavía no está aprobada");
-    if (app.subscriptionStatus !== "active") fail("PRECONDITION_FAILED", "Tu plan no está activo. Renuévalo para publicar.");
+    if (app.status !== "approved")
+      fail("PRECONDITION_FAILED", "Tu tienda todavía no está aprobada");
+    if (app.subscriptionStatus !== "active")
+      fail(
+        "PRECONDITION_FAILED",
+        "Tu plan no está activo. Renuévalo para publicar."
+      );
   }
   await db
     .update(czServices)
-    .set({ status, revision: row.revision + 1, ...(status === "published" && !row.publishedAt ? { publishedAt: new Date() } : {}) })
+    .set({
+      status,
+      revision: row.revision + 1,
+      ...(status === "published" && !row.publishedAt
+        ? { publishedAt: new Date() }
+        : {}),
+    })
     .where(eq(czServices.id, id));
   return { status };
 }
@@ -165,7 +258,9 @@ export async function setServiceStatus(user: User, id: number, status: ServiceSt
 export async function deleteService(user: User, id: number) {
   const db = await requireDb();
   await ownService(db, user.id, id);
-  await db.delete(czServices).where(and(eq(czServices.id, id), eq(czServices.userId, user.id)));
+  await db
+    .delete(czServices)
+    .where(and(eq(czServices.id, id), eq(czServices.userId, user.id)));
   return { deleted: true };
 }
 
@@ -173,18 +268,34 @@ export async function myServices(user: User) {
   const db = await requireDb();
   const found = await serviceStore(db, user.id);
   if (!found) return { services: [] as OwnServiceDTO[] };
-  const rows = await db.select().from(czServices).where(eq(czServices.userId, user.id)).orderBy(desc(czServices.updatedAt)).limit(200);
+  const rows = await db
+    .select()
+    .from(czServices)
+    .where(eq(czServices.userId, user.id))
+    .orderBy(desc(czServices.updatedAt))
+    .limit(200);
   const ids = rows.map((r: any) => r.id);
   const counts = ids.length
     ? await db
-        .select({ serviceId: czServiceRequests.serviceId, fresh: sql<number>`sum(${czServiceRequests.status} = 'nueva')` })
+        .select({
+          serviceId: czServiceRequests.serviceId,
+          fresh: sql<number>`sum(${czServiceRequests.status} = 'nueva')`,
+        })
         .from(czServiceRequests)
         .where(inArray(czServiceRequests.serviceId, ids))
         .groupBy(czServiceRequests.serviceId)
     : [];
-  const fresh = new Map(counts.map((c: any) => [c.serviceId, Number(c.fresh ?? 0)]));
+  const fresh = new Map(
+    counts.map((c: any) => [c.serviceId, Number(c.fresh ?? 0)])
+  );
   return {
-    services: rows.map((r: any): OwnServiceDTO => ({ ...dto(r, found.store, found.app.contactPhone ?? null), revision: r.revision, newRequests: fresh.get(r.id) ?? 0 })),
+    services: rows.map(
+      (r: any): OwnServiceDTO => ({
+        ...dto(r, found.store, found.app.contactPhone ?? null),
+        revision: r.revision,
+        newRequests: fresh.get(r.id) ?? 0,
+      })
+    ),
   };
 }
 
@@ -201,38 +312,69 @@ function publicConditions() {
 
 function publicQuery(db: any) {
   return db
-    .select({ service: czServices, store: czStores, phone: czApplications.contactPhone })
+    .select({
+      service: czServices,
+      store: czStores,
+      phone: czApplications.contactPhone,
+    })
     .from(czServices)
     .innerJoin(czStores, eq(czStores.id, czServices.storeId))
     .innerJoin(czApplications, eq(czApplications.userId, czStores.userId))
-    .innerJoin(czMembershipProfiles, eq(czMembershipProfiles.userId, czStores.userId));
+    .innerJoin(
+      czMembershipProfiles,
+      eq(czMembershipProfiles.userId, czStores.userId)
+    );
 }
 
 export async function publicServices(filters: ServiceFilters) {
   const db = await requireDb();
   const conditions: any[] = publicConditions();
-  if (filters.serviceType) conditions.push(eq(czServices.serviceType, filters.serviceType));
-  if (filters.categoryId) conditions.push(eq(czServices.categoryId, filters.categoryId));
-  const rows = await publicQuery(db).where(and(...conditions)).orderBy(desc(czServices.publishedAt)).limit(1000);
+  if (filters.serviceType)
+    conditions.push(eq(czServices.serviceType, filters.serviceType));
+  if (filters.categoryId)
+    conditions.push(eq(czServices.categoryId, filters.categoryId));
+  const rows = await publicQuery(db)
+    .where(and(...conditions))
+    .orderBy(desc(czServices.publishedAt))
+    .limit(1000);
   const q = filters.q?.toLowerCase();
   const visible = rows
     .map((r: any) => dto(r.service, r.store, r.phone))
-    .filter((s: ServiceDTO) => !filters.modality || s.modalities.includes(filters.modality))
-    // Por provincia: va a domicilio a esa provincia, o su local está ahí, o es en línea.
-    .filter((s: ServiceDTO) =>
-      !filters.province ||
-      s.modalities.includes("en_linea") ||
-      (s.modalities.includes("a_domicilio") && s.coverageProvinces.includes(filters.province)) ||
-      (s.modalities.includes("en_local") && s.store.province === filters.province)
+    .filter(
+      (s: ServiceDTO) =>
+        !filters.modality || s.modalities.includes(filters.modality)
     )
-    .filter((s: ServiceDTO) => !q || `${s.title} ${s.description} ${s.categoryLabel} ${s.specialtyLabel ?? ""} ${s.store.name}`.toLowerCase().includes(q));
+    // Por provincia: va a domicilio a esa provincia, o su local está ahí, o es en línea.
+    .filter(
+      (s: ServiceDTO) =>
+        !filters.province ||
+        s.modalities.includes("en_linea") ||
+        (s.modalities.includes("a_domicilio") &&
+          s.coverageProvinces.includes(filters.province)) ||
+        (s.modalities.includes("en_local") &&
+          s.store.province === filters.province)
+    )
+    .filter(
+      (s: ServiceDTO) =>
+        !q ||
+        `${s.title} ${s.description} ${s.categoryLabel} ${s.specialtyLabel ?? ""} ${s.store.name}`
+          .toLowerCase()
+          .includes(q)
+    );
   const start = (filters.page - 1) * PAGE_SIZE;
-  return { total: visible.length, page: filters.page, pageSize: PAGE_SIZE, items: visible.slice(start, start + PAGE_SIZE) };
+  return {
+    total: visible.length,
+    page: filters.page,
+    pageSize: PAGE_SIZE,
+    items: visible.slice(start, start + PAGE_SIZE),
+  };
 }
 
 export async function publicService(slug: string) {
   const db = await requireDb();
-  const rows = await publicQuery(db).where(and(eq(czServices.slug, slug), ...publicConditions())).limit(1);
+  const rows = await publicQuery(db)
+    .where(and(eq(czServices.slug, slug), ...publicConditions()))
+    .limit(1);
   if (!rows[0]) fail("NOT_FOUND", "Este servicio ya no está disponible");
   return dto(rows[0].service, rows[0].store, rows[0].phone);
 }
@@ -241,30 +383,59 @@ export async function publicService(slug: string) {
 
 export async function requestService(user: User, raw: unknown) {
   const parsed = serviceRequestInput.safeParse(raw);
-  if (!parsed.success) fail("BAD_REQUEST", parsed.error.issues[0]?.message ?? "Datos inválidos");
+  if (!parsed.success)
+    fail("BAD_REQUEST", parsed.error.issues[0]?.message ?? "Datos inválidos");
   const v = parsed.data;
   const db = await requireDb();
-  const rows = await publicQuery(db).where(and(eq(czServices.id, v.serviceId), ...publicConditions())).limit(1);
+  const rows = await publicQuery(db)
+    .where(and(eq(czServices.id, v.serviceId), ...publicConditions()))
+    .limit(1);
   const found = rows[0];
   if (!found) fail("NOT_FOUND", "Este servicio ya no recibe solicitudes");
-  if (found.service.userId === user.id) fail("BAD_REQUEST", "No puedes solicitar tu propio servicio");
+  if (found.service.userId === user.id)
+    fail("BAD_REQUEST", "No puedes solicitar tu propio servicio");
   // Evita repetir la misma solicitud muchas veces seguidas.
   const recent = await db
     .select({ n: sql<number>`count(*)` })
     .from(czServiceRequests)
-    .where(and(eq(czServiceRequests.serviceId, v.serviceId), eq(czServiceRequests.requesterUserId, user.id), sql`${czServiceRequests.createdAt} > NOW() - INTERVAL 1 DAY`));
-  if (Number(recent[0]?.n ?? 0) >= 3) fail("TOO_MANY_REQUESTS", "Ya enviaste varias solicitudes a este servicio hoy. Espera la respuesta del proveedor.");
-  await db.insert(czServiceRequests).values({ serviceId: v.serviceId, requesterUserId: user.id, name: v.name, phone: v.phone, message: v.message, preferredDate: v.preferredDate, province: v.province });
-  await queueEmail(db, `service-request:${v.serviceId}:${user.id}:${Date.now()}`, await recipientFor(db, found.service.userId), {
-    subject: `Nueva solicitud: ${found.service.title}`,
-    title: "Alguien solicitó tu servicio",
-    paragraphs: [
-      `${v.name} (${v.phone}, ${v.province}) quiere «${found.service.title}».`,
-      `Mensaje: «${v.message}»${v.preferredDate ? ` · Fecha preferida: ${v.preferredDate}` : ""}`,
-      "Contáctalo pronto por WhatsApp o llamada para coordinar.",
-    ],
-    cta: { label: "Ver mis solicitudes", path: "/vendedor/tienda" },
-  });
+    .where(
+      and(
+        eq(czServiceRequests.serviceId, v.serviceId),
+        eq(czServiceRequests.requesterUserId, user.id),
+        sql`${czServiceRequests.createdAt} > NOW() - INTERVAL 1 DAY`
+      )
+    );
+  if (Number(recent[0]?.n ?? 0) >= 3)
+    fail(
+      "TOO_MANY_REQUESTS",
+      "Ya enviaste varias solicitudes a este servicio hoy. Espera la respuesta del proveedor."
+    );
+  await db
+    .insert(czServiceRequests)
+    .values({
+      serviceId: v.serviceId,
+      requesterUserId: user.id,
+      name: v.name,
+      phone: v.phone,
+      message: v.message,
+      preferredDate: v.preferredDate,
+      province: v.province,
+    });
+  await queueEmail(
+    db,
+    `service-request:${v.serviceId}:${user.id}:${Date.now()}`,
+    await recipientFor(db, found.service.userId),
+    {
+      subject: `Nueva solicitud: ${found.service.title}`,
+      title: "Alguien solicitó tu servicio",
+      paragraphs: [
+        `${v.name} (${v.phone}, ${v.province}) quiere «${found.service.title}».`,
+        `Mensaje: «${v.message}»${v.preferredDate ? ` · Fecha preferida: ${v.preferredDate}` : ""}`,
+        "Contáctalo pronto por WhatsApp o llamada para coordinar.",
+      ],
+      cta: { label: "Ver mis solicitudes", path: "/vendedor/tienda" },
+    }
+  );
   return { ok: true };
 }
 
@@ -290,7 +461,11 @@ export async function myServiceRequests(user: User) {
   }));
 }
 
-export async function setRequestStatus(user: User, id: number, status: RequestStatus) {
+export async function setRequestStatus(
+  user: User,
+  id: number,
+  status: RequestStatus
+) {
   const db = await requireDb();
   const rows = await db
     .select({ id: czServiceRequests.id })
@@ -299,7 +474,10 @@ export async function setRequestStatus(user: User, id: number, status: RequestSt
     .where(and(eq(czServiceRequests.id, id), eq(czServices.userId, user.id)))
     .limit(1);
   if (!rows[0]) fail("NOT_FOUND", "La solicitud no existe");
-  await db.update(czServiceRequests).set({ status }).where(eq(czServiceRequests.id, id));
+  await db
+    .update(czServiceRequests)
+    .set({ status })
+    .where(eq(czServiceRequests.id, id));
   return { status };
 }
 
@@ -307,42 +485,99 @@ export async function setRequestStatus(user: User, id: number, status: RequestSt
 
 async function uploadImage(req: Request, res: Response) {
   try {
-    if (req.headers["x-cz-request"] !== "1") return res.status(412).json({ error: "Falta la cabecera x-cz-request: 1" });
+    if (req.headers["x-cz-request"] !== "1")
+      return res
+        .status(412)
+        .json({ error: "Falta la cabecera x-cz-request: 1" });
     const user = await sdk.authenticateRequest(req).catch(() => null);
     if (!user) return res.status(401).json({ error: "Inicia sesión" });
     const id = Number(req.params.id);
-    if (!Number.isSafeInteger(id) || id <= 0) return res.status(400).json({ error: "Servicio inválido" });
-    const mimeType = String(req.headers["content-type"] ?? "").split(";", 1)[0]!.toLowerCase();
+    if (!Number.isSafeInteger(id) || id <= 0)
+      return res.status(400).json({ error: "Servicio inválido" });
+    const mimeType = String(req.headers["content-type"] ?? "")
+      .split(";", 1)[0]!
+      .toLowerCase();
     validateCatalogImageBytes(req.body, mimeType);
     const db = await requireDb();
     const row = await ownService(db, user.id, id);
     const images = list<string>(row.images);
-    if (images.length >= MAX_SERVICE_IMAGES) return res.status(409).json({ error: `Máximo ${MAX_SERVICE_IMAGES} fotos por servicio` });
-    const saved = await storagePut(`catalog/services/${id}/${crypto.randomUUID()}.${IMAGE_EXT[mimeType]}`, req.body, mimeType);
-    await db.update(czServices).set({ images: [...images, saved.url], revision: row.revision + 1 }).where(eq(czServices.id, id));
+    if (images.length >= MAX_SERVICE_IMAGES)
+      return res
+        .status(409)
+        .json({ error: `Máximo ${MAX_SERVICE_IMAGES} fotos por servicio` });
+    const saved = await storagePut(
+      `catalog/services/${id}/${crypto.randomUUID()}.${IMAGE_EXT[mimeType]}`,
+      req.body,
+      mimeType
+    );
+    await db
+      .update(czServices)
+      .set({ images: [...images, saved.url], revision: row.revision + 1 })
+      .where(eq(czServices.id, id));
     return res.status(201).json({ url: saved.url });
   } catch (error) {
     const code = (error as { code?: string }).code;
-    return res.status(code === "NOT_FOUND" ? 404 : code === "PAYLOAD_TOO_LARGE" ? 413 : 400).json({ error: error instanceof Error ? error.message : "No se pudo subir la foto" });
+    return res
+      .status(
+        code === "NOT_FOUND" ? 404 : code === "PAYLOAD_TOO_LARGE" ? 413 : 400
+      )
+      .json({
+        error:
+          error instanceof Error ? error.message : "No se pudo subir la foto",
+      });
   }
 }
 
 export function registerServiceImageRoutes(app: Express) {
-  app.post("/api/services/:id/images", express.raw({ type: () => true, limit: 5 * 1024 * 1024 }), uploadImage);
+  app.post(
+    "/api/services/:id/images",
+    express.raw({ type: () => true, limit: 5 * 1024 * 1024 }),
+    uploadImage
+  );
 }
 
 /** Cambiar el tipo de tienda solo mientras no tenga publicaciones. */
-export async function changeStoreKind(user: User, kind: "comercio" | "servicios", countProducts: (db: any, storeId: number) => Promise<number>) {
+export async function changeStoreKind(
+  user: User,
+  kind: "comercio" | "servicios",
+  countProducts: (db: any, storeId: number) => Promise<number>
+) {
   const db = await requireDb();
   const found = await serviceStore(db, user.id);
-  if (!found) fail("PRECONDITION_FAILED", "Primero guarda la información de tu tienda");
+  if (!found)
+    fail("PRECONDITION_FAILED", "Primero guarda la información de tu tienda");
   if (found.store.storeKind === kind) return { storeKind: kind };
-  const services = await db.select({ n: sql<number>`count(*)` }).from(czServices).where(eq(czServices.storeId, found.store.id));
-  if (Number(services[0]?.n ?? 0) > 0 || (await countProducts(db, found.store.id)) > 0)
-    fail("PRECONDITION_FAILED", "Para cambiar el tipo de tienda primero borra tus publicaciones actuales");
+  const services = await db
+    .select({ n: sql<number>`count(*)` })
+    .from(czServices)
+    .where(eq(czServices.storeId, found.store.id));
+  if (
+    Number(services[0]?.n ?? 0) > 0 ||
+    (await countProducts(db, found.store.id)) > 0
+  )
+    fail(
+      "PRECONDITION_FAILED",
+      "Para cambiar el tipo de tienda primero borra tus publicaciones actuales"
+    );
   await db.transaction(async (tx: any) => {
-    await tx.update(czStores).set({ storeKind: kind, ...(kind === "servicios" ? { shippingFeesByProvince: null, deliveryProvinces: [], shippingFeeCents: null, homeFeeCents: null } : {}) }).where(eq(czStores.id, found.store.id));
-    await tx.update(czApplications).set({ storeKind: kind }).where(eq(czApplications.id, found.app.id));
+    await tx
+      .update(czStores)
+      .set({
+        storeKind: kind,
+        ...(kind === "servicios"
+          ? {
+              shippingFeesByProvince: null,
+              deliveryProvinces: [],
+              shippingFeeCents: null,
+              homeFeeCents: null,
+            }
+          : {}),
+      })
+      .where(eq(czStores.id, found.store.id));
+    await tx
+      .update(czApplications)
+      .set({ storeKind: kind })
+      .where(eq(czApplications.id, found.app.id));
   });
   return { storeKind: kind };
 }

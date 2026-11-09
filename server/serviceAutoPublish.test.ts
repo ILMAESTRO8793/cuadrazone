@@ -26,7 +26,9 @@ vi.mock("./db", () => ({
         return [{ insertId: 7 }];
       },
     }),
-    update: () => ({ set: () => ({ where: async () => [{ affectedRows: 1 }] }) }),
+    update: () => ({
+      set: () => ({ where: async () => [{ affectedRows: 1 }] }),
+    }),
   }),
 }));
 
@@ -53,7 +55,10 @@ describe("publicar un servicio nuevo", () => {
   });
 
   it("sale publicado si la tienda está aprobada y el plan activo", async () => {
-    storeRow = { store: { id: 11, storeKind: "servicios" }, app: { status: "approved", subscriptionStatus: "active" } };
+    storeRow = {
+      store: { id: 11, storeKind: "servicios" },
+      app: { status: "approved", subscriptionStatus: "active" },
+    };
     const { saveServiceInput } = await import("@shared/services");
     const parsed = saveServiceInput.safeParse(input);
     expect(parsed.success, JSON.stringify(parsed.error?.issues)).toBe(true);
@@ -65,7 +70,10 @@ describe("publicar un servicio nuevo", () => {
   });
 
   it("queda en borrador si la tienda todavía no está aprobada", async () => {
-    storeRow = { store: { id: 11, storeKind: "servicios" }, app: { status: "pending", subscriptionStatus: "none" } };
+    storeRow = {
+      store: { id: 11, storeKind: "servicios" },
+      app: { status: "pending", subscriptionStatus: "none" },
+    };
     const { saveService } = await import("./services/serviceListings");
     const result = await saveService(user, input);
     expect(result).toEqual({ id: 7, published: false });
