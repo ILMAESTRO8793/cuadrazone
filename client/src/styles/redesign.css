@@ -11,22 +11,27 @@
  */
 
 :root {
-  /* Color */
-  --cz-navy: #071f3b;
-  --cz-navy-deep: #05172c;
-  --cz-navy-soft: #13304f;
-  --cz-ink: #13233a;
-  --cz-ink-2: #44546a;
-  --cz-ink-3: #66768a;
-  --cz-gold: #b58c3c;
-  --cz-gold-strong: #8a6624;
-  --cz-gold-light: #ead18d;
-  --cz-gold-wash: #f7f0e1;
-  --cz-surface: #f4f7f6;
-  --cz-aqua: #eaf5f2;
-  --cz-aqua-line: #d6e7e1;
-  --cz-line: #e1e8e6;
-  --cz-line-strong: #cdd8d5;
+  /* Color — paleta «Earthy Editorial» (noviembre 2026) */
+  --cz-navy: #071e38;
+  --cz-navy-deep: #04142a;
+  --cz-navy-soft: #14304f;
+  --cz-olive: #414c16;
+  --cz-terracotta: #b85c22;
+  --cz-cream: #f7f1e6;
+  --cz-beige: #dcc4a3;
+  --cz-brown: #805338;
+  --cz-ink: #2a2420;
+  --cz-ink-2: #5b4f45;
+  --cz-ink-3: #7e7062;
+  --cz-gold: #d9ad49;
+  --cz-gold-strong: #8a6420;
+  --cz-gold-light: #e9c979;
+  --cz-gold-wash: #f6ebd2;
+  --cz-surface: #f7f1e6;
+  --cz-aqua: #efe4d0;
+  --cz-aqua-line: #dcc4a3;
+  --cz-line: #e8dcc8;
+  --cz-line-strong: #d5c2a4;
   --cz-white: #ffffff;
 
   /* Emblemas del logo */
@@ -43,9 +48,9 @@
   --cz-radius-sm: 8px;
   --cz-radius: 12px;
   --cz-radius-lg: 18px;
-  --cz-shadow-sm: 0 1px 2px rgba(7, 31, 59, 0.06);
-  --cz-shadow: 0 1px 2px rgba(7, 31, 59, 0.05), 0 6px 18px -8px rgba(7, 31, 59, 0.14);
-  --cz-shadow-lift: 0 2px 4px rgba(7, 31, 59, 0.05), 0 18px 36px -14px rgba(7, 31, 59, 0.26);
+  --cz-shadow-sm: 0 1px 2px rgba(42, 36, 32, 0.06);
+  --cz-shadow: 0 1px 2px rgba(42, 36, 32, 0.05), 0 6px 18px -8px rgba(42, 36, 32, 0.16);
+  --cz-shadow-lift: 0 2px 4px rgba(42, 36, 32, 0.05), 0 18px 36px -14px rgba(42, 36, 32, 0.28);
 
   /* Movimiento */
   --cz-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
@@ -1690,4 +1695,124 @@ textarea {
   .member-spin {
     animation: member-spin 1.6s linear infinite !important;
   }
+}
+
+
+/* ═══════════ Paleta «Earthy Editorial» ═══════════
+ * Crema de fondo, azul marino de marca, verde oliva y terracota como acentos,
+ * dorado en las acciones principales (con letra azul marino para que se lea).
+ */
+body,
+.site-main,
+.market-page,
+.member-shell,
+.member-page,
+.featured-band {
+  background: var(--cz-cream);
+}
+.gate-band {
+  background: var(--cz-cream);
+  border-bottom-color: var(--cz-line);
+}
+.gate h1 {
+  color: var(--cz-olive);
+}
+.eyebrow,
+.gate .eyebrow,
+.category-menu-heading {
+  color: var(--cz-terracotta);
+}
+.gate .tiny-gold-dot {
+  background: var(--cz-terracotta);
+  box-shadow: 0 0 0 4px rgba(184, 92, 34, 0.16);
+}
+.text-link:hover,
+.product-title:hover,
+.category-popover a:hover {
+  color: var(--cz-terracotta);
+}
+
+/* Acciones principales: fondo dorado, letra azul marino */
+.btn-gold,
+.member-button--gold,
+.seller-catalog-button--gold,
+.seller-plan-card .btn,
+.search-submit {
+  background: var(--cz-gold);
+  border-color: var(--cz-gold);
+  color: var(--cz-navy-deep);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.35) inset, 0 6px 14px -8px rgba(138, 100, 32, 0.6);
+}
+.btn-gold:hover,
+.member-button--gold:hover:not(:disabled),
+.seller-catalog-button--gold:hover,
+.seller-plan-card .btn:hover,
+.search-submit:hover {
+  background: #e4bd60;
+  border-color: #e4bd60;
+  color: var(--cz-navy-deep);
+}
+.btn-gold svg,
+.search-submit svg {
+  color: currentColor;
+}
+
+/* Las seis entradas con tonos de la paleta */
+.gate-choice--market {
+  --door-accent: #a87a1c;
+  --door-wash: #f6ebd2;
+}
+.gate-choice--services {
+  --door-accent: var(--cz-olive);
+  --door-wash: #e9ebd8;
+}
+.gate-choice--estate {
+  --door-accent: #5e6b25;
+  --door-wash: #eef0de;
+}
+.gate-choice--cars {
+  --door-accent: var(--cz-terracotta);
+  --door-wash: #f6e3d6;
+}
+.gate-choice--jobs {
+  --door-accent: var(--cz-brown);
+  --door-wash: #f0e4da;
+}
+
+/* Bandas suaves en arena en lugar de aguamarina */
+.prototype-note {
+  background: #efe4d0;
+  color: var(--cz-ink-2);
+  border-bottom-color: var(--cz-line);
+}
+.community-values,
+.seller-invite-icon,
+.catalog-intro--soft,
+.member-card--soft,
+.member-card--muted,
+.filter-panel {
+  border-color: var(--cz-line);
+}
+.community-values {
+  background: #efe4d0;
+}
+.values-inner svg {
+  color: var(--cz-olive);
+}
+.gate-small svg {
+  color: var(--cz-olive);
+}
+.membership-card {
+  background: var(--cz-olive);
+}
+.svc-card,
+.product-card,
+.legal-card,
+.catalog-intro,
+.seller-invite,
+.buyer-invite.container {
+  border-color: var(--cz-line);
+}
+.re-price {
+  color: var(--cz-olive);
 }
