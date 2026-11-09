@@ -53,6 +53,19 @@ export default function Home() {
               </p>
               <CountryPicker />
               <div className="gate-choices">
+                <Link href="/vender" className="gate-choice gate-choice--store">
+                  <GatePhoto name="crear-tienda" />
+                  <span className="gate-text">
+                    <strong>CREAR TU TIENDA</strong>
+                    <span className="gate-detail">
+                      Vende tus productos u ofrece tus servicios. Los primeros 3
+                      meses son gratis.
+                    </span>
+                  </span>
+                  <span className="gate-arrow" aria-hidden="true">
+                    <ArrowRight size={26} />
+                  </span>
+                </Link>
                 <Link
                   href="/mercado"
                   className="gate-choice gate-choice--market"
@@ -119,19 +132,6 @@ export default function Home() {
                     <strong>BUSCAR EMPLEO</strong>
                     <span className="gate-detail">
                       Crea tu CV, aplica a vacantes o publica un empleo.
-                    </span>
-                  </span>
-                  <span className="gate-arrow" aria-hidden="true">
-                    <ArrowRight size={26} />
-                  </span>
-                </Link>
-                <Link href="/vender" className="gate-choice gate-choice--store">
-                  <GatePhoto name="crear-tienda" />
-                  <span className="gate-text">
-                    <strong>CREAR TU TIENDA</strong>
-                    <span className="gate-detail">
-                      Vende tus productos u ofrece tus servicios. Los primeros 3
-                      meses son gratis.
                     </span>
                   </span>
                   <span className="gate-arrow" aria-hidden="true">
