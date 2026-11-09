@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#071e38" />
+    <title>CuadraZone · Sin conexión</title>
+    <style>
+      :root {
+        --navy: #071e38;
+        --cream: #f7f1e6;
+        --olive: #414c16;
+        --gold: #d9ad49;
+        --ink: #5b4f45;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; height: 100%; }
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        padding: max(24px, env(safe-area-inset-top)) 28px max(24px, env(safe-area-inset-bottom));
+        background: var(--cream);
+        color: var(--ink);
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        text-align: center;
+      }
+      .logo {
+        width: 220px;
+        padding: 18px 22px;
+        border-radius: 18px;
+        background: var(--navy);
+      }
+      .logo img { width: 100%; height: auto; display: block; }
+      h1 {
+        margin: 6px 0 0;
+        color: var(--olive);
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 26px;
+        line-height: 1.2;
+      }
+      p { margin: 0; max-width: 32ch; font-size: 16px; line-height: 1.55; }
+      button {
+        margin-top: 8px;
+        min-height: 48px;
+        padding: 0 28px;
+        border: 0;
+        border-radius: 999px;
+        background: var(--gold);
+        color: var(--navy);
+        font: inherit;
+        font-weight: 700;
+        font-size: 16px;
+      }
+      button:active { transform: scale(0.97); }
+    </style>
+  </head>
+  <body>
+    <div class="logo"><img src="logo.png" alt="CuadraZone" /></div>
+    <h1>No hay conexión a internet</h1>
+    <p>Revisa tu wifi o tus datos móviles y vuelve a intentarlo.</p>
+    <button type="button" onclick="location.href = 'https://www.cuadrazone.com/'">Reintentar</button>
+  </body>
+</html>

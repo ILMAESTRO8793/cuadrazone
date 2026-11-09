@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Paleta Earthy Editorial de CuadraZone -->
+    <color name="colorPrimary">#071E38</color>
+    <color name="colorPrimaryDark">#04142A</color>
+    <color name="colorAccent">#D9AD49</color>
+</resources>
