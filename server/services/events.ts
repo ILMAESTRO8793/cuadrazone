@@ -8,7 +8,17 @@
 // junto con la de los pedidos (ver commissions.ts).
 import { randomBytes, randomUUID } from "node:crypto";
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq, gt, inArray, isNotNull, lt, sql } from "drizzle-orm";
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  gt,
+  inArray,
+  isNotNull,
+  lt,
+  sql,
+} from "drizzle-orm";
 import express, { type Express, type Request, type Response } from "express";
 import {
   czEventTicketTypes,
@@ -17,7 +27,11 @@ import {
   czTicketOrders,
   czTickets,
 } from "../../drizzle/catalog-schema";
-import { czApplications, czMembershipProfiles, type User } from "../../drizzle/schema";
+import {
+  czApplications,
+  czMembershipProfiles,
+  type User,
+} from "../../drizzle/schema";
 import {
   MAX_EVENT_IMAGES,
   MAX_TICKETS_PER_ORDER,
@@ -59,10 +73,15 @@ async function requireDb() {
   return db;
 }
 const affected = (r: unknown) =>
-  Number(((Array.isArray(r) ? r[0] : r) as { affectedRows?: number })?.affectedRows ?? 0);
+  Number(
+    ((Array.isArray(r) ? r[0] : r) as { affectedRows?: number })
+      ?.affectedRows ?? 0
+  );
 const changed = (r: unknown) => affected(r) > 0;
 const insertId = (r: unknown) =>
-  Number(((Array.isArray(r) ? r[0] : r) as { insertId?: number })?.insertId ?? 0);
+  Number(
+    ((Array.isArray(r) ? r[0] : r) as { insertId?: number })?.insertId ?? 0
+  );
 function list<T = string>(value: unknown): T[] {
   if (typeof value === "string") {
     try {
@@ -73,7 +92,8 @@ function list<T = string>(value: unknown): T[] {
   }
   return Array.isArray(value) ? (value as T[]) : [];
 }
-const iso = (d: Date | string | null | undefined) => (d ? new Date(d).toISOString() : null);
+const iso = (d: Date | string | null | undefined) =>
+  d ? new Date(d).toISOString() : null;
 
 // ───────────── Comisión y códigos ─────────────
 
@@ -91,13 +111,20 @@ export function ticketCommission(
 export function newTicketCode(): string {
   const bytes = randomBytes(20);
   let code = "";
-  for (const byte of bytes) code += TICKET_CODE_ALPHABET[byte % TICKET_CODE_ALPHABET.length];
+  for (const byte of bytes)
+    code += TICKET_CODE_ALPHABET[byte % TICKET_CODE_ALPHABET.length];
   return code;
 }
 
 async function issueTickets(
   tx: any,
-  order: { id: number; eventId: number; ticketTypeId: number; buyerUserId: number; quantity: number }
+  order: {
+    id: number;
+    eventId: number;
+    ticketTypeId: number;
+    buyerUserId: number;
+    quantity: number;
+  }
 ) {
   const codes = Array.from({ length: order.quantity }, newTicketCode);
   await tx.insert(czTickets).values(
@@ -126,7 +153,8 @@ async function organizerStore(db: any, userId: number) {
 
 async function requireOrganizerStore(db: any, userId: number) {
   const found = await organizerStore(db, userId);
-  if (!found) fail("PRECONDITION_FAILED", "Primero guarda la información de tu tienda");
+  if (!found)
+    fail("PRECONDITION_FAILED", "Primero guarda la información de tu tienda");
   return found;
 }
 
@@ -182,8 +210,11 @@ function dto(row: any, store: any, types: any[]): EventDTO {
     mapUrl: row.mapUrl ?? "",
     images: list(row.images),
     ticketTypes,
-    minPriceCents: ticketTypes.length ? Math.min(...ticketTypes.map(t => t.priceCents)) : 0,
-    soldOut: ticketTypes.length > 0 && ticketTypes.every(t => t.available === 0),
+    minPriceCents: ticketTypes.length
+      ? Math.min(...ticketTypes.map(t => t.priceCents))
+      : 0,
+    soldOut:
+      ticketTypes.length > 0 && ticketTypes.every(t => t.available === 0),
     store: { name: store.name, slug: store.slug },
   };
 }
@@ -214,14 +245,16 @@ function columns(v: ReturnType<typeof saveEventInput.parse>) {
 
 export async function saveEvent(user: User, raw: unknown, now = new Date()) {
   const parsed = saveEventInput.safeParse(raw);
-  if (!parsed.success) fail("BAD_REQUEST", parsed.error.issues[0]?.message ?? "Datos inválidos");
+  if (!parsed.success)
+    fail("BAD_REQUEST", parsed.error.issues[0]?.message ?? "Datos inválidos");
   const v = parsed.data;
   const db = await requireDb();
   const { store } = await requireOrganizerStore(db, user.id);
   const cols = columns(v);
 
   if (!v.id) {
-    if (cols.startsAt <= now) fail("BAD_REQUEST", "La fecha del evento debe ser futura");
+    if (cols.startsAt <= now)
+      fail("BAD_REQUEST", "La fecha del evento debe ser futura");
     return db.transaction(async (tx: any) => {
       const inserted = await tx.insert(czEvents).values({
         storeId: store.id,
@@ -231,7 +264,10 @@ export async function saveEvent(user: User, raw: unknown, now = new Date()) {
         images: [],
       });
       const id = insertId(inserted);
-      await tx.update(czEvents).set({ slug: `${slugify(v.title)}-${id}` }).where(eq(czEvents.id, id));
+      await tx
+        .update(czEvents)
+        .set({ slug: `${slugify(v.title)}-${id}` })
+        .where(eq(czEvents.id, id));
       await tx.insert(czEventTicketTypes).values(
         v.ticketTypes.map((t, position) => ({
           eventId: id,
@@ -248,9 +284,19 @@ export async function saveEvent(user: User, raw: unknown, now = new Date()) {
   const eventId = v.id;
   return db.transaction(async (tx: any) => {
     const current = await ownEvent(tx, user.id, eventId, true);
-    if (current.status === "cancelled") fail("PRECONDITION_FAILED", "Este evento está cancelado y ya no se puede editar");
-    if (v.expectedRevision !== undefined && v.expectedRevision !== current.revision)
-      fail("CONFLICT", "El evento cambió en otra ventana. Recarga y vuelve a intentarlo.");
+    if (current.status === "cancelled")
+      fail(
+        "PRECONDITION_FAILED",
+        "Este evento está cancelado y ya no se puede editar"
+      );
+    if (
+      v.expectedRevision !== undefined &&
+      v.expectedRevision !== current.revision
+    )
+      fail(
+        "CONFLICT",
+        "El evento cambió en otra ventana. Recarga y vuelve a intentarlo."
+      );
     if (current.status === "published" && cols.startsAt <= now)
       fail("BAD_REQUEST", "Un evento publicado debe tener fecha futura");
 
@@ -273,15 +319,30 @@ export async function saveEvent(user: User, raw: unknown, now = new Date()) {
         continue;
       }
       const old = byId.get(t.id);
-      if (!old) fail("BAD_REQUEST", "Uno de los tipos de entrada no pertenece a este evento");
+      if (!old)
+        fail(
+          "BAD_REQUEST",
+          "Uno de los tipos de entrada no pertenece a este evento"
+        );
       keep.add(t.id);
       if (t.capacity < old.taken)
-        fail("BAD_REQUEST", `La capacidad de «${old.name}» no puede ser menor que los ${old.taken} boletos ya apartados o vendidos`);
+        fail(
+          "BAD_REQUEST",
+          `La capacidad de «${old.name}» no puede ser menor que los ${old.taken} boletos ya apartados o vendidos`
+        );
       if (t.priceCents !== old.priceCents && old.taken > 0)
-        fail("BAD_REQUEST", `No puedes cambiar el precio de «${old.name}»: ya tiene boletos apartados o vendidos`);
+        fail(
+          "BAD_REQUEST",
+          `No puedes cambiar el precio de «${old.name}»: ya tiene boletos apartados o vendidos`
+        );
       const updated = await tx
         .update(czEventTicketTypes)
-        .set({ name: t.name, priceCents: t.priceCents, capacity: t.capacity, position })
+        .set({
+          name: t.name,
+          priceCents: t.priceCents,
+          capacity: t.capacity,
+          position,
+        })
         .where(
           and(
             eq(czEventTicketTypes.id, t.id),
@@ -289,7 +350,10 @@ export async function saveEvent(user: User, raw: unknown, now = new Date()) {
           )
         );
       if (!changed(updated))
-        fail("CONFLICT", `Se apartaron boletos de «${old.name}» mientras editabas. Recarga y vuelve a intentarlo.`);
+        fail(
+          "CONFLICT",
+          `Se apartaron boletos de «${old.name}» mientras editabas. Recarga y vuelve a intentarlo.`
+        );
     }
     for (const old of existing) {
       if (keep.has(old.id)) continue;
@@ -298,8 +362,13 @@ export async function saveEvent(user: User, raw: unknown, now = new Date()) {
         .from(czTicketOrders)
         .where(eq(czTicketOrders.ticketTypeId, old.id));
       if (Number(orders[0]?.n ?? 0) > 0)
-        fail("BAD_REQUEST", `No puedes quitar «${old.name}»: ya tiene reservas. Puedes dejar su capacidad en lo ya vendido.`);
-      await tx.delete(czEventTicketTypes).where(eq(czEventTicketTypes.id, old.id));
+        fail(
+          "BAD_REQUEST",
+          `No puedes quitar «${old.name}»: ya tiene reservas. Puedes dejar su capacidad en lo ya vendido.`
+        );
+      await tx
+        .delete(czEventTicketTypes)
+        .where(eq(czEventTicketTypes.id, old.id));
     }
 
     const result = await tx
@@ -310,8 +379,14 @@ export async function saveEvent(user: User, raw: unknown, now = new Date()) {
         slug: `${slugify(v.title)}-${eventId}`,
         revision: current.revision + 1,
       })
-      .where(and(eq(czEvents.id, eventId), eq(czEvents.revision, current.revision)));
-    if (!changed(result)) fail("CONFLICT", "El evento cambió en otra ventana. Recarga y vuelve a intentarlo.");
+      .where(
+        and(eq(czEvents.id, eventId), eq(czEvents.revision, current.revision))
+      );
+    if (!changed(result))
+      fail(
+        "CONFLICT",
+        "El evento cambió en otra ventana. Recarga y vuelve a intentarlo."
+      );
     return { id: eventId };
   });
 }
@@ -322,67 +397,109 @@ async function cancelOrdersTx(tx: any, orders: any[], now: Date) {
     const result = await tx
       .update(czTicketOrders)
       .set({ status: "cancelled", cancelledAt: now })
-      .where(and(eq(czTicketOrders.id, order.id), inArray(czTicketOrders.status, ["reserved", "paid"])));
+      .where(
+        and(
+          eq(czTicketOrders.id, order.id),
+          inArray(czTicketOrders.status, ["reserved", "paid"])
+        )
+      );
     if (!changed(result)) continue;
     await tx
       .update(czTickets)
       .set({ status: "cancelled" })
-      .where(and(eq(czTickets.orderId, order.id), eq(czTickets.status, "valid")));
+      .where(
+        and(eq(czTickets.orderId, order.id), eq(czTickets.status, "valid"))
+      );
     await tx
       .update(czEventTicketTypes)
-      .set({ taken: sql`greatest(${czEventTicketTypes.taken} - ${order.quantity}, 0)` })
+      .set({
+        taken: sql`greatest(${czEventTicketTypes.taken} - ${order.quantity}, 0)`,
+      })
       .where(eq(czEventTicketTypes.id, order.ticketTypeId));
   }
 }
 
-export async function setEventStatus(user: User, id: number, status: EventStatus, now = new Date()) {
+export async function setEventStatus(
+  user: User,
+  id: number,
+  status: EventStatus,
+  now = new Date()
+) {
   const db = await requireDb();
   if (status === "published") {
     const { app } = await requireOrganizerStore(db, user.id);
-    if (app.status !== "approved") fail("PRECONDITION_FAILED", "Tu tienda todavía no está aprobada");
+    if (app.status !== "approved")
+      fail("PRECONDITION_FAILED", "Tu tienda todavía no está aprobada");
     if (app.subscriptionStatus !== "active")
-      fail("PRECONDITION_FAILED", "Tu plan no está activo. Renuévalo para publicar.");
+      fail(
+        "PRECONDITION_FAILED",
+        "Tu plan no está activo. Renuévalo para publicar."
+      );
   }
   return db.transaction(async (tx: any) => {
     const row = await ownEvent(tx, user.id, id, true);
-    if (row.status === "cancelled") fail("PRECONDITION_FAILED", "Este evento ya está cancelado");
+    if (row.status === "cancelled")
+      fail("PRECONDITION_FAILED", "Este evento ya está cancelado");
     if (row.status === status) return { status, cancelledOrders: 0 };
-    const types = (await tx.select().from(czEventTicketTypes).where(eq(czEventTicketTypes.eventId, id))) as any[];
+    const types = (await tx
+      .select()
+      .from(czEventTicketTypes)
+      .where(eq(czEventTicketTypes.eventId, id))) as any[];
     if (status === "published") {
-      if (new Date(row.startsAt) <= now) fail("PRECONDITION_FAILED", "La fecha del evento ya pasó. Cámbiala antes de publicar.");
-      if (!types.length) fail("PRECONDITION_FAILED", "Agrega al menos un tipo de entrada");
+      if (new Date(row.startsAt) <= now)
+        fail(
+          "PRECONDITION_FAILED",
+          "La fecha del evento ya pasó. Cámbiala antes de publicar."
+        );
+      if (!types.length)
+        fail("PRECONDITION_FAILED", "Agrega al menos un tipo de entrada");
     }
     if (status === "draft" && types.some(t => t.taken > 0))
-      fail("PRECONDITION_FAILED", "Ya hay boletos apartados o vendidos. Si no se hará, cancela el evento.");
+      fail(
+        "PRECONDITION_FAILED",
+        "Ya hay boletos apartados o vendidos. Si no se hará, cancela el evento."
+      );
 
     let cancelledOrders = 0;
     if (status === "cancelled") {
       const orders = (await tx
         .select()
         .from(czTicketOrders)
-        .where(and(eq(czTicketOrders.eventId, id), inArray(czTicketOrders.status, ["reserved", "paid"])))
+        .where(
+          and(
+            eq(czTicketOrders.eventId, id),
+            inArray(czTicketOrders.status, ["reserved", "paid"])
+          )
+        )
         .for("update")) as any[];
       await cancelOrdersTx(tx, orders, now);
       cancelledOrders = orders.length;
       for (const order of orders)
-        await queueEmail(tx, `event-cancelled:${id}:${order.id}`, await recipientFor(tx, order.buyerUserId), {
-          subject: `Evento cancelado: ${row.title}`,
-          title: "El evento fue cancelado",
-          paragraphs: [
-            `El organizador canceló «${row.title}» (${eventDateLabel(row.startsAt)}). Tus boletos ya no son válidos.`,
-            order.status === "paid"
-              ? "Si ya pagaste, comunícate con el organizador para tu reembolso: el pago se hizo directo a él."
-              : "Tu reserva quedó anulada; no tienes que pagar nada.",
-          ],
-          cta: { label: "Ver mis boletos", path: "/mis-boletos" },
-        });
+        await queueEmail(
+          tx,
+          `event-cancelled:${id}:${order.id}`,
+          await recipientFor(tx, order.buyerUserId),
+          {
+            subject: `Evento cancelado: ${row.title}`,
+            title: "El evento fue cancelado",
+            paragraphs: [
+              `El organizador canceló «${row.title}» (${eventDateLabel(row.startsAt)}). Tus boletos ya no son válidos.`,
+              order.status === "paid"
+                ? "Si ya pagaste, comunícate con el organizador para tu reembolso: el pago se hizo directo a él."
+                : "Tu reserva quedó anulada; no tienes que pagar nada.",
+            ],
+            cta: { label: "Ver mis boletos", path: "/mis-boletos" },
+          }
+        );
     }
     await tx
       .update(czEvents)
       .set({
         status,
         revision: row.revision + 1,
-        ...(status === "published" && !row.publishedAt ? { publishedAt: now } : {}),
+        ...(status === "published" && !row.publishedAt
+          ? { publishedAt: now }
+          : {}),
       })
       .where(eq(czEvents.id, id));
     return { status, cancelledOrders };
@@ -416,11 +533,15 @@ export async function myEvents(user: User) {
     ? await db
         .select({ eventId: czTickets.eventId, used: sql<number>`count(*)` })
         .from(czTickets)
-        .where(and(inArray(czTickets.eventId, ids), eq(czTickets.status, "used")))
+        .where(
+          and(inArray(czTickets.eventId, ids), eq(czTickets.status, "used"))
+        )
         .groupBy(czTickets.eventId)
     : [];
   const orders = new Map(orderStats.map((s: any) => [s.eventId, s]));
-  const used = new Map(usedStats.map((s: any) => [s.eventId, Number(s.used ?? 0)]));
+  const used = new Map(
+    usedStats.map((s: any) => [s.eventId, Number(s.used ?? 0)])
+  );
   return {
     events: rows.map((r: any): OwnEventDTO => {
       const eventTypes = types.get(r.id) ?? [];
@@ -445,7 +566,10 @@ export async function eventOrders(user: User, eventId: number) {
   const rows = await db
     .select({ order: czTicketOrders, typeName: czEventTicketTypes.name })
     .from(czTicketOrders)
-    .innerJoin(czEventTicketTypes, eq(czEventTicketTypes.id, czTicketOrders.ticketTypeId))
+    .innerJoin(
+      czEventTicketTypes,
+      eq(czEventTicketTypes.id, czTicketOrders.ticketTypeId)
+    )
     .where(eq(czTicketOrders.eventId, eventId))
     .orderBy(desc(czTicketOrders.createdAt))
     .limit(1000);
@@ -465,14 +589,23 @@ export async function eventOrders(user: User, eventId: number) {
 
 // ───────────── Comprador: reservar ─────────────
 
-export async function reserveTickets(user: User, raw: unknown, now = new Date()) {
+export async function reserveTickets(
+  user: User,
+  raw: unknown,
+  now = new Date()
+) {
   const parsed = reserveTicketsInput.safeParse(raw);
-  if (!parsed.success) fail("BAD_REQUEST", parsed.error.issues[0]?.message ?? "Datos inválidos");
+  if (!parsed.success)
+    fail("BAD_REQUEST", parsed.error.issues[0]?.message ?? "Datos inválidos");
   const v = parsed.data;
   const db = await requireDb();
   return db.transaction(async (tx: any) => {
     const rows = await tx
-      .select({ type: czEventTicketTypes, event: czEvents, app: czApplications })
+      .select({
+        type: czEventTicketTypes,
+        event: czEvents,
+        app: czApplications,
+      })
       .from(czEventTicketTypes)
       .innerJoin(czEvents, eq(czEvents.id, czEventTicketTypes.eventId))
       .innerJoin(czStores, eq(czStores.id, czEvents.storeId))
@@ -480,11 +613,18 @@ export async function reserveTickets(user: User, raw: unknown, now = new Date())
       .where(eq(czEventTicketTypes.id, v.ticketTypeId))
       .limit(1);
     const found = rows[0];
-    if (!found || found.event.status !== "published" || found.app.status !== "approved" || found.app.subscriptionStatus !== "active")
+    if (
+      !found ||
+      found.event.status !== "published" ||
+      found.app.status !== "approved" ||
+      found.app.subscriptionStatus !== "active"
+    )
       fail("NOT_FOUND", "Este evento ya no recibe reservas");
     const { type, event } = found;
-    if (new Date(event.startsAt) <= now) fail("PRECONDITION_FAILED", "Este evento ya empezó");
-    if (event.userId === user.id) fail("BAD_REQUEST", "No puedes reservar boletos de tu propio evento");
+    if (new Date(event.startsAt) <= now)
+      fail("PRECONDITION_FAILED", "Este evento ya empezó");
+    if (event.userId === user.id)
+      fail("BAD_REQUEST", "No puedes reservar boletos de tu propio evento");
 
     // Evita que una sola persona aparte muchos boletos sin pagar.
     const pending = await tx
@@ -498,7 +638,10 @@ export async function reserveTickets(user: User, raw: unknown, now = new Date())
         )
       );
     if (Number(pending[0]?.n ?? 0) + v.quantity > MAX_TICKETS_PER_ORDER)
-      fail("TOO_MANY_REQUESTS", `Ya tienes boletos apartados sin pagar. Puedes apartar hasta ${MAX_TICKETS_PER_ORDER} a la vez.`);
+      fail(
+        "TOO_MANY_REQUESTS",
+        `Ya tienes boletos apartados sin pagar. Puedes apartar hasta ${MAX_TICKETS_PER_ORDER} a la vez.`
+      );
 
     // Paso atómico: solo aparta si cabe. Dos personas a la vez nunca sobrepasan el aforo.
     const took = await tx
@@ -522,7 +665,9 @@ export async function reserveTickets(user: User, raw: unknown, now = new Date())
 
     const free = type.priceCents === 0;
     const totalCents = type.priceCents * v.quantity;
-    const expiresAt = free ? null : new Date(now.getTime() + RESERVATION_HOURS * 3600 * 1000);
+    const expiresAt = free
+      ? null
+      : new Date(now.getTime() + RESERVATION_HOURS * 3600 * 1000);
     const inserted = await tx.insert(czTicketOrders).values({
       eventId: event.id,
       ticketTypeId: type.id,
@@ -538,40 +683,62 @@ export async function reserveTickets(user: User, raw: unknown, now = new Date())
       paidAt: free ? now : null,
     });
     const orderId = insertId(inserted);
-    if (!orderId) fail("INTERNAL_SERVER_ERROR", "No se pudo guardar la reserva");
+    if (!orderId)
+      fail("INTERNAL_SERVER_ERROR", "No se pudo guardar la reserva");
 
     if (free) {
-      await issueTickets(tx, { id: orderId, eventId: event.id, ticketTypeId: type.id, buyerUserId: user.id, quantity: v.quantity });
-      await queueEmail(tx, `tickets-issued:${orderId}`, await recipientFor(tx, user.id), {
-        subject: `Tus boletos: ${event.title}`,
-        title: "¡Tus boletos están listos!",
-        paragraphs: [
-          `Tienes ${v.quantity} ${v.quantity === 1 ? "boleto" : "boletos"} «${type.name}» para «${event.title}», ${eventDateLabel(event.startsAt)}, en ${event.venueName}.`,
-          "Muestra el código QR de cada boleto en la entrada. Cada código vale una sola vez.",
-        ],
-        cta: { label: "Ver mis boletos", path: "/mis-boletos" },
+      await issueTickets(tx, {
+        id: orderId,
+        eventId: event.id,
+        ticketTypeId: type.id,
+        buyerUserId: user.id,
+        quantity: v.quantity,
       });
+      await queueEmail(
+        tx,
+        `tickets-issued:${orderId}`,
+        await recipientFor(tx, user.id),
+        {
+          subject: `Tus boletos: ${event.title}`,
+          title: "¡Tus boletos están listos!",
+          paragraphs: [
+            `Tienes ${v.quantity} ${v.quantity === 1 ? "boleto" : "boletos"} «${type.name}» para «${event.title}», ${eventDateLabel(event.startsAt)}, en ${event.venueName}.`,
+            "Muestra el código QR de cada boleto en la entrada. Cada código vale una sola vez.",
+          ],
+          cta: { label: "Ver mis boletos", path: "/mis-boletos" },
+        }
+      );
     } else {
-      await queueEmail(tx, `ticket-reserved:${orderId}`, await recipientFor(tx, event.userId), {
-        subject: `Nueva reserva: ${event.title}`,
-        title: "Alguien apartó boletos de tu evento",
-        paragraphs: [
-          `${v.buyerName} (${v.buyerPhone}) apartó ${v.quantity} «${type.name}» para «${event.title}».`,
-          `Cuando recibas el pago, márcalo como pagado y le llegarán sus boletos con QR. Si no paga en ${RESERVATION_HOURS} horas, la reserva se libera sola.`,
-        ],
-        details: [["Total a cobrar", moneyLabel(totalCents)]],
-        cta: { label: "Ver reservas", path: "/vendedor/eventos" },
-      });
-      await queueEmail(tx, `ticket-reserved-buyer:${orderId}`, await recipientFor(tx, user.id), {
-        subject: `Boletos apartados: ${event.title}`,
-        title: "Tus boletos están apartados",
-        paragraphs: [
-          `Apartaste ${v.quantity} «${type.name}» para «${event.title}». Paga directo al organizador en las próximas ${RESERVATION_HOURS} horas; en «Mis boletos» ves sus datos de pago.`,
-          "Cuando el organizador confirme tu pago, recibirás tus boletos con código QR.",
-        ],
-        details: [["Total", moneyLabel(totalCents)]],
-        cta: { label: "Ver cómo pagar", path: "/mis-boletos" },
-      });
+      await queueEmail(
+        tx,
+        `ticket-reserved:${orderId}`,
+        await recipientFor(tx, event.userId),
+        {
+          subject: `Nueva reserva: ${event.title}`,
+          title: "Alguien apartó boletos de tu evento",
+          paragraphs: [
+            `${v.buyerName} (${v.buyerPhone}) apartó ${v.quantity} «${type.name}» para «${event.title}».`,
+            `Cuando recibas el pago, márcalo como pagado y le llegarán sus boletos con QR. Si no paga en ${RESERVATION_HOURS} horas, la reserva se libera sola.`,
+          ],
+          details: [["Total a cobrar", moneyLabel(totalCents)]],
+          cta: { label: "Ver reservas", path: "/vendedor/eventos" },
+        }
+      );
+      await queueEmail(
+        tx,
+        `ticket-reserved-buyer:${orderId}`,
+        await recipientFor(tx, user.id),
+        {
+          subject: `Boletos apartados: ${event.title}`,
+          title: "Tus boletos están apartados",
+          paragraphs: [
+            `Apartaste ${v.quantity} «${type.name}» para «${event.title}». Paga directo al organizador en las próximas ${RESERVATION_HOURS} horas; en «Mis boletos» ves sus datos de pago.`,
+            "Cuando el organizador confirme tu pago, recibirás tus boletos con código QR.",
+          ],
+          details: [["Total", moneyLabel(totalCents)]],
+          cta: { label: "Ver cómo pagar", path: "/mis-boletos" },
+        }
+      );
     }
     return {
       orderId,
@@ -596,19 +763,35 @@ async function orderWithEvent(tx: any, orderId: number) {
   return rows[0] as { order: any; event: any };
 }
 
-export async function markOrderPaid(user: User, orderId: number, now = new Date()) {
+export async function markOrderPaid(
+  user: User,
+  orderId: number,
+  now = new Date()
+) {
   const db = await requireDb();
   return db.transaction(async (tx: any) => {
     const { order, event } = await orderWithEvent(tx, orderId);
     if (event.userId !== user.id) fail("NOT_FOUND", "La reserva no existe");
-    if (order.status === "paid") return { status: "paid" as const, commissionCents: order.commissionCents };
-    if (order.status !== "reserved") fail("PRECONDITION_FAILED", "Esta reserva fue cancelada. Pide al comprador que aparte de nuevo.");
+    if (order.status === "paid")
+      return {
+        status: "paid" as const,
+        commissionCents: order.commissionCents,
+      };
+    if (order.status !== "reserved")
+      fail(
+        "PRECONDITION_FAILED",
+        "Esta reserva fue cancelada. Pide al comprador que aparte de nuevo."
+      );
     const apps = await tx
       .select({ trialEndsAt: czApplications.trialEndsAt })
       .from(czApplications)
       .where(eq(czApplications.userId, user.id))
       .limit(1);
-    const commission = ticketCommission(order.totalCents, apps[0]?.trialEndsAt ?? null, now);
+    const commission = ticketCommission(
+      order.totalCents,
+      apps[0]?.trialEndsAt ?? null,
+      now
+    );
     const result = await tx
       .update(czTicketOrders)
       .set({
@@ -618,23 +801,38 @@ export async function markOrderPaid(user: User, orderId: number, now = new Date(
         commissionBps: commission.bps,
         commissionCents: commission.cents,
       })
-      .where(and(eq(czTicketOrders.id, orderId), eq(czTicketOrders.status, "reserved")));
-    if (!changed(result)) fail("CONFLICT", "La reserva cambió. Recarga la lista.");
+      .where(
+        and(
+          eq(czTicketOrders.id, orderId),
+          eq(czTicketOrders.status, "reserved")
+        )
+      );
+    if (!changed(result))
+      fail("CONFLICT", "La reserva cambió. Recarga la lista.");
     await issueTickets(tx, order);
-    await queueEmail(tx, `tickets-issued:${orderId}`, await recipientFor(tx, order.buyerUserId), {
-      subject: `Tus boletos: ${event.title}`,
-      title: "¡Pago confirmado! Tus boletos están listos",
-      paragraphs: [
-        `El organizador confirmó tu pago de ${moneyLabel(order.totalCents)} para «${event.title}», ${eventDateLabel(event.startsAt)}.`,
-        "Muestra el código QR de cada boleto en la entrada. Cada código vale una sola vez.",
-      ],
-      cta: { label: "Ver mis boletos", path: "/mis-boletos" },
-    });
+    await queueEmail(
+      tx,
+      `tickets-issued:${orderId}`,
+      await recipientFor(tx, order.buyerUserId),
+      {
+        subject: `Tus boletos: ${event.title}`,
+        title: "¡Pago confirmado! Tus boletos están listos",
+        paragraphs: [
+          `El organizador confirmó tu pago de ${moneyLabel(order.totalCents)} para «${event.title}», ${eventDateLabel(event.startsAt)}.`,
+          "Muestra el código QR de cada boleto en la entrada. Cada código vale una sola vez.",
+        ],
+        cta: { label: "Ver mis boletos", path: "/mis-boletos" },
+      }
+    );
     return { status: "paid" as const, commissionCents: commission.cents };
   });
 }
 
-export async function cancelOrder(user: User, orderId: number, now = new Date()) {
+export async function cancelOrder(
+  user: User,
+  orderId: number,
+  now = new Date()
+) {
   const db = await requireDb();
   return db.transaction(async (tx: any) => {
     const { order, event } = await orderWithEvent(tx, orderId);
@@ -643,57 +841,92 @@ export async function cancelOrder(user: User, orderId: number, now = new Date())
     if (!organizer && !buyer) fail("NOT_FOUND", "La reserva no existe");
     if (order.status === "cancelled") return { status: "cancelled" as const };
     if (!organizer && order.status === "paid")
-      fail("PRECONDITION_FAILED", "Esta reserva ya está pagada. Para cancelarla habla con el organizador.");
+      fail(
+        "PRECONDITION_FAILED",
+        "Esta reserva ya está pagada. Para cancelarla habla con el organizador."
+      );
     const used = await tx
       .select({ n: sql<number>`count(*)` })
       .from(czTickets)
       .where(and(eq(czTickets.orderId, orderId), eq(czTickets.status, "used")));
-    if (Number(used[0]?.n ?? 0) > 0) fail("PRECONDITION_FAILED", "Uno de estos boletos ya se usó en la entrada");
+    if (Number(used[0]?.n ?? 0) > 0)
+      fail(
+        "PRECONDITION_FAILED",
+        "Uno de estos boletos ya se usó en la entrada"
+      );
     await cancelOrdersTx(tx, [order], now);
     const notify = organizer ? order.buyerUserId : event.userId;
-    await queueEmail(tx, `ticket-order-cancelled:${orderId}`, await recipientFor(tx, notify), {
-      subject: `Reserva cancelada: ${event.title}`,
-      title: "Se canceló una reserva",
-      paragraphs: [
-        organizer
-          ? `El organizador canceló tu reserva de ${order.quantity} boleto(s) para «${event.title}».`
-          : `${order.buyerName} canceló su reserva de ${order.quantity} boleto(s) para «${event.title}». Los boletos vuelven a estar disponibles.`,
-      ],
-      cta: organizer ? { label: "Ver mis boletos", path: "/mis-boletos" } : { label: "Ver reservas", path: "/vendedor/eventos" },
-    });
+    await queueEmail(
+      tx,
+      `ticket-order-cancelled:${orderId}`,
+      await recipientFor(tx, notify),
+      {
+        subject: `Reserva cancelada: ${event.title}`,
+        title: "Se canceló una reserva",
+        paragraphs: [
+          organizer
+            ? `El organizador canceló tu reserva de ${order.quantity} boleto(s) para «${event.title}».`
+            : `${order.buyerName} canceló su reserva de ${order.quantity} boleto(s) para «${event.title}». Los boletos vuelven a estar disponibles.`,
+        ],
+        cta: organizer
+          ? { label: "Ver mis boletos", path: "/mis-boletos" }
+          : { label: "Ver reservas", path: "/vendedor/eventos" },
+      }
+    );
     return { status: "cancelled" as const };
   });
 }
 
 /** Libera las reservas sin pagar que vencieron. Devuelve cuántas liberó. */
-export async function sweepExpiredReservations(now = new Date()): Promise<number> {
+export async function sweepExpiredReservations(
+  now = new Date()
+): Promise<number> {
   const db = await getDb();
   if (!db) return 0;
   const expired = (await db
     .select({ id: czTicketOrders.id })
     .from(czTicketOrders)
-    .where(and(eq(czTicketOrders.status, "reserved"), isNotNull(czTicketOrders.expiresAt), lt(czTicketOrders.expiresAt, now)))
+    .where(
+      and(
+        eq(czTicketOrders.status, "reserved"),
+        isNotNull(czTicketOrders.expiresAt),
+        lt(czTicketOrders.expiresAt, now)
+      )
+    )
     .limit(500)) as Array<{ id: number }>;
   let released = 0;
   for (const { id } of expired) {
     try {
       await db.transaction(async (tx: any) => {
         const { order, event } = await orderWithEvent(tx, id);
-        if (order.status !== "reserved" || !order.expiresAt || new Date(order.expiresAt) >= now) return;
+        if (
+          order.status !== "reserved" ||
+          !order.expiresAt ||
+          new Date(order.expiresAt) >= now
+        )
+          return;
         await cancelOrdersTx(tx, [order], now);
         released++;
-        await queueEmail(tx, `ticket-order-expired:${id}`, await recipientFor(tx, order.buyerUserId), {
-          subject: `Reserva vencida: ${event.title}`,
-          title: "Tu reserva venció",
-          paragraphs: [
-            `Pasaron ${RESERVATION_HOURS} horas sin que el organizador confirmara el pago de tus boletos para «${event.title}», así que se liberaron.`,
-            "Si ya pagaste, comunícate con el organizador. Si aún quedan boletos, puedes apartar de nuevo.",
-          ],
-          cta: { label: "Ver el evento", path: `/evento/${event.slug}` },
-        });
+        await queueEmail(
+          tx,
+          `ticket-order-expired:${id}`,
+          await recipientFor(tx, order.buyerUserId),
+          {
+            subject: `Reserva vencida: ${event.title}`,
+            title: "Tu reserva venció",
+            paragraphs: [
+              `Pasaron ${RESERVATION_HOURS} horas sin que el organizador confirmara el pago de tus boletos para «${event.title}», así que se liberaron.`,
+              "Si ya pagaste, comunícate con el organizador. Si aún quedan boletos, puedes apartar de nuevo.",
+            ],
+            cta: { label: "Ver el evento", path: `/evento/${event.slug}` },
+          }
+        );
       });
     } catch (error) {
-      console.error(`[Eventos] No se pudo liberar la reserva ${id}:`, error instanceof Error ? error.message : error);
+      console.error(
+        `[Eventos] No se pudo liberar la reserva ${id}:`,
+        error instanceof Error ? error.message : error
+      );
     }
   }
   return released;
@@ -705,31 +938,57 @@ export type ScanResult =
   | { ok: true; holderName: string; typeName: string; code: string }
   | { ok: false; reason: string; usedAt?: string | null };
 
-export async function validateTicket(user: User, eventId: number, raw: string, now = new Date()): Promise<ScanResult> {
+export async function validateTicket(
+  user: User,
+  eventId: number,
+  raw: string,
+  now = new Date()
+): Promise<ScanResult> {
   const db = await requireDb();
   await ownEvent(db, user.id, eventId);
   const code = parseTicketScan(raw);
-  if (!code) return { ok: false, reason: "Ese código no es un boleto de CuadraZone" };
+  if (!code)
+    return { ok: false, reason: "Ese código no es un boleto de CuadraZone" };
   const rows = await db
-    .select({ ticket: czTickets, typeName: czEventTicketTypes.name, holderName: czTicketOrders.buyerName })
+    .select({
+      ticket: czTickets,
+      typeName: czEventTicketTypes.name,
+      holderName: czTicketOrders.buyerName,
+    })
     .from(czTickets)
-    .innerJoin(czEventTicketTypes, eq(czEventTicketTypes.id, czTickets.ticketTypeId))
+    .innerJoin(
+      czEventTicketTypes,
+      eq(czEventTicketTypes.id, czTickets.ticketTypeId)
+    )
     .innerJoin(czTicketOrders, eq(czTicketOrders.id, czTickets.orderId))
     .where(eq(czTickets.code, code))
     .limit(1);
   const found = rows[0];
   if (!found) return { ok: false, reason: "Boleto no encontrado" };
-  if (found.ticket.eventId !== eventId) return { ok: false, reason: "Este boleto es de otro evento" };
-  if (found.ticket.status === "cancelled") return { ok: false, reason: "Boleto cancelado" };
+  if (found.ticket.eventId !== eventId)
+    return { ok: false, reason: "Este boleto es de otro evento" };
+  if (found.ticket.status === "cancelled")
+    return { ok: false, reason: "Boleto cancelado" };
   if (found.ticket.status === "used")
-    return { ok: false, reason: "Este boleto ya se usó", usedAt: iso(found.ticket.usedAt) };
+    return {
+      ok: false,
+      reason: "Este boleto ya se usó",
+      usedAt: iso(found.ticket.usedAt),
+    };
   // valid → used de forma atómica: si dos personas escanean a la vez, solo uno pasa.
   const result = await db
     .update(czTickets)
     .set({ status: "used", usedAt: now, usedByUserId: user.id })
-    .where(and(eq(czTickets.id, found.ticket.id), eq(czTickets.status, "valid")));
+    .where(
+      and(eq(czTickets.id, found.ticket.id), eq(czTickets.status, "valid"))
+    );
   if (!changed(result)) return { ok: false, reason: "Este boleto ya se usó" };
-  return { ok: true, holderName: found.holderName, typeName: found.typeName, code };
+  return {
+    ok: true,
+    holderName: found.holderName,
+    typeName: found.typeName,
+    code,
+  };
 }
 
 export async function eventAttendance(user: User, eventId: number) {
@@ -748,7 +1007,13 @@ export async function eventAttendance(user: User, eventId: number) {
   const byType = new Map(tickets.map((t: any) => [t.ticketTypeId, t]));
   const rowsOut = types.map(t => {
     const s: any = byType.get(t.id);
-    return { id: t.id, name: t.name, capacity: t.capacity, issued: Number(s?.issued ?? 0), used: Number(s?.used ?? 0) };
+    return {
+      id: t.id,
+      name: t.name,
+      capacity: t.capacity,
+      issued: Number(s?.issued ?? 0),
+      used: Number(s?.used ?? 0),
+    };
   });
   return {
     eventId,
@@ -778,7 +1043,10 @@ function publicQuery(db: any) {
     .from(czEvents)
     .innerJoin(czStores, eq(czStores.id, czEvents.storeId))
     .innerJoin(czApplications, eq(czApplications.userId, czStores.userId))
-    .innerJoin(czMembershipProfiles, eq(czMembershipProfiles.userId, czStores.userId));
+    .innerJoin(
+      czMembershipProfiles,
+      eq(czMembershipProfiles.userId, czStores.userId)
+    );
 }
 
 export async function publicEvents(filters: EventFilters) {
@@ -788,28 +1056,41 @@ export async function publicEvents(filters: EventFilters) {
     // Siguen a la vista hasta que terminan (o 6 h después de empezar si no hay hora de fin).
     sql`coalesce(${czEvents.endsAt}, ${czEvents.startsAt} + interval 6 hour) > now()`,
   ];
-  if (filters.province) conditions.push(eq(czEvents.province, filters.province));
-  const rows = await publicQuery(db).where(and(...conditions)).orderBy(asc(czEvents.startsAt)).limit(1000);
+  if (filters.province)
+    conditions.push(eq(czEvents.province, filters.province));
+  const rows = await publicQuery(db)
+    .where(and(...conditions))
+    .orderBy(asc(czEvents.startsAt))
+    .limit(1000);
   const q = filters.q?.toLowerCase();
   const matching = rows.filter(
     (r: any) =>
       !q ||
-      `${r.event.title} ${r.event.artist} ${r.event.venueName} ${r.event.city} ${r.store.name}`.toLowerCase().includes(q)
+      `${r.event.title} ${r.event.artist} ${r.event.venueName} ${r.event.city} ${r.store.name}`
+        .toLowerCase()
+        .includes(q)
   );
   const start = (filters.page - 1) * PAGE_SIZE;
   const pageRows = matching.slice(start, start + PAGE_SIZE);
-  const types = await ticketTypesFor(db, pageRows.map((r: any) => r.event.id));
+  const types = await ticketTypesFor(
+    db,
+    pageRows.map((r: any) => r.event.id)
+  );
   return {
     total: matching.length,
     page: filters.page,
     pageSize: PAGE_SIZE,
-    items: pageRows.map((r: any) => dto(r.event, r.store, types.get(r.event.id) ?? [])),
+    items: pageRows.map((r: any) =>
+      dto(r.event, r.store, types.get(r.event.id) ?? [])
+    ),
   };
 }
 
 export async function publicEvent(slug: string) {
   const db = await requireDb();
-  const rows = await publicQuery(db).where(and(eq(czEvents.slug, slug), ...publicConditions())).limit(1);
+  const rows = await publicQuery(db)
+    .where(and(eq(czEvents.slug, slug), ...publicConditions()))
+    .limit(1);
   if (!rows[0]) fail("NOT_FOUND", "Este evento ya no está disponible");
   const types = await ticketTypesFor(db, [rows[0].event.id]);
   return dto(rows[0].event, rows[0].store, types.get(rows[0].event.id) ?? []);
@@ -827,7 +1108,10 @@ export async function myTickets(user: User) {
     })
     .from(czTicketOrders)
     .innerJoin(czEvents, eq(czEvents.id, czTicketOrders.eventId))
-    .innerJoin(czEventTicketTypes, eq(czEventTicketTypes.id, czTicketOrders.ticketTypeId))
+    .innerJoin(
+      czEventTicketTypes,
+      eq(czEventTicketTypes.id, czTicketOrders.ticketTypeId)
+    )
     .innerJoin(czStores, eq(czStores.id, czTicketOrders.storeId))
     .innerJoin(czApplications, eq(czApplications.userId, czStores.userId))
     .where(eq(czTicketOrders.buyerUserId, user.id))
@@ -836,13 +1120,19 @@ export async function myTickets(user: User) {
   const orderIds = rows.map((r: any) => r.order.id);
   const tickets = orderIds.length
     ? await db
-        .select({ orderId: czTickets.orderId, code: czTickets.code, status: czTickets.status, usedAt: czTickets.usedAt })
+        .select({
+          orderId: czTickets.orderId,
+          code: czTickets.code,
+          status: czTickets.status,
+          usedAt: czTickets.usedAt,
+        })
         .from(czTickets)
         .where(inArray(czTickets.orderId, orderIds))
         .orderBy(asc(czTickets.id))
     : [];
   const byOrder = new Map<number, any[]>();
-  for (const t of tickets) byOrder.set(t.orderId, [...(byOrder.get(t.orderId) ?? []), t]);
+  for (const t of tickets)
+    byOrder.set(t.orderId, [...(byOrder.get(t.orderId) ?? []), t]);
   return rows.map((r: any) => ({
     id: r.order.id,
     status: r.order.status as TicketOrderStatus,
@@ -884,19 +1174,30 @@ export async function myTickets(user: User) {
 async function uploadImage(req: Request, res: Response) {
   try {
     if (req.headers["x-cz-request"] !== "1")
-      return res.status(412).json({ error: "Falta la cabecera x-cz-request: 1" });
+      return res
+        .status(412)
+        .json({ error: "Falta la cabecera x-cz-request: 1" });
     const user = await sdk.authenticateRequest(req).catch(() => null);
     if (!user) return res.status(401).json({ error: "Inicia sesión" });
     const id = Number(req.params.id);
-    if (!Number.isSafeInteger(id) || id <= 0) return res.status(400).json({ error: "Evento inválido" });
-    const mimeType = String(req.headers["content-type"] ?? "").split(";", 1)[0]!.toLowerCase();
+    if (!Number.isSafeInteger(id) || id <= 0)
+      return res.status(400).json({ error: "Evento inválido" });
+    const mimeType = String(req.headers["content-type"] ?? "")
+      .split(";", 1)[0]!
+      .toLowerCase();
     validateCatalogImageBytes(req.body, mimeType);
     const db = await requireDb();
     const row = await ownEvent(db, user.id, id);
     const images = list<string>(row.images);
     if (images.length >= MAX_EVENT_IMAGES)
-      return res.status(409).json({ error: `Máximo ${MAX_EVENT_IMAGES} fotos por evento` });
-    const saved = await storagePut(`catalog/events/${id}/${randomUUID()}.${IMAGE_EXT[mimeType]}`, req.body, mimeType);
+      return res
+        .status(409)
+        .json({ error: `Máximo ${MAX_EVENT_IMAGES} fotos por evento` });
+    const saved = await storagePut(
+      `catalog/events/${id}/${randomUUID()}.${IMAGE_EXT[mimeType]}`,
+      req.body,
+      mimeType
+    );
     await db
       .update(czEvents)
       .set({ images: [...images, saved.url], revision: row.revision + 1 })
@@ -905,13 +1206,22 @@ async function uploadImage(req: Request, res: Response) {
   } catch (error) {
     const code = (error as { code?: string }).code;
     return res
-      .status(code === "NOT_FOUND" ? 404 : code === "PAYLOAD_TOO_LARGE" ? 413 : 400)
-      .json({ error: error instanceof Error ? error.message : "No se pudo subir la foto" });
+      .status(
+        code === "NOT_FOUND" ? 404 : code === "PAYLOAD_TOO_LARGE" ? 413 : 400
+      )
+      .json({
+        error:
+          error instanceof Error ? error.message : "No se pudo subir la foto",
+      });
   }
 }
 
 export function registerEventImageRoutes(app: Express) {
-  app.post("/api/events/:id/images", express.raw({ type: () => true, limit: 5 * 1024 * 1024 }), uploadImage);
+  app.post(
+    "/api/events/:id/images",
+    express.raw({ type: () => true, limit: 5 * 1024 * 1024 }),
+    uploadImage
+  );
 }
 
 // ───────────── Comisiones (para commissions.ts) ─────────────

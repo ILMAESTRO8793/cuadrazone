@@ -17,28 +17,39 @@ import {
 } from "@shared/events";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
-import FilterDrawer, { countActiveFilters } from "@/components/marketplace/FilterDrawer";
+import FilterDrawer, {
+  countActiveFilters,
+} from "@/components/marketplace/FilterDrawer";
 import { CommerceNav } from "../commerce/BuyerPages";
 import "../realEstate/realEstate.css";
 import "../services/services.css";
 import "./events.css";
 
 type MyOrder = inferRouterOutputs<AppRouter>["events"]["myTickets"][number];
-const errorText = (e: unknown) => (e instanceof Error ? e.message : "Ocurrió un error");
+const errorText = (e: unknown) =>
+  e instanceof Error ? e.message : "Ocurrió un error";
 
 /** «20 DIC» para la etiqueta de fecha de las tarjetas. */
 function dateChip(iso: string) {
-  const parts = new Intl.DateTimeFormat("es-PA", { timeZone: "America/Panama", day: "numeric", month: "short" }).formatToParts(new Date(iso));
+  const parts = new Intl.DateTimeFormat("es-PA", {
+    timeZone: "America/Panama",
+    day: "numeric",
+    month: "short",
+  }).formatToParts(new Date(iso));
   return {
     day: parts.find(p => p.type === "day")?.value ?? "",
-    month: (parts.find(p => p.type === "month")?.value ?? "").replace(".", "").toUpperCase(),
+    month: (parts.find(p => p.type === "month")?.value ?? "")
+      .replace(".", "")
+      .toUpperCase(),
   };
 }
 
 export function priceFrom(e: Pick<EventDTO, "minPriceCents" | "ticketTypes">) {
   if (!e.ticketTypes.length) return "";
   const allSame = e.ticketTypes.every(t => t.priceCents === e.minPriceCents);
-  return e.minPriceCents === 0 && allSame ? "Gratis" : `${allSame ? "" : "Desde "}${moneyLabel(e.minPriceCents)}`;
+  return e.minPriceCents === 0 && allSame
+    ? "Gratis"
+    : `${allSame ? "" : "Desde "}${moneyLabel(e.minPriceCents)}`;
 }
 
 function EventCard({ e }: { e: EventDTO }) {
@@ -46,7 +57,11 @@ function EventCard({ e }: { e: EventDTO }) {
   return (
     <Link href={`/evento/${e.slug}`} className="svc-card ev-card">
       <div className="svc-card-photo">
-        {e.images[0] ? <img src={e.images[0]} alt={e.title} loading="lazy" /> : <div className="re-card-nophoto">Evento</div>}
+        {e.images[0] ? (
+          <img src={e.images[0]} alt={e.title} loading="lazy" />
+        ) : (
+          <div className="re-card-nophoto">Evento</div>
+        )}
         <span className="ev-date-chip" aria-hidden="true">
           <strong>{chip.day}</strong>
           {chip.month}
@@ -89,17 +104,27 @@ export function EventListPage() {
         <div>
           <p className="eyebrow">EVENTOS</p>
           <h1>Conciertos, conferencias y encuentros</h1>
-          <p className="re-muted">Aparta tus boletos y recíbelos con código QR. Pagas directo al organizador.</p>
+          <p className="re-muted">
+            Aparta tus boletos y recíbelos con código QR. Pagas directo al
+            organizador.
+          </p>
         </div>
         <Link href="/mis-boletos" className="btn btn-outline">
           <Ticket size={16} /> Mis boletos
         </Link>
       </div>
       <FilterDrawer active={countActiveFilters(f)}>
-        <form className="re-filters" onSubmit={e => e.preventDefault()} aria-label="Filtros">
+        <form
+          className="re-filters"
+          onSubmit={e => e.preventDefault()}
+          aria-label="Filtros"
+        >
           <label>
             Provincia
-            <select value={f.province} onChange={e => set("province", e.target.value)}>
+            <select
+              value={f.province}
+              onChange={e => set("province", e.target.value)}
+            >
               <option value="">Todas</option>
               {provinceOptions.map(p => (
                 <option key={p}>{p}</option>
@@ -108,7 +133,12 @@ export function EventListPage() {
           </label>
           <label className="re-search filter-keep">
             Buscar
-            <input className="svc-input" value={f.q} onChange={e => set("q", e.target.value)} placeholder="Concierto, artista, lugar…" />
+            <input
+              className="svc-input"
+              value={f.q}
+              onChange={e => set("q", e.target.value)}
+              placeholder="Concierto, artista, lugar…"
+            />
           </label>
         </form>
       </FilterDrawer>
@@ -126,7 +156,10 @@ export function EventListPage() {
           {list.data.items.length === 0 ? (
             <div className="re-empty">
               <h2>Todavía no hay eventos próximos</h2>
-              <p>¿Organizas un concierto o una conferencia? Publícalo desde tu tienda.</p>
+              <p>
+                ¿Organizas un concierto o una conferencia? Publícalo desde tu
+                tienda.
+              </p>
               <Link href="/vendedor/eventos" className="btn btn-gold">
                 Publicar un evento
               </Link>
@@ -140,13 +173,22 @@ export function EventListPage() {
           )}
           {list.data.total > list.data.pageSize && (
             <div className="re-pager">
-              <button className="btn btn-outline" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
+              <button
+                className="btn btn-outline"
+                disabled={page <= 1}
+                onClick={() => setPage(p => p - 1)}
+              >
                 Anterior
               </button>
               <span>
-                Página {page} de {Math.ceil(list.data.total / list.data.pageSize)}
+                Página {page} de{" "}
+                {Math.ceil(list.data.total / list.data.pageSize)}
               </span>
-              <button className="btn btn-outline" disabled={page * list.data.pageSize >= list.data.total} onClick={() => setPage(p => p + 1)}>
+              <button
+                className="btn btn-outline"
+                disabled={page * list.data.pageSize >= list.data.total}
+                onClick={() => setPage(p => p + 1)}
+              >
                 Siguiente
               </button>
             </div>
@@ -159,7 +201,11 @@ export function EventListPage() {
 
 function normalizePhone(v: string) {
   const d = v.replace(/\D/g, "");
-  return d.length === 8 ? `+507${d}` : d.length === 11 && d.startsWith("507") ? `+${d}` : v.trim();
+  return d.length === 8
+    ? `+507${d}`
+    : d.length === 11 && d.startsWith("507")
+      ? `+${d}`
+      : v.trim();
 }
 
 export function EventDetailPage({ slug }: { slug: string }) {
@@ -189,7 +235,9 @@ export function EventDetailPage({ slug }: { slug: string }) {
     );
   const e = detail.data;
   const started = new Date(e.startsAt) <= new Date();
-  const selected = e.ticketTypes.find(t => t.id === (typeId ?? e.ticketTypes.find(x => x.available > 0)?.id));
+  const selected = e.ticketTypes.find(
+    t => t.id === (typeId ?? e.ticketTypes.find(x => x.available > 0)?.id)
+  );
   const maxQty = Math.min(MAX_TICKETS_PER_ORDER, selected?.available ?? 0);
   const total = (selected?.priceCents ?? 0) * quantity;
 
@@ -224,12 +272,24 @@ export function EventDetailPage({ slug }: { slug: string }) {
       <div className="re-detail">
         <div>
           <div className="re-gallery">
-            {e.images[photo] ? <img src={e.images[photo]} alt={`${e.title}, foto ${photo + 1}`} /> : <div className="re-card-nophoto">Evento</div>}
+            {e.images[photo] ? (
+              <img
+                src={e.images[photo]}
+                alt={`${e.title}, foto ${photo + 1}`}
+              />
+            ) : (
+              <div className="re-card-nophoto">Evento</div>
+            )}
           </div>
           {e.images.length > 1 && (
             <div className="re-thumbs">
               {e.images.map((src, i) => (
-                <button key={src} className={i === photo ? "is-active" : ""} onClick={() => setPhoto(i)} aria-label={`Ver foto ${i + 1}`}>
+                <button
+                  key={src}
+                  className={i === photo ? "is-active" : ""}
+                  onClick={() => setPhoto(i)}
+                  aria-label={`Ver foto ${i + 1}`}
+                >
                   <img src={src} alt="" loading="lazy" />
                 </button>
               ))}
@@ -241,7 +301,9 @@ export function EventDetailPage({ slug }: { slug: string }) {
           </section>
         </div>
         <aside className="re-aside">
-          {e.artist && <span className="re-badge re-badge--inline">{e.artist}</span>}
+          {e.artist && (
+            <span className="re-badge re-badge--inline">{e.artist}</span>
+          )}
           <h1>{e.title}</h1>
           <p className="ev-when">
             <CalendarDays size={16} /> {eventDateLabel(e.startsAt)}
@@ -261,7 +323,8 @@ export function EventDetailPage({ slug }: { slug: string }) {
             )}
           </p>
           <p className="svc-store">
-            <Store size={14} /> Organiza <Link href={`/tiendas/${e.store.slug}`}>{e.store.name}</Link>
+            <Store size={14} /> Organiza{" "}
+            <Link href={`/tiendas/${e.store.slug}`}>{e.store.name}</Link>
           </p>
           <hr />
           {started ? (
@@ -271,15 +334,23 @@ export function EventDetailPage({ slug }: { slug: string }) {
           ) : e.soldOut ? (
             <div className="re-plan">
               <p>
-                <strong>Agotado.</strong> Se liberan boletos si alguien no paga su reserva a tiempo: vuelve más tarde.
+                <strong>Agotado.</strong> Se liberan boletos si alguien no paga
+                su reserva a tiempo: vuelve más tarde.
               </p>
             </div>
           ) : (
             <form className="svc-request" onSubmit={submit}>
               <strong>Elige tus entradas</strong>
-              <div className="ev-types" role="radiogroup" aria-label="Tipo de entrada">
+              <div
+                className="ev-types"
+                role="radiogroup"
+                aria-label="Tipo de entrada"
+              >
                 {e.ticketTypes.map(t => (
-                  <label key={t.id} className={`ev-type ${selected?.id === t.id ? "is-active" : ""} ${t.available === 0 ? "is-off" : ""}`}>
+                  <label
+                    key={t.id}
+                    className={`ev-type ${selected?.id === t.id ? "is-active" : ""} ${t.available === 0 ? "is-off" : ""}`}
+                  >
                     <input
                       type="radio"
                       name="ticketType"
@@ -292,14 +363,26 @@ export function EventDetailPage({ slug }: { slug: string }) {
                     />
                     <span className="ev-type-name">{t.name}</span>
                     <strong>{moneyLabel(t.priceCents)}</strong>
-                    <span className="ev-type-left">{t.available === 0 ? "Agotado" : t.available <= 20 ? `Quedan ${t.available}` : "Disponible"}</span>
+                    <span className="ev-type-left">
+                      {t.available === 0
+                        ? "Agotado"
+                        : t.available <= 20
+                          ? `Quedan ${t.available}`
+                          : "Disponible"}
+                    </span>
                   </label>
                 ))}
               </div>
               <label>
                 Cantidad
-                <select value={quantity} onChange={ev => setQuantity(Number(ev.target.value))}>
-                  {Array.from({ length: Math.max(1, maxQty) }, (_, i) => i + 1).map(n => (
+                <select
+                  value={quantity}
+                  onChange={ev => setQuantity(Number(ev.target.value))}
+                >
+                  {Array.from(
+                    { length: Math.max(1, maxQty) },
+                    (_, i) => i + 1
+                  ).map(n => (
                     <option key={n} value={n}>
                       {n}
                     </option>
@@ -308,17 +391,40 @@ export function EventDetailPage({ slug }: { slug: string }) {
               </label>
               <label>
                 Nombre para los boletos
-                <input value={form.name || auth.user?.name || ""} onChange={ev => setForm(f => ({ ...f, name: ev.target.value }))} required maxLength={120} />
+                <input
+                  value={form.name || auth.user?.name || ""}
+                  onChange={ev =>
+                    setForm(f => ({ ...f, name: ev.target.value }))
+                  }
+                  required
+                  maxLength={120}
+                />
               </label>
               <label>
                 Tu celular
-                <input inputMode="tel" value={form.phone} onChange={ev => setForm(f => ({ ...f, phone: ev.target.value }))} required placeholder="6123-4567" />
+                <input
+                  inputMode="tel"
+                  value={form.phone}
+                  onChange={ev =>
+                    setForm(f => ({ ...f, phone: ev.target.value }))
+                  }
+                  required
+                  placeholder="6123-4567"
+                />
               </label>
               <p className="ev-total">
                 Total: <strong>{moneyLabel(total)}</strong>
               </p>
-              <button className="btn btn-gold" type="submit" disabled={reserve.isPending || !selected || maxQty === 0}>
-                {reserve.isPending ? "Apartando…" : total === 0 ? "Obtener boletos gratis" : "Apartar boletos"}
+              <button
+                className="btn btn-gold"
+                type="submit"
+                disabled={reserve.isPending || !selected || maxQty === 0}
+              >
+                {reserve.isPending
+                  ? "Apartando…"
+                  : total === 0
+                    ? "Obtener boletos gratis"
+                    : "Apartar boletos"}
               </button>
               <p className="re-muted re-small">
                 {total === 0
@@ -339,7 +445,11 @@ function TicketQr({ code, used }: { code: string; used: boolean }) {
   const [src, setSrc] = useState("");
   useEffect(() => {
     let alive = true;
-    QRCode.toDataURL(ticketQrPayload(code), { margin: 1, width: 240, errorCorrectionLevel: "M" })
+    QRCode.toDataURL(ticketQrPayload(code), {
+      margin: 1,
+      width: 240,
+      errorCorrectionLevel: "M",
+    })
       .then(url => alive && setSrc(url))
       .catch(() => alive && setSrc(""));
     return () => {
@@ -348,7 +458,16 @@ function TicketQr({ code, used }: { code: string; used: boolean }) {
   }, [code]);
   return (
     <figure className={`ev-qr ${used ? "is-used" : ""}`}>
-      {src ? <img src={src} alt={`Código QR del boleto ${code}`} width={200} height={200} /> : <div className="ev-qr-placeholder" />}
+      {src ? (
+        <img
+          src={src}
+          alt={`Código QR del boleto ${code}`}
+          width={200}
+          height={200}
+        />
+      ) : (
+        <div className="ev-qr-placeholder" />
+      )}
       <figcaption>
         <code>{code.replace(/(.{5})/g, "$1 ").trim()}</code>
         {used && <span>Usado</span>}
@@ -362,8 +481,10 @@ function PaymentBox({ o }: { o: MyOrder }) {
   return (
     <div className="ev-pay">
       <p>
-        Paga <strong>{moneyLabel(o.totalCents)}</strong> a <strong>{o.organizer.name}</strong>
-        {o.expiresAt ? ` antes del ${eventDateLabel(o.expiresAt)}` : ""}. Cuando confirme tu pago, aquí aparecen tus boletos con QR.
+        Paga <strong>{moneyLabel(o.totalCents)}</strong> a{" "}
+        <strong>{o.organizer.name}</strong>
+        {o.expiresAt ? ` antes del ${eventDateLabel(o.expiresAt)}` : ""}. Cuando
+        confirme tu pago, aquí aparecen tus boletos con QR.
       </p>
       <dl className="re-table">
         {o.organizer.yappyPhone && (
@@ -386,11 +507,17 @@ function PaymentBox({ o }: { o: MyOrder }) {
         )}
       </dl>
       <div className="re-contact">
-        {o.organizer.cardPaymentUrl && /^https:\/\//.test(o.organizer.cardPaymentUrl) && (
-          <a className="btn btn-outline" href={o.organizer.cardPaymentUrl} target="_blank" rel="noopener noreferrer">
-            Pagar con tarjeta
-          </a>
-        )}
+        {o.organizer.cardPaymentUrl &&
+          /^https:\/\//.test(o.organizer.cardPaymentUrl) && (
+            <a
+              className="btn btn-outline"
+              href={o.organizer.cardPaymentUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Pagar con tarjeta
+            </a>
+          )}
         {digits && (
           <a
             className="btn btn-gold"
@@ -444,13 +571,18 @@ export function MyTicketsPage() {
                   <h2>{o.event.title}</h2>
                 </Link>
                 <p className="svc-store">
-                  <CalendarDays size={14} /> {eventDateLabel(o.event.startsAt)} · <MapPin size={14} /> {o.event.venueName}
+                  <CalendarDays size={14} /> {eventDateLabel(o.event.startsAt)}{" "}
+                  · <MapPin size={14} /> {o.event.venueName}
                   {o.event.city ? `, ${o.event.city}` : ""}
                   {o.event.mapUrl && (
                     <>
                       {" "}
                       ·{" "}
-                      <a href={o.event.mapUrl} target="_blank" rel="noopener noreferrer">
+                      <a
+                        href={o.event.mapUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
                         Mapa
                       </a>
                     </>
@@ -460,7 +592,11 @@ export function MyTicketsPage() {
                   {o.quantity} × {o.typeName} · {moneyLabel(o.totalCents)}
                 </p>
               </div>
-              <span className={`ev-status ev-status--${o.status}`}>{o.event.status === "cancelled" ? "Evento cancelado" : ticketOrderStatusLabels[o.status]}</span>
+              <span className={`ev-status ev-status--${o.status}`}>
+                {o.event.status === "cancelled"
+                  ? "Evento cancelado"
+                  : ticketOrderStatusLabels[o.status]}
+              </span>
             </header>
             {o.status === "reserved" && (
               <>
@@ -469,7 +605,12 @@ export function MyTicketsPage() {
                   className="btn btn-outline"
                   disabled={cancel.isPending}
                   onClick={() => {
-                    if (window.confirm("¿Cancelar esta reserva? Los boletos se liberan para otras personas.")) cancel.mutate({ id: o.id });
+                    if (
+                      window.confirm(
+                        "¿Cancelar esta reserva? Los boletos se liberan para otras personas."
+                      )
+                    )
+                      cancel.mutate({ id: o.id });
                   }}
                 >
                   Cancelar reserva
@@ -478,12 +619,19 @@ export function MyTicketsPage() {
             )}
             {o.status === "paid" && (
               <>
-                <p className="re-muted re-small">Muestra cada código en la entrada. Cada boleto vale una sola vez; no compartas capturas.</p>
+                <p className="re-muted re-small">
+                  Muestra cada código en la entrada. Cada boleto vale una sola
+                  vez; no compartas capturas.
+                </p>
                 <div className="ev-qr-grid">
                   {o.tickets
                     .filter(t => t.status !== "cancelled")
                     .map(t => (
-                      <TicketQr key={t.code} code={t.code} used={t.status === "used"} />
+                      <TicketQr
+                        key={t.code}
+                        code={t.code}
+                        used={t.status === "used"}
+                      />
                     ))}
                 </div>
               </>
