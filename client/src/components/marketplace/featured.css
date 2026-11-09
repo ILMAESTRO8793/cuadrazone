@@ -1,0 +1,60 @@
+/* Franja «Destacados» del plan Mayor Visibilidad (paleta Earthy Editorial) */
+.featured-strip {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 8px 0 20px;
+  padding: 16px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #fbf4ea 0%, #f7f1e6 100%);
+  border: 1.5px solid #d9ad49;
+}
+.featured-strip-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+.featured-strip-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #071e38;
+}
+.featured-strip-title svg {
+  color: #b85c22;
+  fill: #d9ad49;
+}
+.featured-strip-note {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #6b5a3a;
+}
+.featured-strip-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+@media (max-width: 640px) {
+  .featured-strip {
+    padding: 12px;
+    margin-left: -4px;
+    margin-right: -4px;
+  }
+  /* En el teléfono la franja se desliza de lado para no empujar la lista. */
+  .featured-strip-grid {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 4px;
+  }
+  .featured-strip-grid > * {
+    flex: 0 0 78%;
+    scroll-snap-align: start;
+  }
+}

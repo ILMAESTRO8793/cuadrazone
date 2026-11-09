@@ -35,6 +35,7 @@ import { storagePut } from "../storage";
 import { validateCatalogImageBytes } from "./catalogImages";
 import { queueEmail, recipientFor } from "./email";
 import { slugify } from "./realEstate";
+import { FEATURED_PLAN_ID, pickFeatured } from "@shared/featured";
 
 const PAGE_SIZE = 24;
 const IMAGE_EXT: Record<string, string> = {
@@ -317,6 +318,7 @@ function publicQuery(db: any) {
       service: czServices,
       store: czStores,
       phone: czApplications.contactPhone,
+      planId: czApplications.subscriptionPlanId,
     })
     .from(czServices)
     .innerJoin(czStores, eq(czStores.id, czServices.storeId))
@@ -339,6 +341,9 @@ export async function publicServices(filters: ServiceFilters) {
     .orderBy(desc(czServices.publishedAt))
     .limit(1000);
   const q = filters.q?.toLowerCase();
+  const featuredIds = new Set(
+    rows.filter((r: any) => r.planId === FEATURED_PLAN_ID).map((r: any) => r.service.id)
+  );
   const visible = rows
     .map((r: any) => dto(r.service, r.store, r.phone))
     .filter(
@@ -368,6 +373,11 @@ export async function publicServices(filters: ServiceFilters) {
     page: filters.page,
     pageSize: PAGE_SIZE,
     items: visible.slice(start, start + PAGE_SIZE),
+    /** Mayor Visibilidad: franja superior con los que cumplen los filtros. */
+    featured: pickFeatured(
+      visible.filter((s: ServiceDTO) => featuredIds.has(s.id)),
+      (s: ServiceDTO) => s.store.slug
+    ) as ServiceDTO[],
   };
 }
 

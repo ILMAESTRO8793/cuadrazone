@@ -1,4 +1,8 @@
-import { listPublicStores, suggestStores } from "../services/storeDirectory";
+import {
+  featuredStores,
+  listPublicStores,
+  suggestStores,
+} from "../services/storeDirectory";
 import { storeDirectoryInput } from "@shared/storeDirectory";
 import { router, publicProcedure, protectedProcedure } from "../_core/trpc";
 import {
@@ -8,6 +12,7 @@ import {
   getPublicProduct,
   getPublicStore,
   listMyProducts,
+  featuredProducts,
   listPublicProducts,
   saveProduct,
   saveStore,
@@ -43,6 +48,14 @@ export const catalogRouter = router({
   list: publicProcedure
     .input(listPublicInput)
     .query(({ input }) => service(() => listPublicProducts(input))),
+  /** Mayor Visibilidad: franja de productos destacados. */
+  featured: publicProcedure
+    .input(listPublicInput)
+    .query(({ input }) => service(() => featuredProducts(input))),
+  /** Mayor Visibilidad: franja de tiendas destacadas. */
+  featuredStores: publicProcedure
+    .input(storeDirectoryInput)
+    .query(({ input }) => service(() => featuredStores(input))),
   detail: publicProcedure
     .input(slugInput)
     .query(({ input }) => service(() => getPublicProduct(input.slug))),

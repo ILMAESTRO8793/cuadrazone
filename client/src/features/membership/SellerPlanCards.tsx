@@ -103,15 +103,17 @@ export function PlanConditions() {
         institucional vigente: la confianza no se compra.
       </p>
       <p>
-        Los espacios destacados serán rotativos por categoría y se identificarán
-        como <strong>Destacado — ubicación de pago</strong>. No se promete una
-        primera posición permanente.
+        Con Mayor Visibilidad, tus publicaciones aparecen en la franja{" "}
+        <strong>Destacados</strong> arriba del Mercado, Tiendas, Servicios y
+        Eventos cuando cumplen los filtros de quien busca, identificadas como{" "}
+        <strong>ubicación de pago</strong>. La franja rota cada 10 minutos entre
+        las tiendas destacadas: no se promete una primera posición permanente.
+        La prueba gratis no incluye destacados.
       </p>
       <p>
-        Servicios, citas y boletos siguen pendientes de sus fases. El envío e
-        impuestos aplicables se informan por separado. La comisión por venta se
-        calcula solo sobre los productos. Los espacios destacados todavía no
-        están habilitados.
+        El envío e impuestos aplicables se informan por separado. La comisión
+        por venta se calcula sobre los productos y los boletos; los servicios y
+        las citas no pagan comisión.
       </p>
     </section>
   );

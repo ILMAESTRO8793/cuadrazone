@@ -60,6 +60,7 @@ import {
   czReviews,
 } from "../../drizzle/commerce-schema";
 import { getDb } from "../db";
+import { FEATURED_PLAN_ID, pickFeatured } from "@shared/featured";
 
 export class CatalogError extends Error {
   constructor(
@@ -1446,4 +1447,77 @@ export async function homeCollections() {
 export async function countStoreProducts(db: any, storeId: number): Promise<number> {
   const rows = await db.select({ n: sql<number>`count(*)` }).from(czProducts).where(eq(czProducts.storeId, storeId));
   return Number(rows[0]?.n ?? 0);
+}
+
+/**
+ * Mayor Visibilidad: franja de productos destacados que respeta los filtros de
+ * la persona (búsqueda, tipo, categoría, provincia y precio). Una publicación
+ * por tienda y rotación cada 10 minutos.
+ */
+export async function featuredProducts(
+  rawInput: ListPublicInput,
+  now = new Date()
+): Promise<PublicProduct[]> {
+  const input = listPublicInput.parse(rawInput);
+  const db = await requireDb();
+  const filters: any[] = [
+    eq(czProducts.status, "published"),
+    eq(czApplications.status, "approved"),
+    eq(czApplications.subscriptionStatus, "active"),
+    eq(czApplications.subscriptionPlanId, FEATURED_PLAN_ID),
+    eq(czStores.storeKind, "comercio"),
+    isNotNull(czMembershipProfiles.emailVerifiedAt),
+    eq(czApplications.contactEmail, czMembershipProfiles.email),
+    eq(czApplications.contactPhone, czMembershipProfiles.phone),
+  ];
+  if (input.q) {
+    const term = `%${input.q}%`;
+    filters.push(
+      or(
+        like(czProducts.title, term),
+        like(czProducts.description, term),
+        like(czProducts.category, term),
+        like(czStores.name, term)
+      )
+    );
+  }
+  if (input.kind) filters.push(eq(czProducts.kind, input.kind));
+  if (input.category) filters.push(eq(czProducts.category, input.category));
+  if (input.province) filters.push(eq(czStores.province, input.province));
+  if (input.minPriceCents !== undefined)
+    filters.push(gte(czProducts.priceCents, input.minPriceCents));
+  if (input.maxPriceCents !== undefined)
+    filters.push(lte(czProducts.priceCents, input.maxPriceCents));
+  const rows = await db
+    .select({
+      product: czProducts,
+      store: czStores,
+      churchName: czApplications.churchName,
+      rating: ratingAggregate(),
+      reviewCount: reviewCountAggregate(),
+      soldCount: soldCountAggregate(),
+    })
+    .from(czProducts)
+    .innerJoin(czStores, eq(czProducts.storeId, czStores.id))
+    .innerJoin(czApplications, eq(czApplications.userId, czStores.userId))
+    .innerJoin(
+      czMembershipProfiles,
+      eq(czMembershipProfiles.userId, czStores.userId)
+    )
+    .where(and(...filters))
+    .orderBy(desc(czProducts.id))
+    .limit(300);
+  const chosen = pickFeatured(rows, row => (row.store as Store).id, now);
+  const variantMap = await variantsFor(
+    db,
+    chosen.map(row => (row.product as Product).id)
+  );
+  return chosen.map(row =>
+    productDto(
+      row.product as Product,
+      variantMap.get((row.product as Product).id) ?? [],
+      { ...(row.store as Store), churchName: row.churchName as string },
+      statsFromRow(row)
+    )
+  );
 }

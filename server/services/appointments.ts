@@ -335,15 +335,13 @@ export async function bookAppointment(
       const id = insertId(inserted);
       if (!id) fail("INTERNAL_SERVER_ERROR", "No se pudo guardar la cita");
       // Si otra persona tomó cualquiera de estos bloques, la clave única lo rechaza y todo se deshace.
-      await tx
-        .insert(czAppointmentBlocks)
-        .values(
-          blocksFor(start, service.durationMinutes).map(blockStart => ({
-            storeId: store.id,
-            blockStart,
-            appointmentId: id,
-          }))
-        );
+      await tx.insert(czAppointmentBlocks).values(
+        blocksFor(start, service.durationMinutes).map(blockStart => ({
+          storeId: store.id,
+          blockStart,
+          appointmentId: id,
+        }))
+      );
       const details: Array<[string, string]> = [
         ["Servicio", service.title],
         ["Fecha", when(start)],

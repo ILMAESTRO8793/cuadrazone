@@ -92,7 +92,7 @@ Evidencia de planes: migración aditiva 0004 aplicada, 39 rutas sincronizadas, p
 - [x] Vencimiento automático cada 15 minutos; desactivación anticipada con motivo.
 - [x] El vendedor ve su estado, vencimiento y cómo pagar (`PAYMENT_CONTACT`).
 - [x] Probado de punta a punta: tienda oculta antes de pagar, visible al pagar, producto con foto publicado, oculta al vencer.
-- [ ] Beneficios del plan Mayor Visibilidad (espacios destacados por categoría).
+- [x] Beneficios del plan Mayor Visibilidad: franja «Destacados · ubicación de pago» arriba de Mercado, Tiendas, Servicios y Eventos, con los filtros de quien busca y rotación cada 10 minutos (9/11/2026). Pendiente: los cuatro emblemas institucionales.
 - [ ] Pasarela de pago automática cuando exista la cuenta comercial.
 
 ## Prueba gratis y comisión — 22 de octubre

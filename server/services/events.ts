@@ -56,6 +56,7 @@ import { storagePut } from "../storage";
 import { validateCatalogImageBytes } from "./catalogImages";
 import { queueEmail, recipientFor } from "./email";
 import { slugify } from "./realEstate";
+import { FEATURED_PLAN_ID, pickFeatured } from "@shared/featured";
 
 const PAGE_SIZE = 24;
 const IMAGE_EXT: Record<string, string> = {
@@ -1039,7 +1040,11 @@ function publicConditions() {
 
 function publicQuery(db: any) {
   return db
-    .select({ event: czEvents, store: czStores })
+    .select({
+      event: czEvents,
+      store: czStores,
+      planId: czApplications.subscriptionPlanId,
+    })
     .from(czEvents)
     .innerJoin(czStores, eq(czStores.id, czEvents.storeId))
     .innerJoin(czApplications, eq(czApplications.userId, czStores.userId))
@@ -1072,15 +1077,24 @@ export async function publicEvents(filters: EventFilters) {
   );
   const start = (filters.page - 1) * PAGE_SIZE;
   const pageRows = matching.slice(start, start + PAGE_SIZE);
-  const types = await ticketTypesFor(
-    db,
-    pageRows.map((r: any) => r.event.id)
+  // Mayor Visibilidad: franja superior con los eventos que cumplen los filtros.
+  const featuredRows = pickFeatured(
+    matching.filter((r: any) => r.planId === FEATURED_PLAN_ID),
+    (r: any) => r.store.id as number
   );
+  const types = await ticketTypesFor(db, [
+    ...new Set<number>(
+      [...pageRows, ...featuredRows].map((r: any) => r.event.id)
+    ),
+  ]);
   return {
     total: matching.length,
     page: filters.page,
     pageSize: PAGE_SIZE,
     items: pageRows.map((r: any) =>
+      dto(r.event, r.store, types.get(r.event.id) ?? [])
+    ),
+    featured: featuredRows.map((r: any) =>
       dto(r.event, r.store, types.get(r.event.id) ?? [])
     ),
   };

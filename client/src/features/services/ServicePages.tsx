@@ -21,6 +21,7 @@ import "../realEstate/realEstate.css";
 import "./services.css";
 import FilterDrawer, { countActiveFilters } from "@/components/marketplace/FilterDrawer";
 import { BookingBox } from "./AppointmentPages";
+import FeaturedStrip from "@/components/marketplace/FeaturedStrip";
 
 function ServiceCard({ s }: { s: ServiceDTO }) {
   return (
@@ -180,6 +181,11 @@ export function ServiceListPage() {
       )}
       {list.data && (
         <>
+          <FeaturedStrip count={list.data.featured.length}>
+            {list.data.featured.map((s: ServiceDTO) => (
+              <ServiceCard key={`featured-${s.id}`} s={s} />
+            ))}
+          </FeaturedStrip>
           <p className="re-muted">
             {list.data.total} {list.data.total === 1 ? "servicio" : "servicios"}
           </p>

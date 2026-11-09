@@ -18,6 +18,7 @@ import {
 import { publicCatalogInput, usd } from "@/lib/liveCatalog";
 import { provinceOptions } from "@shared/membership";
 import FilterDrawer from "@/components/marketplace/FilterDrawer";
+import FeaturedStrip from "@/components/marketplace/FeaturedStrip";
 export function RequestError({
   message,
   retry,
@@ -118,6 +119,11 @@ export function LiveCatalogPage() {
     { ...input, cursor },
     { enabled: mounted && cursor !== undefined }
   );
+  // Mayor Visibilidad: destacados que cumplen los mismos filtros.
+  const featured = trpc.catalog.featured.useQuery(
+    { ...input, cursor: undefined },
+    { enabled: mounted }
+  );
   useEffect(() => {
     setMore([]);
     setCursor(undefined);
@@ -158,6 +164,11 @@ export function LiveCatalogPage() {
           province={input.province}
         />
       )}
+      <FeaturedStrip count={featured.data?.length ?? 0}>
+        {featured.data?.map(product => (
+          <RealProductCard key={`featured-${product.id}`} product={product} />
+        ))}
+      </FeaturedStrip>
       <div className="live-catalog-layout">
         <FilterDrawer
           className="filter-drawer--catalog"

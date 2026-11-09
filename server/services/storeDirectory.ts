@@ -12,6 +12,7 @@ import {
 import { czStores } from "../../drizzle/catalog-schema";
 import { czApplications, czMembershipProfiles } from "../../drizzle/schema";
 import { getDb } from "../db";
+import { FEATURED_PLAN_ID, pickFeatured } from "@shared/featured";
 import { CatalogError } from "./catalog";
 import {
   businessCategories,
@@ -154,4 +155,44 @@ export async function suggestStores(q: string): Promise<string[]> {
   return [
     ...new Set([...labels, ...stores.items.map(store => store.name)]),
   ].slice(0, 10);
+}
+
+/** Mayor Visibilidad: tiendas destacadas que cumplen los filtros, con rotación. */
+export async function featuredStores(
+  raw: StoreDirectoryInput,
+  now = new Date()
+): Promise<DirectoryStore[]> {
+  const input = storeDirectoryInput.parse({ ...raw, cursor: undefined });
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db
+    .select({
+      id: czStores.id,
+      slug: czStores.slug,
+      name: czStores.name,
+      description: czStores.description,
+      province: czStores.province,
+      city: czStores.city,
+      churchName: czApplications.churchName,
+      businessCategories: sql<unknown>`json_extract(${czApplications.details}, '$.businessCategories')`,
+    })
+    .from(czStores)
+    .innerJoin(czApplications, eq(czApplications.userId, czStores.userId))
+    .innerJoin(
+      czMembershipProfiles,
+      eq(czMembershipProfiles.userId, czStores.userId)
+    )
+    .where(
+      and(
+        ...directoryConditions(input),
+        eq(czApplications.subscriptionPlanId, FEATURED_PLAN_ID)
+      )
+    )
+    .orderBy(desc(czStores.id))
+    .limit(200);
+  return pickFeatured(rows, row => row.id, now).map(row => ({
+    ...row,
+    verified: true,
+    businessCategories: parseSelectionProjection(row.businessCategories),
+  }));
 }

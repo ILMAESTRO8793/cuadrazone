@@ -69,7 +69,7 @@ El propietario decidió quitar Manus del proyecto y desplegarlo por su cuenta (R
 - **Vencimiento automático:** al arrancar y cada 15 minutos, las suscripciones con período terminado pasan a «vencida» y la tienda y sus productos dejan de mostrarse.
 - **Desactivación anticipada:** con motivo obligatorio (pago revertido, falta grave).
 - **Historial:** tabla `cz_subscription_payments` y eventos `subscription_payment_recorded` / `subscription_deactivated` en la auditoría.
-- **Pendiente:** la pasarela automática (Yappy comercial, PagueloFácil o Tilopay) podrá registrar pagos por la misma vía. Los beneficios del plan Mayor Visibilidad (espacios destacados) aún no están implementados; hoy ambos planes publican igual.
+- **Pendiente:** la pasarela automática (Yappy comercial, PagueloFácil o Tilopay) podrá registrar pagos por la misma vía. Los beneficios del plan Mayor Visibilidad se implementaron el 9/11/2026 (ver «Plan Mayor Visibilidad» abajo).
 - **Corregido:** las imágenes y datos de libros guardados como JSON no se leían cuando la base los devuelve como texto (MariaDB); en MySQL 8 funcionaban.
 
 
@@ -279,3 +279,11 @@ Decisiones del propietario: las ventas pasadas y los pagos se conservan sin dato
 - Los anuncios de autos (venta y alquiler) aceptan hasta 3 videos además de las 12 fotos (`cz_vehicles.videos`, migración 0020). MP4, WEBM o MOV, máximo 40 MB, con verificación de la firma del archivo (`/api/vehicles/:id/videos`); solo el dueño del anuncio puede subir.
 - En el editor, sección «Fotos y videos del vehículo»: la primera foto es la portada y cada foto o video tiene «Quitar» (guarda al instante). En la ficha pública los videos van debajo de las fotos; en la búsqueda, etiqueta «Con video».
 - Al borrar un anuncio de autos se borran también sus fotos y videos del disco.
+
+## Plan Mayor Visibilidad — 9 de noviembre de 2026
+
+- **Qué recibe:** las tiendas con el plan Mayor Visibilidad **pagado** (`subscriptionPlanId = "mayor_visibilidad"` y suscripción activa) aparecen en la franja «Destacados · ubicación de pago» arriba de Mercado (`/mercado`), Tiendas (`/tiendas`), Servicios (`/servicios`) y Eventos (`/eventos`). La prueba gratis y el plan Normal no salen destacados.
+- **Por categoría:** la franja usa los mismos filtros que la lista (búsqueda, categoría, tipo, provincia, precio); si no hay destacados que cumplan, no se muestra.
+- **Rotación:** cambia cada 10 minutos (`shared/featured.ts`). Se muestra una publicación por tienda, rotando entre sus publicaciones, y el orden de las tiendas también rota para que cada una ocupe el primer lugar por turnos. Máximo 4 lugares. No se promete una primera posición permanente.
+- **Identificación:** siempre se rotula como ubicación de pago. Bienes raíces, Autos y Empleos ya ordenaban primero a los destacados con la etiqueta «Destacado».
+- **Pendiente:** los cuatro emblemas institucionales (solo con acreditación y autorización).

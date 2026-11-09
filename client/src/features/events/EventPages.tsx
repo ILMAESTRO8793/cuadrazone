@@ -20,6 +20,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import FilterDrawer, {
   countActiveFilters,
 } from "@/components/marketplace/FilterDrawer";
+import FeaturedStrip from "@/components/marketplace/FeaturedStrip";
 import { CommerceNav } from "../commerce/BuyerPages";
 import "../realEstate/realEstate.css";
 import "../services/services.css";
@@ -150,6 +151,11 @@ export function EventListPage() {
       )}
       {list.data && (
         <>
+          <FeaturedStrip count={list.data.featured.length}>
+            {list.data.featured.map((e: EventDTO) => (
+              <EventCard key={`featured-${e.id}`} e={e} />
+            ))}
+          </FeaturedStrip>
           <p className="re-muted">
             {list.data.total} {list.data.total === 1 ? "evento" : "eventos"}
           </p>

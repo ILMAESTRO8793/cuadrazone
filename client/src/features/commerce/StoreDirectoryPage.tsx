@@ -21,6 +21,7 @@ import {
 } from "@shared/storeDirectory";
 import { RequestError } from "./PublicCatalogPages";
 import FilterDrawer from "@/components/marketplace/FilterDrawer";
+import FeaturedStrip from "@/components/marketplace/FeaturedStrip";
 
 export function BusinessClassification({
   selections,
@@ -124,6 +125,11 @@ export function StoreDirectoryPage() {
   const { snapshot, mounted } = usePublicCatalog();
   const input = storeDirectoryQuery(search);
   const parsed = storeDirectoryInput.safeParse(input);
+  // Mayor Visibilidad: tiendas destacadas con los mismos filtros.
+  const featured = trpc.catalog.featuredStores.useQuery(
+    { ...input, cursor: undefined },
+    { enabled: mounted && parsed.success }
+  );
   const matches = snapshotMatches(
     snapshot,
     `/tiendas${search ? `?${search.replace(/^\?/, "")}` : ""}`
@@ -280,6 +286,11 @@ export function StoreDirectoryPage() {
           </nav>
         </aside>
         <section aria-label="Tiendas encontradas" aria-live="polite">
+          <FeaturedStrip count={featured.data?.length ?? 0}>
+            {featured.data?.map(store => (
+              <DirectoryStoreCard key={`featured-${store.id}`} store={store} />
+            ))}
+          </FeaturedStrip>
           {error ? (
             <RequestError message={error} />
           ) : result.error || failedInitial ? (
