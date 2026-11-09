@@ -89,12 +89,12 @@ export function LoginPage() {
               <a className="member-button member-button--gold" href={googleHref}>Continuar con Google</a>
             )}
             {methods.email && (
-              <button type="button" className={`member-button ${channel === "email" ? "member-button--active" : ""}`} onClick={() => choose("email")}>
+              <button type="button" className={`member-button member-button--gold ${channel === "email" ? "member-button--active" : ""}`} onClick={() => choose("email")}>
                 <Mail size={18} aria-hidden="true" /> Entrar con mi correo
               </button>
             )}
             {methods.phone && (
-              <button type="button" className={`member-button ${channel === "phone" ? "member-button--active" : ""}`} onClick={() => choose("phone")}>
+              <button type="button" className={`member-button member-button--gold ${channel === "phone" ? "member-button--active" : ""}`} onClick={() => choose("phone")}>
                 <Smartphone size={18} aria-hidden="true" /> Entrar con mi celular
               </button>
             )}
