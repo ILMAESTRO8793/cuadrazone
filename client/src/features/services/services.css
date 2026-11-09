@@ -23,3 +23,14 @@
 .job-applicant-head > div { display: flex; flex-direction: column; gap: 3px; }
 .job-applicant-head select { min-height: 40px; padding: 0 10px; border: 1px solid #9AA8A5; border-radius: 10px; font: inherit; }
 .job-message { margin: 0; padding: 10px 12px; border-left: 3px solid #B58C3C; background: #FFF8EC; border-radius: 8px; font-style: italic; }
+
+/* El nombre del servicio manda en la tarjeta; la tienda va como dato secundario */
+.svc-card-body .svc-card-title { font-family: var(--cz-font-display, inherit); font-size: 19px; font-weight: 600; line-height: 1.25; color: #0B1F3B; }
+.svc-card-photo { overflow: hidden; }
+.svc-card-photo img { transition: transform 600ms cubic-bezier(.22, 1, .36, 1); }
+@media (hover: hover) { .svc-card:hover .svc-card-photo img { transform: scale(1.03); } }
+
+/* Estado del servicio dentro del editor del vendedor */
+.svc-status-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; padding: 12px 16px; border-radius: 12px; font-size: 14.5px; border: 1px solid #DCE3E1; background: #FFF8EC; color: #5C430F; }
+.svc-status-bar--published { background: #E3F1EC; color: #0F5132; border-color: #CDE6DC; }
+.svc-status-actions { display: inline-flex; flex-wrap: wrap; gap: 8px; }

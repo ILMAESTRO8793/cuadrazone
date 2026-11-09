@@ -119,12 +119,22 @@ export async function saveService(user: User, raw: unknown) {
   if (!parsed.success) fail("BAD_REQUEST", parsed.error.issues[0]?.message ?? "Datos inválidos");
   const v = parsed.data;
   const db = await requireDb();
-  const { store } = await requireServiceStore(db, user.id);
+  const { store, app } = await requireServiceStore(db, user.id);
   if (!v.id) {
-    const inserted = await db.insert(czServices).values({ storeId: store.id, userId: user.id, slug: `tmp-${crypto.randomUUID()}`, ...columns(v), images: [] });
+    // Si la tienda ya puede publicar, el servicio nuevo sale publicado: antes
+    // quedaba en borrador y muchos vendedores no veían el segundo botón «Publicar».
+    const canPublish = app.status === "approved" && app.subscriptionStatus === "active";
+    const inserted = await db.insert(czServices).values({
+      storeId: store.id,
+      userId: user.id,
+      slug: `tmp-${crypto.randomUUID()}`,
+      ...columns(v),
+      images: [],
+      ...(canPublish ? { status: "published" as const, publishedAt: new Date() } : {}),
+    });
     const id = Number((Array.isArray(inserted) ? inserted[0] : inserted).insertId);
     await db.update(czServices).set({ slug: `${slugify(v.title)}-${id}` }).where(eq(czServices.id, id));
-    return { id };
+    return { id, published: canPublish };
   }
   const current = await ownService(db, user.id, v.id);
   if (v.expectedRevision !== undefined && v.expectedRevision !== current.revision)

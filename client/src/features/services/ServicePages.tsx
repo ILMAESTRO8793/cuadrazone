@@ -28,9 +28,10 @@ function ServiceCard({ s }: { s: ServiceDTO }) {
         <span className="re-badge">{serviceTypeLabels[s.serviceType]}</span>
       </div>
       <div className="svc-card-body">
+        {/* Cada servicio se presenta por su propio nombre; la tienda va en segundo plano */}
+        <h3 className="svc-card-title">{s.title}</h3>
         <strong className="re-price">{servicePriceLabel(s)}</strong>
-        <h3>{s.title}</h3>
-        <span className="svc-store"><Store size={13} /> {s.store.name} · {s.categoryLabel}</span>
+        <span className="svc-store"><Store size={13} /> {s.categoryLabel} · por {s.store.name}</span>
         <div className="svc-tags">
           {s.modalities.map(m => <span key={m}>{modalityLabels[m]}</span>)}
           {s.durationMinutes ? <span><Clock size={12} /> {durationLabel(s.durationMinutes)}</span> : null}

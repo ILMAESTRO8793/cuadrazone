@@ -33,7 +33,7 @@ const centsFrom = (v: string) => {
 };
 
 type Form = {
-  id?: number; expectedRevision?: number; title: string; description: string; serviceType: ServiceType; categoryId: string;
+  id?: number; expectedRevision?: number; status?: OwnServiceDTO["status"]; slug?: string; title: string; description: string; serviceType: ServiceType; categoryId: string;
   specialtyId: string; priceType: PriceType; price: string; durationHours: string; durationMinutes: string;
   modalities: ServiceModality[]; coverageProvinces: string[]; schedule: string; images: string[];
 };
@@ -42,7 +42,7 @@ const empty = (): Form => ({
   price: "", durationHours: "", durationMinutes: "", modalities: ["a_domicilio"], coverageProvinces: [], schedule: "", images: [],
 });
 const fromService = (s: OwnServiceDTO): Form => ({
-  id: s.id, expectedRevision: s.revision, title: s.title, description: s.description, serviceType: s.serviceType, categoryId: s.categoryId,
+  id: s.id, expectedRevision: s.revision, status: s.status, slug: s.slug, title: s.title, description: s.description, serviceType: s.serviceType, categoryId: s.categoryId,
   specialtyId: s.specialtyId ?? "", priceType: s.priceType, price: s.priceCents ? String(s.priceCents / 100) : "",
   durationHours: s.durationMinutes ? String(Math.floor(s.durationMinutes / 60) || "") : "",
   durationMinutes: s.durationMinutes ? String(s.durationMinutes % 60 || "") : "",
@@ -85,7 +85,13 @@ export function ServicesPanel({ hasStore }: { hasStore: boolean }) {
       const fresh = await utils.services.mine.fetch();
       const updated = fresh.services.find(s => s.id === saved.id);
       if (updated) setForm(fromService(updated));
-      toast.success(form.id ? "Servicio guardado" : "Servicio creado. Agrega fotos de tus trabajos y publícalo.");
+      toast.success(
+        form.id
+          ? "Servicio guardado"
+          : "published" in saved && saved.published
+            ? "¡Servicio publicado! Ya aparece en Servicios. Agrega fotos de tu trabajo abajo."
+            : "Servicio creado como borrador. Se publicará cuando tu tienda esté aprobada y tu plan activo."
+      );
     } catch (error) { toast.error(errorText(error)); }
   }
   async function upload(files: FileList | null) {
@@ -104,7 +110,12 @@ export function ServicesPanel({ hasStore }: { hasStore: boolean }) {
     } catch (error) { toast.error(errorText(error)); } finally { setUploading(false); }
   }
   async function changeStatus(id: number, status: "published" | "paused" | "draft") {
-    try { await setStatus.mutateAsync({ id, status }); await utils.services.mine.invalidate(); toast.success(status === "published" ? "¡Servicio publicado!" : "Estado actualizado"); }
+    try {
+      await setStatus.mutateAsync({ id, status });
+      const fresh = await utils.services.mine.fetch();
+      if (form?.id === id) { const updated = fresh.services.find(s => s.id === id); if (updated) setForm(fromService(updated)); }
+      toast.success(status === "published" ? "¡Servicio publicado! Ya aparece en Servicios." : "Estado actualizado");
+    }
     catch (error) { toast.error(errorText(error)); }
   }
 
@@ -114,6 +125,22 @@ export function ServicesPanel({ hasStore }: { hasStore: boolean }) {
       <section className="svc-editor">
         <button className="re-back" onClick={() => setForm(null)}>← Mis servicios</button>
         <h2>{form.id ? "Editar servicio" : "Nuevo servicio"}</h2>
+        {form.id && form.status && (
+          <div className={`svc-status-bar svc-status-bar--${form.status}`} role="status">
+            <span>
+              <strong>{serviceStatusLabels[form.status]}</strong>
+              {form.status === "published" ? " · Visible en la sección Servicios." : " · No se ve en Servicios hasta que lo publiques."}
+            </span>
+            {form.status !== "published" ? (
+              <button type="button" className="btn btn-gold" disabled={setStatus.isPending} onClick={() => void changeStatus(form.id!, "published")}>Publicar ahora</button>
+            ) : (
+              <span className="svc-status-actions">
+                {form.slug && <Link className="btn btn-outline" href={`/servicio/${form.slug}`}>Ver como cliente</Link>}
+                <button type="button" className="btn btn-outline" disabled={setStatus.isPending} onClick={() => void changeStatus(form.id!, "paused")}>Pausar</button>
+              </span>
+            )}
+          </div>
+        )}
         <form className="re-form" onSubmit={submit}>
           <fieldset>
             <legend>¿Qué ofreces?</legend>
@@ -211,6 +238,8 @@ export function ServicesPanel({ hasStore }: { hasStore: boolean }) {
               <strong>{s.title}</strong>
               <span className="re-muted">{servicePriceLabel(s)}{s.durationMinutes ? ` · ${durationLabel(s.durationMinutes)}` : ""} · {s.modalities.map(m => modalityLabels[m]).join(", ")}</span>
               <span className={`re-status re-status--${s.status}`}>{serviceStatusLabels[s.status]}{s.newRequests ? ` · ${s.newRequests} solicitud(es) nueva(s)` : ""}</span>
+              {s.status !== "published" && <span className="re-muted re-small">No se ve en Servicios hasta que pulses «Publicar».</span>}
+              {!s.images[0] && <span className="re-muted re-small">Agrega una foto: es lo primero que ven los clientes.</span>}
             </div>
             <div className="re-mine-actions">
               <button className="btn btn-outline" onClick={() => setForm(fromService(s))}>Editar</button>
