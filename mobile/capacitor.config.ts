@@ -10,6 +10,8 @@ const config: CapacitorConfig = {
   appName: "CuadraZone",
   webDir: "www",
   backgroundColor: "#071E38",
+  // La web reconoce la app por esto y muestra el diseño de app (barra inferior).
+  appendUserAgent: "CuadraZoneApp",
   server: {
     url: "https://www.cuadrazone.com",
     cleartext: false,

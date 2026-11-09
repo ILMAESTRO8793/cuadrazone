@@ -17,6 +17,9 @@ import {
   ShieldCheck,
   Instagram,
   Mail,
+  House,
+  LayoutGrid,
+  Package,
 } from "lucide-react";
 import {
   assets,
@@ -567,6 +570,37 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
           </div>
         </nav>
       </footer>
+      {/* Barra inferior: solo se ve dentro de la app (html.cz-app) */}
+      <nav className="app-tabbar" aria-label="Navegación de la app">
+        <Link href="/" className={location === "/" ? "is-active" : ""}>
+          <House size={22} aria-hidden="true" />
+          <span>Inicio</span>
+        </Link>
+        <button
+          type="button"
+          className={menuOpen ? "is-active" : ""}
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen(value => !value)}
+        >
+          <LayoutGrid size={22} aria-hidden="true" />
+          <span>Categorías</span>
+        </button>
+        <Link href="/mi-carrito" className={location === "/mi-carrito" ? "is-active" : ""}>
+          <span className="app-tab-icon">
+            <ShoppingBag size={22} aria-hidden="true" />
+            {cartCount > 0 && <span className="app-tab-badge">{cartCount}</span>}
+          </span>
+          <span>Carrito</span>
+        </Link>
+        <Link href="/pedidos" className={location.startsWith("/pedidos") ? "is-active" : ""}>
+          <Package size={22} aria-hidden="true" />
+          <span>Pedidos</span>
+        </Link>
+        <Link href={auth.user ? "/mi-cuenta" : "/entrar"} className={location === "/mi-cuenta" || location === "/entrar" ? "is-active" : ""}>
+          <UserRound size={22} aria-hidden="true" />
+          <span>Perfil</span>
+        </Link>
+      </nav>
     </>
   );
 }

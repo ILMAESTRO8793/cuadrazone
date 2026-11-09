@@ -1952,3 +1952,187 @@ aside > .filter-drawer:not(.is-open) > form > button.filter-keep {
     justify-content: center;
   }
 }
+
+/* ═══════════ Diseño de app (dentro de la app de Android/iPhone) ═══════════
+ * html.cz-app lo pone un script en index.html cuando la web se abre en la app.
+ * Arriba: logo pequeño, provincia y la búsqueda a todo el ancho.
+ * Abajo: barra fija con Inicio, Categorías, Carrito, Pedidos y Perfil.
+ */
+.app-tabbar {
+  display: none;
+}
+html.cz-app {
+  --app-tabbar-h: 62px;
+  --app-safe-top: env(safe-area-inset-top, 0px);
+  --app-safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+html.cz-app body {
+  padding-bottom: calc(var(--app-tabbar-h) + var(--app-safe-bottom));
+}
+html.cz-app .utility-strip,
+html.cz-app .prototype-note,
+html.cz-app .nav-border,
+html.cz-app .header-actions,
+html.cz-app .brand-scripture,
+html.cz-app .skip-link {
+  display: none !important;
+}
+html.cz-app .site-header {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  padding-top: var(--app-safe-top);
+  box-shadow: 0 6px 16px -10px rgba(0, 0, 0, 0.55);
+}
+html.cz-app .header-main {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    "brand loc"
+    "search search";
+  align-items: center;
+  gap: 8px 12px;
+  min-height: 0;
+  padding: 8px 14px 12px;
+}
+html.cz-app .header-brand {
+  grid-area: brand;
+  width: auto;
+}
+html.cz-app .site-logo,
+html.cz-app .site-logo img {
+  width: 116px;
+}
+html.cz-app .header-location {
+  display: flex !important;
+  grid-area: loc;
+  justify-self: end;
+  padding: 4px 6px;
+  gap: 6px;
+}
+html.cz-app .header-location small {
+  display: none;
+}
+html.cz-app .header-location select {
+  font-size: 13.5px;
+}
+html.cz-app .header-search {
+  grid-area: search;
+  order: 0;
+  flex-basis: auto;
+  width: 100%;
+}
+html.cz-app .header-search form {
+  min-height: 46px;
+  height: 46px;
+  border-radius: 12px;
+}
+
+/* Barra inferior fija */
+html.cz-app .app-tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 70;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  height: calc(var(--app-tabbar-h) + var(--app-safe-bottom));
+  padding-bottom: var(--app-safe-bottom);
+  background: #fff;
+  border-top: 1px solid var(--cz-line);
+  box-shadow: 0 -6px 18px -12px rgba(42, 36, 32, 0.35);
+}
+html.cz-app .app-tabbar > a,
+html.cz-app .app-tabbar > button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-width: 0;
+  padding: 6px 2px 4px;
+  border: 0;
+  background: transparent;
+  color: var(--cz-ink-3);
+  font-family: var(--cz-font-body);
+  font-size: 11.5px;
+  font-weight: 700;
+  -webkit-tap-highlight-color: transparent;
+  transition: color var(--cz-fast) var(--cz-ease-out);
+}
+html.cz-app .app-tabbar > .is-active {
+  color: var(--cz-olive);
+}
+html.cz-app .app-tabbar > .is-active::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 34px;
+  height: 3px;
+  border-radius: 0 0 3px 3px;
+  background: var(--cz-olive);
+}
+html.cz-app .app-tabbar > a,
+html.cz-app .app-tabbar > button {
+  position: relative;
+}
+html.cz-app .app-tabbar > a:active,
+html.cz-app .app-tabbar > button:active {
+  transform: scale(0.94);
+}
+html.cz-app .app-tab-icon {
+  position: relative;
+  display: inline-flex;
+}
+html.cz-app .app-tab-badge {
+  position: absolute;
+  top: -6px;
+  right: -10px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--cz-terracotta);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 18px;
+  text-align: center;
+}
+
+/* Categorías como hoja que sube desde abajo */
+html.cz-app .category-popover {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--app-tabbar-h) + var(--app-safe-bottom));
+  z-index: 65;
+  padding: 0;
+  max-width: none;
+}
+html.cz-app .category-popover > div {
+  max-height: 68vh;
+  overflow-y: auto;
+  border-radius: 18px 18px 0 0;
+  border: 1px solid var(--cz-line);
+  border-bottom: 0;
+  box-shadow: 0 -16px 36px -18px rgba(42, 36, 32, 0.45);
+  animation: cz-sheet var(--cz-base) var(--cz-ease-out);
+}
+@keyframes cz-sheet {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+/* Pie: en la app solo queda la franja legal */
+html.cz-app .site-footer .footer-top,
+html.cz-app .site-footer .footer-bottom {
+  display: none;
+}

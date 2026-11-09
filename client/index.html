@@ -2,7 +2,7 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>{{CZ_TITLE}}</title>
     <meta name="description" content="{{CZ_DESCRIPTION}}" />
     <meta
@@ -32,6 +32,12 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..800;1,400..600&family=Fraunces:opsz,wght@9..144,500..700&display=swap"
     />
+    <script>
+      /* Dentro de la app (Capacitor) la web usa el diseño de app: búsqueda arriba y barra inferior. */
+      if (/CuadraZoneApp/.test(navigator.userAgent) || (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())) {
+        document.documentElement.classList.add("cz-app");
+      }
+    </script>
   <!--cz-robots-->
   </head>
   <body>
