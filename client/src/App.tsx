@@ -54,6 +54,7 @@ import { VehicleDetailPage, VehicleListPage, VehicleMinePage } from "./features/
 import { ServiceDetailPage, ServiceListPage } from "./features/services/ServicePages";
 import { EventDetailPage, EventListPage, MyTicketsPage } from "./features/events/EventPages";
 import { SellerEventsPage, TicketScannerPage } from "./features/events/SellerEventPages";
+import { MyAppointmentsPage, ProviderAgendaPage } from "./features/services/AppointmentPages";
 import { JobDetailPage, JobListPage, MyApplicationsPage, MyJobsPage, ResumePage } from "./features/jobs/JobPages";
 import { SellerStatusPage } from "./features/membership/SellerStatusPage";
 import { AdminVerificationPage } from "./features/membership/AdminVerificationPage";
@@ -141,6 +142,8 @@ function Router() {
         <Route path="/eventos" component={EventListPage} />
         <Route path="/mis-boletos" component={MyTicketsPage} />
         <Route path="/vendedor/eventos" component={SellerEventsPage} />
+        <Route path="/mis-citas" component={MyAppointmentsPage} />
+        <Route path="/vendedor/agenda" component={ProviderAgendaPage} />
         <Route path="/vendedor/escanear/:id">
           {p => <TicketScannerPage key={p.id} eventId={Number(p.id)} />}
         </Route>

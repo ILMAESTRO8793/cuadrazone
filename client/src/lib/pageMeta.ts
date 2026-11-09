@@ -25,6 +25,8 @@ export function getPageMeta(url: string, snapshot: PublicSnapshot = {}) {
     "/eventos": "Eventos y conciertos",
     "/mis-boletos": "Mis boletos",
     "/vendedor/eventos": "Mis eventos",
+    "/mis-citas": "Mis citas",
+    "/vendedor/agenda": "Mi agenda",
     "/servicios": "Servicios en Panamá",
     "/suscripciones": "Planes Normal US$19.99 y Mayor Visibilidad US$39.99",
     "/vendedor/plan": "Mi selección de plan",
@@ -119,6 +121,8 @@ export function getPageMeta(url: string, snapshot: PublicSnapshot = {}) {
       path.startsWith("/vendedor/escanear/") ||
       [
         "/mis-boletos",
+        "/mis-citas",
+        "/vendedor/agenda",
         "/vendedor/eventos",
         "/mercado-privado",
         "/mi-carrito",

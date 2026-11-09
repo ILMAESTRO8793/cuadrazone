@@ -61,6 +61,12 @@
       "path": "/vendedor/eventos"
     },
     {
+      "path": "/mis-citas"
+    },
+    {
+      "path": "/vendedor/agenda"
+    },
+    {
       "path": "/vendedor/escanear/:id"
     },
     {

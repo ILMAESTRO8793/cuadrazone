@@ -20,6 +20,7 @@ import { useMarket } from "@/contexts/MarketContext";
 import "../realEstate/realEstate.css";
 import "./services.css";
 import FilterDrawer, { countActiveFilters } from "@/components/marketplace/FilterDrawer";
+import { BookingBox } from "./AppointmentPages";
 
 function ServiceCard({ s }: { s: ServiceDTO }) {
   return (
@@ -380,6 +381,7 @@ export function ServiceDetailPage({ slug }: { slug: string }) {
               </a>
             </div>
           )}
+          {s.bookable && auth.user && <BookingBox service={s} />}
           <hr />
           {sent ? (
             <div className="re-plan re-plan--ok">
@@ -394,7 +396,11 @@ export function ServiceDetailPage({ slug }: { slug: string }) {
             </button>
           ) : (
             <form className="svc-request" onSubmit={submit}>
-              <strong>Solicitar este servicio</strong>
+              <strong>
+                {s.bookable
+                  ? "¿Prefieres pedir información o una cotización?"
+                  : "Solicitar este servicio"}
+              </strong>
               <label>
                 Tu nombre
                 <input

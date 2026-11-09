@@ -35,6 +35,7 @@ import {
   sweepCommissionDeadlines,
 } from "./commissions";
 import { sweepExpiredReservations } from "./events";
+import { sweepAppointmentReminders } from "./appointments";
 import type { PlatformPaymentDetails } from "@shared/billing";
 
 export const PAYMENT_METHODS = [
@@ -491,6 +492,16 @@ export function startSubscriptionSweeper(intervalMs = 15 * 60 * 1000) {
       .catch(error =>
         console.error(
           "[Eventos] Error al liberar reservas:",
+          error instanceof Error ? error.message : error
+        )
+      );
+    void sweepAppointmentReminders()
+      .then(count => {
+        if (count > 0) console.log(`[Citas] ${count} recordatorio(s) enviados`);
+      })
+      .catch(error =>
+        console.error(
+          "[Citas] Error en los recordatorios:",
           error instanceof Error ? error.message : error
         )
       );

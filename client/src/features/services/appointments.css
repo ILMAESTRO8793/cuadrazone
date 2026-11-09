@@ -1,0 +1,308 @@
+/* ── Citas de servicios (paleta Earthy Editorial) ── */
+.ap-box {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1.5px solid #d9ad49;
+  background: #fbf4ea;
+}
+.ap-box-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 17px;
+  color: #071e38;
+}
+.ap-days {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+}
+.ap-days button {
+  flex: 0 0 auto;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1.5px solid #dce3e1;
+  background: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: #071e38;
+  cursor: pointer;
+  text-transform: capitalize;
+}
+.ap-days button.is-active {
+  border-color: #071e38;
+  background: #071e38;
+  color: #f7f1e6;
+}
+.ap-day-label {
+  margin: 0;
+  font-weight: 700;
+  color: #414c16;
+  text-transform: capitalize;
+}
+.ap-slots {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  gap: 8px;
+}
+.ap-slots button {
+  min-height: 42px;
+  border-radius: 10px;
+  border: 1.5px solid #dce3e1;
+  background: #fff;
+  font: inherit;
+  font-weight: 700;
+  color: #071e38;
+  cursor: pointer;
+}
+.ap-slots button:hover {
+  border-color: #b85c22;
+}
+.ap-slots button.is-active {
+  border-color: #b85c22;
+  background: #b85c22;
+  color: #fff;
+}
+
+.ap-heading {
+  margin: 18px 0 8px;
+  font-size: 20px;
+  color: #071e38;
+}
+.ap-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ap-card {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 14px;
+  padding: 16px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid #dce3e1;
+}
+.ap-when {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+  border-radius: 12px;
+  background: #071e38;
+  color: #f7f1e6;
+  text-align: center;
+}
+.ap-when strong {
+  font-size: 20px;
+  color: #d9ad49;
+}
+.ap-when span {
+  font-size: 12.5px;
+  text-transform: capitalize;
+}
+.ap-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ap-body h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #071e38;
+}
+.ap-body a {
+  color: inherit;
+}
+.ap-past {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ap-past li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #dce3e1;
+  font-size: 14px;
+}
+.ap-status {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 700;
+  background: #e7edd8;
+  color: #414c16;
+}
+.ap-status--cancelled {
+  background: #eef0f2;
+  color: #4a5568;
+}
+.ap-status--no_show {
+  background: #f7e1d3;
+  color: #8a4a1a;
+}
+
+/* Horario del proveedor */
+.ap-setup {
+  display: grid;
+  gap: 18px;
+}
+.ap-weekday {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 10px 0;
+  border-top: 1px solid #eef0ee;
+}
+.ap-weekday > strong {
+  padding-top: 8px;
+  color: #071e38;
+}
+.ap-ranges {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+.ap-range {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+.ap-range input {
+  min-height: 40px;
+  padding: 0 8px;
+  border: 1px solid #9aa8a5;
+  border-radius: 10px;
+  font: inherit;
+}
+.ap-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 0;
+  background: none;
+  padding: 4px 0;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #b85c22;
+  cursor: pointer;
+}
+.ap-toggle {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 12px !important;
+  padding: 10px 12px;
+  border: 1px solid #dce3e1;
+  border-radius: 12px;
+  cursor: pointer;
+}
+.ap-toggle input {
+  width: 20px;
+  height: 20px;
+  accent-color: #414c16;
+}
+.ap-toggle > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Agenda */
+.ap-agenda-day h2 {
+  margin: 6px 0 10px;
+  font-size: 18px;
+  color: #071e38;
+  text-transform: capitalize;
+}
+.ap-agenda-day.is-past {
+  opacity: 0.7;
+}
+.ap-agenda {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ap-agenda-item {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid #dce3e1;
+  border-left: 5px solid #414c16;
+}
+.ap-agenda-item > div:nth-child(2) {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 14px;
+}
+.ap-agenda-item--cancelled {
+  border-left-color: #a0aec0;
+  opacity: 0.75;
+}
+.ap-agenda-item--no_show {
+  border-left-color: #b85c22;
+}
+.ap-agenda-time {
+  display: flex;
+  flex-direction: column;
+  font-weight: 800;
+  font-size: 17px;
+  color: #071e38;
+}
+.ap-agenda-time small {
+  font-weight: 600;
+  font-size: 12px;
+  color: #4a5568;
+}
+.ap-note {
+  font-style: italic;
+  color: #4a5568;
+}
+
+@media (max-width: 640px) {
+  .ap-card {
+    grid-template-columns: 1fr;
+  }
+  .ap-agenda-item {
+    grid-template-columns: 80px minmax(0, 1fr);
+  }
+  .ap-agenda-item .re-mine-actions {
+    grid-column: 1 / -1;
+  }
+  .ap-weekday {
+    grid-template-columns: 1fr;
+  }
+}
+.ap-icon-btn {
+  min-width: 40px;
+  padding: 0 10px;
+}

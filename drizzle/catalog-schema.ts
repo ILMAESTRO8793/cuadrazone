@@ -1,5 +1,6 @@
 import {
   bigint,
+  boolean,
   foreignKey,
   index,
   int,
@@ -354,6 +355,8 @@ export const czServices = mysqlTable(
     modalities: json("modalities").$type<string[]>().notNull(),
     coverageProvinces: json("coverageProvinces").$type<string[]>(),
     schedule: varchar("schedule", { length: 300 }).notNull().default(""),
+    /** Etapa 4: el cliente puede reservar cita en el horario del proveedor. */
+    bookable: boolean("bookable").notNull().default(false),
     images: json("images").$type<string[]>(),
     publishedAt: timestamp("publishedAt"),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -489,5 +492,71 @@ export const czTickets = mysqlTable(
     uniqueIndex("cz_tickets_code_uq").on(table.code),
     index("cz_tickets_event_ix").on(table.eventId, table.status),
     index("cz_tickets_holder_ix").on(table.holderUserId),
+  ]
+);
+
+/* ═══════════ Etapa 4: citas de servicios ═══════════ */
+
+/** Horario semanal de atención de una tienda de servicios (hora de Panamá). */
+export const czServiceAvailability = mysqlTable(
+  "cz_service_availability",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    storeId: int("storeId").notNull().references(() => czStores.id, { onDelete: "cascade" }),
+    /** 0 = domingo … 6 = sábado. */
+    weekday: int("weekday").notNull(),
+    /** Minutos desde la medianoche: 8:00 → 480. */
+    startMinute: int("startMinute").notNull(),
+    endMinute: int("endMinute").notNull(),
+  },
+  table => [index("cz_service_availability_store_ix").on(table.storeId, table.weekday)]
+);
+
+/** Cita reservada por un cliente en el horario del proveedor. */
+export const czAppointments = mysqlTable(
+  "cz_appointments",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    serviceId: int("serviceId").notNull().references(() => czServices.id),
+    storeId: int("storeId").notNull().references(() => czStores.id),
+    providerUserId: int("providerUserId").notNull().references(() => users.id),
+    clientUserId: int("clientUserId").notNull().references(() => users.id),
+    serviceTitle: varchar("serviceTitle", { length: 120 }).notNull(),
+    priceLabel: varchar("priceLabel", { length: 60 }).notNull().default(""),
+    startsAt: timestamp("startsAt").notNull(),
+    endsAt: timestamp("endsAt").notNull(),
+    status: mysqlEnum("status", ["confirmed", "cancelled", "completed", "no_show"]).notNull().default("confirmed"),
+    clientName: varchar("clientName", { length: 120 }).notNull(),
+    clientPhone: varchar("clientPhone", { length: 20 }).notNull(),
+    note: varchar("note", { length: 500 }).notNull().default(""),
+    cancelledBy: mysqlEnum("cancelledBy", ["client", "provider"]),
+    cancelReason: varchar("cancelReason", { length: 300 }),
+    cancelledAt: timestamp("cancelledAt"),
+    reminderSentAt: timestamp("reminderSentAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    index("cz_appointments_store_ix").on(table.storeId, table.startsAt),
+    index("cz_appointments_client_ix").on(table.clientUserId, table.startsAt),
+    index("cz_appointments_status_ix").on(table.status, table.startsAt),
+  ]
+);
+
+/**
+ * Bloques de 15 minutos ocupados por cada cita. La clave única (tienda, inicio
+ * del bloque) hace que dos citas nunca se solapen, aunque se reserven a la vez.
+ */
+export const czAppointmentBlocks = mysqlTable(
+  "cz_appointment_blocks",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    storeId: int("storeId").notNull().references(() => czStores.id),
+    blockStart: timestamp("blockStart").notNull(),
+    appointmentId: int("appointmentId").notNull().references(() => czAppointments.id, { onDelete: "cascade" }),
+  },
+  table => [
+    uniqueIndex("cz_appointment_blocks_uq").on(table.storeId, table.blockStart),
+    index("cz_appointment_blocks_appt_ix").on(table.appointmentId),
   ]
 );

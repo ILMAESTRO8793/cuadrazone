@@ -112,6 +112,7 @@ function dto(row: any, store: any, phone: string | null): ServiceDTO {
     coverageProvinces: list(row.coverageProvinces),
     schedule: row.schedule ?? "",
     images: list(row.images),
+    bookable: Boolean(row.bookable),
     store: {
       name: store.name,
       slug: store.slug,
