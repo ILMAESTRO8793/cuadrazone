@@ -38,6 +38,7 @@ import {
   X,
   CalendarDays,
   CalendarCheck,
+  LayoutDashboard,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -772,6 +773,9 @@ function SellerCatalogContent({
       </header>
 
       <nav className="seller-catalog-nav" aria-label="Navegación de vendedor">
+        <Link href="/vendedor/panel">
+          <LayoutDashboard size={17} /> Resumen
+        </Link>
         <button
           type="button"
           className={activeTab === "store" ? "is-active" : ""}

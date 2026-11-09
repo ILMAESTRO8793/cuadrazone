@@ -20,6 +20,7 @@ import {
   NotificationsPage,
 } from "./features/commerce/CommunicationPages";
 import { SellerCatalogPage } from "./features/catalog/SellerCatalogPage";
+import { SellerDashboardPage } from "./features/catalog/SellerDashboardPage";
 import { useEffect } from "react";
 import { Link, Route, Switch, useLocation, useSearch } from "wouter";
 import { Toaster } from "@/components/ui/sonner";
@@ -129,6 +130,7 @@ function Router() {
         <Route path="/mensajes" component={MessagesPage} />
         <Route path="/notificaciones" component={NotificationsPage} />
         <Route path="/vendedor/plan" component={SellerPlanPage} />
+        <Route path="/vendedor/panel" component={SellerDashboardPage} />
         <Route path="/vendedor/productos">{() => <SellerCatalogPage />}</Route>
         <Route path="/vendedor/tienda">
           {() => <SellerCatalogPage tab="store" />}

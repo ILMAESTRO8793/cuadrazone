@@ -121,6 +121,9 @@ export function SellerStatusPage() {
             <p className="member-notice">Motivo: {app.reviewReason}</p>
           )}
           <div className="admin-actions">
+            <Link href="/vendedor/panel" className="btn btn-outline">
+              Resumen de mi tienda
+            </Link>
             <Link href="/vendedor/tienda" className="btn btn-outline">
               Preparar mi tienda
             </Link>
