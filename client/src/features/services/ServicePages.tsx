@@ -19,6 +19,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { useMarket } from "@/contexts/MarketContext";
 import "../realEstate/realEstate.css";
 import "./services.css";
+import FilterDrawer, { countActiveFilters } from "@/components/marketplace/FilterDrawer";
 
 function ServiceCard({ s }: { s: ServiceDTO }) {
   return (
@@ -99,6 +100,7 @@ export function ServiceListPage() {
           Ofrece tus servicios
         </Link>
       </div>
+      <FilterDrawer active={countActiveFilters(f)}>
       <form
         className="re-filters"
         onSubmit={e => e.preventDefault()}
@@ -158,7 +160,7 @@ export function ServiceListPage() {
             ))}
           </select>
         </label>
-        <label className="re-search">
+        <label className="re-search filter-keep">
           Buscar
           <input
             className="svc-input"
@@ -168,6 +170,7 @@ export function ServiceListPage() {
           />
         </label>
       </form>
+      </FilterDrawer>
       {list.isLoading && <p role="status">Buscando servicios…</p>}
       {list.error && (
         <p className="member-error" role="alert">

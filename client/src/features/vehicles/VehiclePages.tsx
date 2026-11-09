@@ -35,6 +35,7 @@ import { trpc } from "@/lib/trpc";
 import { AuthGate } from "@/features/membership/AuthGate";
 import { Input } from "@/components/ui/input";
 import "../realEstate/realEstate.css";
+import FilterDrawer, { countActiveFilters } from "@/components/marketplace/FilterDrawer";
 
 const errorText = (e: unknown) => (e instanceof Error ? e.message : "Ocurrió un error");
 const centsFrom = (v: string) => {
@@ -131,6 +132,7 @@ export function VehicleListPage() {
           </button>
         ))}
       </div>
+      <FilterDrawer active={countActiveFilters(f)}>
       <form className="re-filters" onSubmit={e => e.preventDefault()} aria-label="Filtros">
         <label>Tipo
           <select value={f.vehicleType} onChange={e => set("vehicleType", e.target.value as VehicleType | "")}>
@@ -174,8 +176,9 @@ export function VehicleListPage() {
             <option value="usado">Usado</option>
           </select>
         </label>
-        <label className="re-search">Buscar<Input value={f.q} onChange={e => set("q", e.target.value)} placeholder="Modelo, versión o palabra" /></label>
+        <label className="re-search filter-keep">Buscar<Input value={f.q} onChange={e => set("q", e.target.value)} placeholder="Modelo, versión o palabra" /></label>
       </form>
+      </FilterDrawer>
       {list.isLoading && <p role="status">Buscando autos…</p>}
       {list.error && <p className="member-error" role="alert">{list.error.message}</p>}
       {list.data && (

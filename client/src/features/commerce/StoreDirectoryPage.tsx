@@ -20,6 +20,7 @@ import {
   type DirectoryStore,
 } from "@shared/storeDirectory";
 import { RequestError } from "./PublicCatalogPages";
+import FilterDrawer from "@/components/marketplace/FilterDrawer";
 
 export function BusinessClassification({
   selections,
@@ -188,9 +189,13 @@ export function StoreDirectoryPage() {
       </div>
       <div className="live-catalog-layout">
         <aside>
+          <FilterDrawer
+            className="filter-drawer--catalog"
+            active={[input.category, input.specialty, input.province].filter(Boolean).length}
+          >
           <form className="live-filters" onSubmit={submit} action="/tiendas">
             <h2>Busca tu negocio</h2>
-            <label>
+            <label className="filter-keep">
               Nombre o actividad
               <input
                 name="q"
@@ -247,13 +252,14 @@ export function StoreDirectoryPage() {
                 ))}
               </select>
             </label>
-            <button className="btn btn-gold" type="submit">
+            <button className="btn btn-gold filter-keep" type="submit">
               Encontrar tiendas
             </button>
             <Link className="btn btn-outline" href="/tiendas">
               Limpiar filtros
             </Link>
           </form>
+          </FilterDrawer>
           <nav
             className="directory-category-nav"
             aria-label="Categorías de negocios"

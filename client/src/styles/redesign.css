@@ -1816,3 +1816,139 @@ body,
 .re-price {
   color: var(--cz-olive);
 }
+
+/* ═══════════ Filtros compactos ═══════════
+ * A la vista: la búsqueda y el botón «Filtros». El resto se despliega.
+ */
+.filter-drawer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px 12px;
+  margin: 18px 0 10px;
+}
+.filter-drawer > form {
+  order: 1;
+  flex: 1 1 280px;
+  min-width: 0;
+  margin: 0;
+}
+.filter-toggle {
+  order: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 0 16px;
+  border: 1px solid var(--cz-line-strong);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--cz-navy);
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  transition:
+    border-color var(--cz-fast) var(--cz-ease-out),
+    background-color var(--cz-fast) var(--cz-ease-out);
+}
+.filter-toggle:hover {
+  border-color: var(--cz-olive);
+}
+.filter-toggle[aria-expanded="true"] {
+  background: var(--cz-olive);
+  border-color: var(--cz-olive);
+  color: #fff;
+}
+.filter-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--cz-terracotta);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+}
+.filter-chevron {
+  transition: transform var(--cz-base) var(--cz-ease-out);
+}
+.filter-toggle[aria-expanded="true"] .filter-chevron {
+  transform: rotate(180deg);
+}
+
+/* Cerrado: solo lo marcado con .filter-keep */
+.filter-drawer:not(.is-open) > form > :not(.filter-keep) {
+  display: none !important;
+}
+.filter-drawer:not(.is-open) > form {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.filter-drawer:not(.is-open) > form > .filter-keep:not(button):not(a) {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.filter-drawer:not(.is-open) > form > button.filter-keep {
+  width: auto;
+  margin: 0;
+  min-height: 46px;
+}
+
+/* Abierto: el botón arriba y el formulario completo debajo */
+.filter-drawer.is-open > .filter-toggle {
+  order: 0;
+}
+.filter-drawer.is-open > form {
+  flex-basis: 100%;
+  animation: cz-pop var(--cz-base) var(--cz-ease-out);
+}
+
+/* Comercios: los filtros dejan de ocupar una columna lateral */
+.live-catalog-layout:has(> .filter-drawer) {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+}
+.filter-drawer--catalog .live-filters {
+  background: #fff;
+  border: 1px solid var(--cz-line);
+  border-radius: var(--cz-radius);
+}
+.filter-drawer--catalog .live-filters h2 {
+  display: none;
+}
+.live-catalog-layout > .filter-drawer.is-open .live-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px 16px;
+  align-items: end;
+}
+.live-catalog-layout > .filter-drawer.is-open .live-filters .btn {
+  margin-top: 0;
+}
+/* Tiendas: dentro de la columna lateral, todo en una columna */
+aside > .filter-drawer {
+  margin-top: 0;
+}
+aside > .filter-drawer:not(.is-open) > form {
+  flex-direction: column;
+  align-items: stretch;
+}
+aside > .filter-drawer:not(.is-open) > form > button.filter-keep {
+  width: 100%;
+}
+@media (max-width: 560px) {
+  .filter-drawer:not(.is-open) > form {
+    flex-wrap: wrap;
+  }
+  .filter-toggle {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+}

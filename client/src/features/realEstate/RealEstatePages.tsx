@@ -24,6 +24,7 @@ import { trpc } from "@/lib/trpc";
 import { AuthGate } from "@/features/membership/AuthGate";
 import { Input } from "@/components/ui/input";
 import "./realEstate.css";
+import FilterDrawer, { countActiveFilters } from "@/components/marketplace/FilterDrawer";
 
 const errorText = (e: unknown) => (e instanceof Error ? e.message : "Ocurrió un error");
 const centsFrom = (v: string) => {
@@ -117,6 +118,8 @@ export function RealEstateListPage() {
         ))}
       </div>
 
+      <FilterDrawer active={countActiveFilters(filters)}>
+
       <form className="re-filters" onSubmit={e => e.preventDefault()} aria-label="Filtros">
         <label>Tipo
           <select value={filters.propertyType} onChange={e => set("propertyType", e.target.value as PropertyType | "")}>
@@ -138,10 +141,12 @@ export function RealEstateListPage() {
             {[1, 2, 3, 4].map(n => <option key={n} value={n}>{n}+</option>)}
           </select>
         </label>
-        <label className="re-search">Buscar<Input value={filters.q} onChange={e => set("q", e.target.value)} placeholder="Barrio, distrito o palabra" /></label>
+        <label className="re-search filter-keep">Buscar<Input value={filters.q} onChange={e => set("q", e.target.value)} placeholder="Barrio, distrito o palabra" /></label>
         <label className="re-check"><input type="checkbox" checked={filters.furnished} onChange={e => set("furnished", e.target.checked)} /> Amueblado</label>
         <label className="re-check"><input type="checkbox" checked={filters.petsAllowed} onChange={e => set("petsAllowed", e.target.checked)} /> Acepta mascotas</label>
       </form>
+
+      </FilterDrawer>
 
       {list.isLoading && <p role="status">Buscando propiedades…</p>}
       {list.error && <p className="member-error" role="alert">{list.error.message}</p>}

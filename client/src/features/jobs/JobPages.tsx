@@ -34,6 +34,7 @@ import { AuthGate } from "@/features/membership/AuthGate";
 import { Input } from "@/components/ui/input";
 import "../realEstate/realEstate.css";
 import "./jobs.css";
+import FilterDrawer, { countActiveFilters } from "@/components/marketplace/FilterDrawer";
 
 const errorText = (e: unknown) => (e instanceof Error ? e.message : "Ocurrió un error");
 const dateEs = (iso: string) => new Date(`${iso.slice(0, 10)}T12:00:00Z`).toLocaleDateString("es-PA", { day: "numeric", month: "long", year: "numeric" });
@@ -105,14 +106,16 @@ export function JobListPage() {
   return (
     <div className="re-page container">
       <JobsHeader title="Encuentra tu próximo empleo" subtitle="Vacantes de empresas y emprendedores en Panamá. Crea tu CV gratis y aplica con un clic." />
+      <FilterDrawer active={countActiveFilters(f)}>
       <form className="re-filters" onSubmit={e => e.preventDefault()} aria-label="Filtros">
         <label>Área<select value={f.area} onChange={e => set("area", e.target.value)}><option value="">Todas</option>{jobAreas.map(a => <option key={a} value={a}>{areaLabels[a]}</option>)}</select></label>
         <label>Jornada<select value={f.jobType} onChange={e => set("jobType", e.target.value)}><option value="">Cualquiera</option>{jobTypes.map(a => <option key={a} value={a}>{jobTypeLabels[a]}</option>)}</select></label>
         <label>Modalidad<select value={f.modality} onChange={e => set("modality", e.target.value)}><option value="">Cualquiera</option>{jobModalities.map(a => <option key={a} value={a}>{modalityLabels[a]}</option>)}</select></label>
         <label>Provincia<select value={f.province} onChange={e => set("province", e.target.value)}><option value="">Todas</option>{provinceOptions.map(p => <option key={p}>{p}</option>)}</select></label>
         <label>Salario mínimo (US$)<Input inputMode="decimal" value={f.minSalary} onChange={e => set("minSalary", e.target.value)} placeholder="Ej.: 700" /></label>
-        <label className="re-search">Buscar<Input value={f.q} onChange={e => set("q", e.target.value)} placeholder="Cargo, empresa o palabra" /></label>
+        <label className="re-search filter-keep">Buscar<Input value={f.q} onChange={e => set("q", e.target.value)} placeholder="Cargo, empresa o palabra" /></label>
       </form>
+      </FilterDrawer>
       {list.isLoading && <p role="status">Buscando vacantes…</p>}
       {list.error && <p className="member-error" role="alert">{list.error.message}</p>}
       {list.data && (

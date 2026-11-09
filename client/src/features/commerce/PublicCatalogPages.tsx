@@ -17,6 +17,7 @@ import {
 } from "@/contexts/PublicCatalogContext";
 import { publicCatalogInput, usd } from "@/lib/liveCatalog";
 import { provinceOptions } from "@shared/membership";
+import FilterDrawer from "@/components/marketplace/FilterDrawer";
 export function RequestError({
   message,
   retry,
@@ -158,6 +159,10 @@ export function LiveCatalogPage() {
         />
       )}
       <div className="live-catalog-layout">
+        <FilterDrawer
+          className="filter-drawer--catalog"
+          active={[...current.entries()].filter(([k, v]) => k !== "q" && k !== "page" && k !== "sort" && v).length}
+        >
         <form
           className="live-filters"
           key={search}
@@ -167,7 +172,7 @@ export function LiveCatalogPage() {
           <h2>
             <Search size={19} /> Encuentra lo que necesitas
           </h2>
-          <label>
+          <label className="filter-keep">
             Buscar
             <input
               name="q"
@@ -252,13 +257,14 @@ export function LiveCatalogPage() {
               <option value="popular">Más vendidos</option>
             </select>
           </label>
-          <button className="btn btn-gold" type="submit">
-            Aplicar filtros
+          <button className="btn btn-gold filter-keep" type="submit">
+            Buscar
           </button>
           <Link className="btn btn-outline" href="/mercado">
             Limpiar filtros
           </Link>
         </form>
+        </FilterDrawer>
         <section aria-label="Resultados del catálogo">
           {result.error ? (
             <RequestError
