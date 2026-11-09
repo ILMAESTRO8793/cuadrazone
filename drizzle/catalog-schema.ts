@@ -78,6 +78,9 @@ export const czProducts = mysqlTable(
     bookMetadata: json("bookMetadata").$type<BookMetadata | null>(),
     imageUrls: json("imageUrls").$type<string[]>().notNull(),
     deliveryModes: json("deliveryModes").$type<DeliveryMode[]>().notNull(),
+    /** Etapa 6: oculto por un administrador; el vendedor no puede volver a publicarlo. */
+    moderatedAt: timestamp("moderatedAt"),
+    moderationReason: varchar("moderationReason", { length: 300 }),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   },
@@ -358,6 +361,9 @@ export const czServices = mysqlTable(
     /** Etapa 4: el cliente puede reservar cita en el horario del proveedor. */
     bookable: boolean("bookable").notNull().default(false),
     images: json("images").$type<string[]>(),
+    /** Etapa 6: oculto por un administrador; el vendedor no puede volver a publicarlo. */
+    moderatedAt: timestamp("moderatedAt"),
+    moderationReason: varchar("moderationReason", { length: 300 }),
     publishedAt: timestamp("publishedAt"),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -411,6 +417,9 @@ export const czEvents = mysqlTable(
     city: varchar("city", { length: 80 }).notNull().default(""),
     mapUrl: varchar("mapUrl", { length: 500 }).notNull().default(""),
     images: json("images").$type<string[]>(),
+    /** Etapa 6: oculto por un administrador; el vendedor no puede volver a publicarlo. */
+    moderatedAt: timestamp("moderatedAt"),
+    moderationReason: varchar("moderationReason", { length: 300 }),
     publishedAt: timestamp("publishedAt"),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

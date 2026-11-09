@@ -259,9 +259,9 @@ function publicVariant(row: Variant): PublicVariant {
 type ProductStats = { rating: number; reviewCount: number; soldCount: number };
 
 const ratingAggregate = () =>
-  sql<number>`coalesce((select avg(${czReviews.rating}) from ${czReviews} where ${czReviews.productId} = ${czProducts.id}), 0)`;
+  sql<number>`coalesce((select avg(${czReviews.rating}) from ${czReviews} where ${czReviews.productId} = ${czProducts.id} and ${czReviews.hiddenAt} is null), 0)`;
 const reviewCountAggregate = () =>
-  sql<number>`(select count(*) from ${czReviews} where ${czReviews.productId} = ${czProducts.id})`;
+  sql<number>`(select count(*) from ${czReviews} where ${czReviews.productId} = ${czProducts.id} and ${czReviews.hiddenAt} is null)`;
 const soldCountAggregate = () =>
   sql<number>`coalesce((select sum(${czOrderItems.quantity}) from ${czOrderItems} inner join ${czOrders} on ${czOrders.id} = ${czOrderItems.orderId} where ${czOrderItems.productId} = ${czProducts.id} and ${czOrders.status} = 'delivered'), 0)`;
 
@@ -1291,6 +1291,11 @@ export async function setStatus(
         "El producto cambió en otra sesión; recarga antes de publicar"
       );
     if (status === "published") {
+      if (product.moderatedAt)
+        throw new CatalogError(
+          "FORBIDDEN",
+          `Un administrador ocultó esta publicación${product.moderationReason ? `: ${product.moderationReason}` : ""}. Escríbenos si ya la corregiste.`
+        );
       await assertActiveStore(tx, product.storeId);
       const productVariants =
         (await variantsFor(tx, [product.id])).get(product.id) ?? [];

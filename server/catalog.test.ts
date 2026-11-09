@@ -201,6 +201,8 @@ describe("integridad de artículos publicados", () => {
     bookMetadata: null,
     imageUrls: ["/media/catalog/prueba.webp"],
     deliveryModes: ["pickup"],
+    moderatedAt: null,
+    moderationReason: null,
     createdAt: new Date(0),
     updatedAt: new Date(0),
   };

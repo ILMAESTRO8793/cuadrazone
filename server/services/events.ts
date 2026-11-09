@@ -446,6 +446,11 @@ export async function setEventStatus(
       .select()
       .from(czEventTicketTypes)
       .where(eq(czEventTicketTypes.eventId, id))) as any[];
+    if (status === "published" && row.moderatedAt)
+      fail(
+        "FORBIDDEN",
+        `Un administrador ocultó esta publicación${row.moderationReason ? `: ${row.moderationReason}` : ""}. Escríbenos si ya lo corregiste.`
+      );
     if (status === "published") {
       if (new Date(row.startsAt) <= now)
         fail(

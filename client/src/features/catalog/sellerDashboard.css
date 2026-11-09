@@ -378,3 +378,6 @@
     display: none;
   }
 }
+
+.sd-claims { border: 1.5px solid #b85c22; background: #fbf4ea; }
+.sd-overdue { color: #b42318; }

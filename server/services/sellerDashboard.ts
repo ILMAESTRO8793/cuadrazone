@@ -27,6 +27,7 @@ import {
 } from "@shared/sellerDashboard";
 import { getDb } from "../db";
 import { commissionForSeller } from "./commissions";
+import { openClaimsForSeller } from "./claims";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const PANAMA_OFFSET_MS = 5 * 60 * 60 * 1000;
@@ -228,7 +229,7 @@ export async function sellerDashboard(user: User, now = new Date()) {
       })
       .from(czReviews)
       .innerJoin(czProducts, eq(czProducts.id, czReviews.productId))
-      .where(eq(czProducts.storeId, storeId)),
+      .where(and(eq(czProducts.storeId, storeId), isNull(czReviews.hiddenAt))),
     db
       .select({
         id: czReviews.id,
@@ -240,12 +241,13 @@ export async function sellerDashboard(user: User, now = new Date()) {
       })
       .from(czReviews)
       .innerJoin(czProducts, eq(czProducts.id, czReviews.productId))
-      .where(eq(czProducts.storeId, storeId))
+      .where(and(eq(czProducts.storeId, storeId), isNull(czReviews.hiddenAt)))
       .orderBy(desc(czReviews.createdAt))
       .limit(8),
     commissionForSeller(user.id, now),
   ]);
 
+  const claims = await openClaimsForSeller(db, user.id, now);
   const counts = new Map(orderCounts.map((r: any) => [r.status, Number(r.n)]));
   const sales = summarizeSales(
     deliveredOrders as any[],
@@ -282,6 +284,7 @@ export async function sellerDashboard(user: User, now = new Date()) {
       unansweredQuestions: Number(unansweredCount[0]?.n ?? 0),
       unreadNotifications: Number(unread[0]?.n ?? 0),
       lowStock: lowStock.length,
+      openClaims: claims.length,
     },
     appointmentsToday: appointmentsToday.map((a: any) => ({
       ...a,
@@ -291,6 +294,7 @@ export async function sellerDashboard(user: User, now = new Date()) {
       ...q,
       createdAt: new Date(q.createdAt).toISOString(),
     })),
+    claims,
     lowStock: lowStock.map((v: any) => ({ ...v, stock: Number(v.stock) })),
     sales,
     salesChangePercent: monthOverMonth(sales),

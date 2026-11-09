@@ -14,6 +14,7 @@ import {
   TrendingDown,
   TrendingUp,
   Truck,
+  Gavel,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { commissionPercentLabel, subscriptionPlanName } from "@shared/pricing";
@@ -23,6 +24,7 @@ import {
   monthLabel,
 } from "@shared/sellerDashboard";
 import { dayLabel, panamaDayKey, timeLabel } from "@shared/appointments";
+import { CLAIM_RESPONSE_HOURS, claimReasonLabels } from "@shared/claims";
 import { trpc } from "@/lib/trpc";
 import "./sellerDashboard.css";
 
@@ -211,6 +213,13 @@ export function SellerDashboardPage() {
             />
           )}
           <TodoCard
+            icon={<Gavel size={18} />}
+            count={d.todo.openClaims}
+            label="Reclamos por responder"
+            href="#sd-claims"
+            tone="is-hot"
+          />
+          <TodoCard
             icon={<Bell size={18} />}
             count={d.todo.unreadNotifications}
             label="Notificaciones nuevas"
@@ -218,6 +227,27 @@ export function SellerDashboardPage() {
           />
         </div>
       </section>
+
+      {d.claims.length > 0 && (
+        <section className="sd-card sd-claims" id="sd-claims">
+          <h2 className="sd-title">
+            <Gavel size={18} /> Reclamos por responder
+          </h2>
+          <p className="re-muted re-small">
+            Tienes {CLAIM_RESPONSE_HOURS} horas desde que se abre cada reclamo. Si no respondes, CuadraZone decide con lo que tenga.
+          </p>
+          <ul className="sd-list">
+            {d.claims.map(c => (
+              <li key={c.id}>
+                <Link href={`/pedidos/${c.orderId}`}>Pedido {c.orderNumber}</Link> · {claimReasonLabels[c.reason]} ·{" "}
+                <strong className={c.overdue ? "sd-overdue" : ""}>
+                  {c.overdue ? "Plazo vencido" : `Responde antes del ${dayLabel(panamaDayKey(new Date(c.respondBy)))}, ${timeLabel(c.respondBy)}`}
+                </strong>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {d.appointmentsToday.length > 0 && (
         <section className="sd-card">

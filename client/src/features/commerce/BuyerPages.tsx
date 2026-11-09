@@ -1,4 +1,5 @@
 import type { CartItemDTO, DeliveryMode } from "@shared/commerce";
+import { ClaimBox } from "./ClaimBox";
 import { paymentMethodLabels } from "@shared/commerce";
 import { coveredProvinces, shippingFeeFor } from "@shared/marketplace";
 import { useMarket } from "@/contexts/MarketContext";
@@ -726,6 +727,7 @@ function OrderContent({ id }: { id: number }) {
           </Link>
         </div>
       </section>
+      <ClaimBox orderId={o.id} />
     </div>
   );
 }

@@ -234,6 +234,11 @@ export async function setServiceStatus(
 ) {
   const db = await requireDb();
   const row = await ownService(db, user.id, id);
+  if (status === "published" && row.moderatedAt)
+    fail(
+      "FORBIDDEN",
+      `Un administrador ocultó esta publicación${row.moderationReason ? `: ${row.moderationReason}` : ""}. Escríbenos si ya lo corregiste.`
+    );
   if (status === "published") {
     const { app } = await requireServiceStore(db, user.id);
     if (app.status !== "approved")

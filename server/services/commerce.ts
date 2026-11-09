@@ -417,7 +417,7 @@ export async function transitionOrder(userId: number, id: number, next: Exclude<
   });
 }
 
-export async function listReviews(productId: number) { const db = await database(); await publicProduct(db, productId); const rows = await db.select({ id: czReviews.id, productId: czReviews.productId, rating: czReviews.rating, body: czReviews.body, createdAt: czReviews.createdAt }).from(czReviews).where(eq(czReviews.productId, productId)).orderBy(desc(czReviews.createdAt)); return rows.map(row => ({ ...row, author: "Compra verificada" })); }
+export async function listReviews(productId: number) { const db = await database(); await publicProduct(db, productId); const rows = await db.select({ id: czReviews.id, productId: czReviews.productId, rating: czReviews.rating, body: czReviews.body, createdAt: czReviews.createdAt }).from(czReviews).where(and(eq(czReviews.productId, productId), isNull(czReviews.hiddenAt))).orderBy(desc(czReviews.createdAt)); return rows.map(row => ({ ...row, author: "Compra verificada" })); }
 
 export async function reviewEligibility(userId: number, productId: number) {
   const db = await database();

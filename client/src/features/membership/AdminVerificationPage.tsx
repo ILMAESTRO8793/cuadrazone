@@ -2,6 +2,7 @@ import { getSellerPlan, sellerPlanLabel } from "@shared/pricing";
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { AdminSubscriptions } from "./AdminSubscriptions";
+import { AdminClaims, AdminModeration, AdminReports } from "./AdminPanels";
 import { toast } from "sonner";
 import { ShieldCheck, ArrowRight, Church, FileCheck2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
@@ -12,7 +13,7 @@ import { AuthGate } from "./AuthGate";
 import { DocumentViewer } from "./DocumentViewer";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-export function AdminVerificationPage({ initialTab = "solicitudes" }: { initialTab?: "solicitudes" | "suscripciones" | "denominaciones" }) {
+export function AdminVerificationPage({ initialTab = "solicitudes" }: { initialTab?: "solicitudes" | "suscripciones" | "denominaciones" | "reclamos" | "moderacion" | "reportes" }) {
   const auth = useAuth();
   const [tab, setTab] = useState(initialTab);
   const [status, setStatus] = useState<"all" | ApplicationStatus>("pending");
@@ -22,9 +23,9 @@ export function AdminVerificationPage({ initialTab = "solicitudes" }: { initialT
   const queue = trpc.membership.admin.list.useQuery({ status, cursor, limit: 25 }, { enabled });
   return <AuthGate requireAdmin><div className="member-page container admin-page">
     <div className="admin-heading"><div><p className="eyebrow">Administración · Acceso protegido</p><h1>Verificación de vendedores</h1><p>Revisa evidencias reales. La aprobación nunca sustituye la primera mensualidad.</p><a className="btn btn-outline admin-backup" href="/api/admin/respaldo.sql" download>Descargar respaldo de la base de datos</a></div><ShieldCheck size={40} /></div>
-    <div className="admin-tabs" role="group" aria-label="Secciones de administración"><button className={tab === "solicitudes" ? "active" : ""} onClick={() => setTab("solicitudes")}>Solicitudes</button><button className={tab === "suscripciones" ? "active" : ""} onClick={() => setTab("suscripciones")}>Suscripciones</button><button className={tab === "denominaciones" ? "active" : ""} onClick={() => setTab("denominaciones")}>Denominaciones</button><Link href="/mi-cuenta">Mi cuenta</Link></div>
+    <div className="admin-tabs" role="group" aria-label="Secciones de administración"><button className={tab === "solicitudes" ? "active" : ""} onClick={() => setTab("solicitudes")}>Solicitudes</button><button className={tab === "suscripciones" ? "active" : ""} onClick={() => setTab("suscripciones")}>Suscripciones</button><button className={tab === "denominaciones" ? "active" : ""} onClick={() => setTab("denominaciones")}>Denominaciones</button><button className={tab === "reclamos" ? "active" : ""} onClick={() => setTab("reclamos")}>Reclamos</button><button className={tab === "moderacion" ? "active" : ""} onClick={() => setTab("moderacion")}>Moderación</button><button className={tab === "reportes" ? "active" : ""} onClick={() => setTab("reportes")}>Reportes</button><Link href="/mi-cuenta">Mi cuenta</Link></div>
     <p className="member-notice">CuadraZone está abierto a vendedores cristianos y no cristianos: todos aceptan los valores cristianos de la plataforma. La iglesia y el pastor son opcionales. El correo queda verificado cuando la persona entra con Google o con el código que le llega por correo. El celular es solo de contacto: no hace falta verificarlo para aprobar.</p>
-    {tab === "suscripciones" ? <AdminSubscriptions enabled={enabled} /> : tab === "denominaciones" ? <DenominationManager enabled={enabled} /> : <div className="admin-columns">
+    {tab === "reclamos" ? <AdminClaims enabled={enabled} /> : tab === "moderacion" ? <AdminModeration enabled={enabled} /> : tab === "reportes" ? <AdminReports enabled={enabled} /> : tab === "suscripciones" ? <AdminSubscriptions enabled={enabled} /> : tab === "denominaciones" ? <DenominationManager enabled={enabled} /> : <div className="admin-columns">
       <section className="member-card admin-queue"><div className="admin-list-heading"><h2>Cola de solicitudes</h2><label>Estado<select value={status} onChange={e => { setStatus(e.target.value as typeof status); setCursor(undefined); setSelected(undefined); }}><option value="all">Todos</option>{applicationStatuses.map(s => <option key={s} value={s}>{statusLabels[s]}</option>)}</select></label></div>
         {queue.isLoading && <p role="status">Consultando solicitudes…</p>}
         {queue.error && <p className="member-error" role="alert">{queue.error.message} <button onClick={() => queue.refetch()}>Reintentar</button></p>}

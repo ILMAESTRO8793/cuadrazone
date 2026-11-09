@@ -1,0 +1,82 @@
+/* ── Reclamos (pedido) ── */
+.claim-box {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.claim-box h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 19px;
+  color: #071e38;
+}
+.claim-box--open,
+.claim-box--answered {
+  border: 1.5px solid #d9ad49;
+  background: #fbf4ea;
+}
+.claim-box--resolved {
+  border: 1px solid #cde6dc;
+  background: #f1f8f4;
+}
+.claim-status {
+  margin: 0;
+  font-size: 14.5px;
+}
+.claim-box blockquote {
+  margin: 0;
+  padding: 10px 12px;
+  border-left: 3px solid #b85c22;
+  background: #fff;
+  border-radius: 8px;
+  font-size: 14.5px;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+.claim-box blockquote span {
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6b5a3a;
+  margin-bottom: 2px;
+}
+.claim-box blockquote.is-admin {
+  border-left-color: #414c16;
+}
+.claim-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.claim-form h2 {
+  font-size: 19px;
+}
+.claim-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 14px;
+}
+.claim-form select,
+.claim-form textarea {
+  min-height: 42px;
+  padding: 8px 10px;
+  border: 1px solid #9aa8a5;
+  border-radius: 10px;
+  font: inherit;
+  background: #fff;
+}
+.claim-form textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+.claim-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

@@ -169,6 +169,13 @@
       "when": 1794248150693,
       "tag": "0023_citas_servicios",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "5",
+      "when": 1794254971566,
+      "tag": "0024_panel_administrador",
+      "breakpoints": true
     }
   ]
 }

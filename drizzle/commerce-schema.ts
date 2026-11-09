@@ -174,6 +174,9 @@ export const czReviews = mysqlTable(
       .references(() => users.id),
     rating: int("rating").notNull(),
     body: text("body").notNull(),
+    /** Etapa 6: oculta por un administrador; no se muestra ni cuenta en el promedio. */
+    hiddenAt: timestamp("hiddenAt"),
+    hiddenReason: varchar("hiddenReason", { length: 300 }),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   },
@@ -315,5 +318,45 @@ export const czCommissionPayments = mysqlTable(
       table.sellerUserId,
       table.createdAt
     ),
+  ]
+);
+
+/**
+ * Etapa 6 · Reclamos: el comprador reclama un pedido, el vendedor tiene 48 horas
+ * para responder y un administrador decide. El dinero se pagó directo al
+ * vendedor, así que la decisión queda registrada y el reembolso lo hace él.
+ */
+export const czClaims = mysqlTable(
+  "cz_claims",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    orderId: int("orderId")
+      .notNull()
+      .references(() => czOrders.id),
+    buyerUserId: int("buyerUserId")
+      .notNull()
+      .references(() => users.id),
+    sellerUserId: int("sellerUserId")
+      .notNull()
+      .references(() => users.id),
+    storeId: int("storeId").references(() => czStores.id, { onDelete: "set null" }),
+    reason: mysqlEnum("reason", ["not_received", "damaged", "not_as_described", "wrong_item", "other"]).notNull(),
+    description: text("description").notNull(),
+    status: mysqlEnum("status", ["open", "answered", "resolved"]).notNull().default("open"),
+    /** Plazo del vendedor para responder (48 horas desde que se abre). */
+    respondBy: timestamp("respondBy").notNull(),
+    sellerResponse: text("sellerResponse"),
+    sellerRespondedAt: timestamp("sellerRespondedAt"),
+    resolution: mysqlEnum("resolution", ["buyer_favor", "seller_favor", "agreement", "withdrawn"]),
+    resolutionNote: text("resolutionNote"),
+    resolvedBy: int("resolvedBy").references(() => users.id),
+    resolvedAt: timestamp("resolvedAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    uniqueIndex("cz_claims_order_uq").on(table.orderId),
+    index("cz_claims_status_ix").on(table.status, table.createdAt),
+    index("cz_claims_seller_ix").on(table.sellerUserId, table.status),
   ]
 );

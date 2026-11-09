@@ -287,3 +287,11 @@ Decisiones del propietario: las ventas pasadas y los pagos se conservan sin dato
 - **Rotación:** cambia cada 10 minutos (`shared/featured.ts`). Se muestra una publicación por tienda, rotando entre sus publicaciones, y el orden de las tiendas también rota para que cada una ocupe el primer lugar por turnos. Máximo 4 lugares. No se promete una primera posición permanente.
 - **Identificación:** siempre se rotula como ubicación de pago. Bienes raíces, Autos y Empleos ya ordenaban primero a los destacados con la etiqueta «Destacado».
 - **Pendiente:** los cuatro emblemas institucionales (solo con acreditación y autorización).
+
+## Panel del administrador — 9 de noviembre de 2026
+
+- **Reclamos (`cz_claims`, migración 0024):** el comprador reclama un pedido confirmado, enviado o entregado dentro de los 60 días de la compra (uno por pedido). El vendedor tiene 48 horas para responder desde el pedido. El administrador decide cuando el vendedor respondió o se le venció el plazo: a favor del comprador, del vendedor o acuerdo, con una nota que reciben ambos. El pago fue directo al vendedor: si la decisión favorece al comprador, el vendedor reembolsa o repone; si no cumple, el administrador puede suspenderlo. El comprador puede retirar su reclamo.
+- **Moderación:** el administrador oculta productos, servicios y eventos con un motivo (`moderatedAt`, `moderationReason`); salen de la vista pública y el vendedor no puede volver a publicarlos hasta que el administrador lo permita. Las reseñas ocultas (`hiddenAt`) no se muestran ni cuentan en el promedio. Cada acción se avisa por correo y queda en la auditoría.
+- **Suspensión de vendedores:** `subscriptionStatus = past_due` con `holdReason = "suspended"`. Un pago extiende el período pero no reactiva la tienda; solo el administrador levanta la suspensión (vuelve a activa si su período sigue pagado y no debe comisión vencida).
+- **Reportes:** usuarios (total, activos y nuevos en 30 días), vendedores por plan y situación, ingresos de CuadraZone por mes (mensualidades y comisiones por fecha de pago), ventas de 90 días (pedidos, boletos, citas y por categoría) y reclamos.
+- **Pendiente:** editar categorías y banners desde el panel.

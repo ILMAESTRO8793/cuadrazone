@@ -64,6 +64,15 @@
       "path": "/vendedor/panel"
     },
     {
+      "path": "/admin/reclamos"
+    },
+    {
+      "path": "/admin/moderacion"
+    },
+    {
+      "path": "/admin/reportes"
+    },
+    {
       "path": "/mis-citas"
     },
     {

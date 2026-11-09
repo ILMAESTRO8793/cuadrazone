@@ -197,6 +197,15 @@ function Router() {
             />
           )}
         </Route>
+        <Route path="/admin/reclamos">
+          {() => <AdminVerificationPage key="reclamos" initialTab="reclamos" />}
+        </Route>
+        <Route path="/admin/moderacion">
+          {() => <AdminVerificationPage key="moderacion" initialTab="moderacion" />}
+        </Route>
+        <Route path="/admin/reportes">
+          {() => <AdminVerificationPage key="reportes" initialTab="reportes" />}
+        </Route>
         <Route path="/admin">{() => <AdminVerificationPage />}</Route>
         <Route path="/ayuda" component={HelpPage} />
         <Route path="/legal/:topic">

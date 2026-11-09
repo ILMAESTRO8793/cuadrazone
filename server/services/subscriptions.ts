@@ -232,9 +232,16 @@ export async function recordSubscriptionPaymentTx(
   // Un período vigente pero oculto por comisión cuenta como vigente: sus días ya estaban pagados.
   const heldForCommission =
     app.subscriptionStatus === "past_due" && app.holdReason === "commission";
+  // Una tienda suspendida por un administrador sigue oculta aunque pague: el
+  // pago extiende su período, pero solo un administrador levanta la suspensión.
+  const suspended = app.holdReason === "suspended";
+  const keepsPaidDays =
+    heldForCommission ||
+    (suspended &&
+      Boolean(app.subscriptionEndsAt && new Date(app.subscriptionEndsAt) > now));
   const period = computePeriod(
     {
-      status: heldForCommission ? "active" : app.subscriptionStatus,
+      status: keepsPaidDays ? "active" : app.subscriptionStatus,
       endsAt: app.subscriptionEndsAt,
     },
     now,
@@ -258,7 +265,14 @@ export async function recordSubscriptionPaymentTx(
   await tx
     .update(czApplications)
     .set(
-      commissionOverdue
+      suspended
+        ? {
+            subscriptionStatus: "past_due",
+            holdReason: "suspended",
+            subscriptionPlanId: input.planId,
+            subscriptionEndsAt: period.end,
+          }
+        : commissionOverdue
         ? {
             subscriptionStatus: "past_due",
             holdReason: "commission",
@@ -299,7 +313,10 @@ export async function recordSubscriptionPaymentTx(
     )
   );
   return {
-    status: commissionOverdue ? ("past_due" as const) : ("active" as const),
+    status:
+      suspended || commissionOverdue
+        ? ("past_due" as const)
+        : ("active" as const),
     planId: input.planId,
     endsAt: period.end,
     periodStart: period.start,
