@@ -102,7 +102,7 @@ Evidencia de planes: migración aditiva 0004 aplicada, 39 rutas sincronizadas, p
 - [x] Textos del sitio actualizados (ya no dicen «0% de comisión»).
 - [x] Probado de punta a punta con compras reales en el servidor.
 - [ ] Términos y condiciones con el modelo de comisión.
-- [ ] Recordatorio automático al vendedor cuando la prueba esté por terminar.
+- [x] Recordatorio automático al vendedor cuando la prueba esté por terminar: correos a los 15, 7 y 1 día con el plan elegido y la baja de comisión a 5%; la mensualidad avisa a los 7 y 1 día (9/11/2026).
 
 ## Plataforma abierta — 22 de octubre
 - [x] Fe, iglesia, pastor, denominación y carta pastoral dejan de ser requisitos (quedan opcionales).

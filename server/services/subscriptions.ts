@@ -28,6 +28,7 @@ import {
   subscriptionEndingSoon,
   subscriptionExpired,
   subscriptionPaymentReceipt,
+  trialEndingSoon,
 } from "./emailMessages";
 import {
   hasOverdueCommission,
@@ -350,10 +351,39 @@ export async function adminDeactivateSubscription(
 }
 
 export const REMINDER_DAYS = 7;
+/** Avisos antes de que termine la prueba gratis y antes de que venza la mensualidad. */
+export const TRIAL_REMINDER_STAGES = [15, 7, 1] as const;
+export const PAID_REMINDER_STAGES = [7, 1] as const;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Qué aviso toca según los días que faltan: el menor escalón que ya se alcanzó
+ * (15, 7 o 1 día antes). null si todavía falta más que el primer escalón.
+ */
+export function reminderStage(
+  endsAt: Date,
+  now: Date,
+  inTrial: boolean
+): number | null {
+  const daysLeft = Math.ceil((endsAt.getTime() - now.getTime()) / DAY_MS);
+  if (daysLeft < 0) return null;
+  const stages = inTrial ? TRIAL_REMINDER_STAGES : PAID_REMINDER_STAGES;
+  let stage: number | null = null;
+  for (const s of stages) if (daysLeft <= s) stage = s;
+  return stage;
+}
+
+/** Clave del correo: el aviso de 7 días conserva la que ya se usaba. */
+export function reminderKey(applicationId: number, endKey: string, stage: number) {
+  return stage === REMINDER_DAYS
+    ? `sub-reminder:${applicationId}:${endKey}`
+    : `sub-reminder:${applicationId}:${endKey}:${stage}`;
+}
 
 /**
  * Marca como vencidas las suscripciones cuyo período terminó y avisa por correo.
- * También recuerda, 7 días antes, que la prueba o la mensualidad está por vencer.
+ * También avisa antes de que termine: la prueba gratis a los 15, 7 y 1 día, y la
+ * mensualidad a los 7 y 1 día. Cada aviso se envía una sola vez.
  * Devuelve cuántas venció.
  */
 export async function sweepExpiredSubscriptions(
@@ -375,7 +405,7 @@ export async function sweepExpiredSubscriptions(
         eq(czApplications.subscriptionStatus, "active"),
         lt(
           czApplications.subscriptionEndsAt,
-          new Date(now.getTime() + REMINDER_DAYS * 24 * 60 * 60 * 1000)
+          new Date(now.getTime() + TRIAL_REMINDER_STAGES[0] * DAY_MS)
         )
       )
     )
@@ -411,16 +441,38 @@ export async function sweepExpiredSubscriptions(
         const inTrial = Boolean(
           app.trialEndsAt && new Date(app.trialEndsAt) > now
         );
-        const plan = (sellerPlanIds as readonly string[]).includes(
+        const stage = reminderStage(endsAt, now, inTrial);
+        if (stage === null) return;
+        // En la prueba vale el plan que el vendedor eligió; si no eligió, Normal.
+        let plan: SellerPlanId = (sellerPlanIds as readonly string[]).includes(
           app.planId ?? ""
         )
           ? (app.planId as SellerPlanId)
           : "normal";
+        if (inTrial) {
+          const chosen = await tx
+            .select({ planId: czPlanSelections.planId })
+            .from(czPlanSelections)
+            .where(eq(czPlanSelections.userId, app.userId))
+            .limit(1);
+          if (chosen[0]?.planId) plan = chosen[0].planId as SellerPlanId;
+        }
+        const daysLeft = Math.max(
+          1,
+          Math.ceil((endsAt.getTime() - now.getTime()) / DAY_MS)
+        );
         await queueEmail(
           tx,
-          `sub-reminder:${app.id}:${endKey}`,
+          reminderKey(app.id, endKey, stage),
           await recipientFor(tx, app.userId),
-          subscriptionEndingSoon(endsAt, inTrial, sellerPlanLabel(plan))
+          inTrial
+            ? trialEndingSoon(
+                endsAt,
+                daysLeft,
+                getSellerPlan(plan).name,
+                sellerPlanLabel(plan)
+              )
+            : subscriptionEndingSoon(endsAt, false, sellerPlanLabel(plan))
         );
       }
     });

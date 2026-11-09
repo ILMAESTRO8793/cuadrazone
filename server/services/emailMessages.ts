@@ -293,3 +293,31 @@ export const subscriptionExpired = (): EmailContent => ({
   ],
   cta: { label: "Cómo pagar", path: "/vendedor" },
 });
+
+/** Aviso de fin de la prueba gratis (15, 7 y 1 día antes). */
+export const trialEndingSoon = (
+  endsAt: Date,
+  daysLeft: number,
+  planName: string,
+  monthlyLabel: string
+): EmailContent => ({
+  subject:
+    daysLeft <= 1
+      ? "Mañana terminan tus 3 meses gratis"
+      : `Tus 3 meses gratis terminan en ${daysLeft} días`,
+  title:
+    daysLeft <= 1
+      ? "Tu prueba gratis termina mañana"
+      : "Tu prueba gratis está por terminar",
+  paragraphs: [
+    `Tus 3 meses gratis en CuadraZone terminan el ${day(endsAt)}.`,
+    `Desde esa fecha empieza la mensualidad del plan ${planName} (${monthlyLabel} al mes) y la comisión por venta baja de 8% a 5%.`,
+    "Para que tu tienda siga visible, paga tu primera mensualidad antes de esa fecha. En Mi tienda verás cómo pagar y puedes cambiar de plan si lo prefieres.",
+  ],
+  details: [
+    ["Fin de la prueba", day(endsAt)],
+    ["Plan elegido", planName],
+    ["Mensualidad", monthlyLabel],
+  ],
+  cta: { label: "Cómo pagar", path: "/vendedor" },
+});
