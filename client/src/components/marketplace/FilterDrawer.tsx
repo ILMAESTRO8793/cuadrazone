@@ -5,7 +5,11 @@ import { useState, type ReactNode } from "react";
 export function countActiveFilters(values: Record<string, unknown>): number {
   return Object.entries(values).filter(
     ([key, value]) =>
-      key !== "q" && value !== "" && value !== null && value !== undefined && value !== false
+      key !== "q" &&
+      value !== "" &&
+      value !== null &&
+      value !== undefined &&
+      value !== false
   ).length;
 }
 
