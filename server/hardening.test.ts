@@ -12,11 +12,17 @@ import { isPublicPath } from "@shared/accessGate";
 
 describe("cabeceras de seguridad", () => {
   it("obliga HTTPS, evita que otra página incruste el sitio y no filtra rutas", () => {
-    expect(securityHeaders["Strict-Transport-Security"]).toMatch(/max-age=31536000/);
+    expect(securityHeaders["Strict-Transport-Security"]).toMatch(
+      /max-age=31536000/
+    );
     expect(securityHeaders["X-Content-Type-Options"]).toBe("nosniff");
     expect(securityHeaders["X-Frame-Options"]).toBe("SAMEORIGIN");
-    expect(securityHeaders["Content-Security-Policy"]).toContain("frame-ancestors 'self'");
-    expect(securityHeaders["Referrer-Policy"]).toBe("strict-origin-when-cross-origin");
+    expect(securityHeaders["Content-Security-Policy"]).toContain(
+      "frame-ancestors 'self'"
+    );
+    expect(securityHeaders["Referrer-Policy"]).toBe(
+      "strict-origin-when-cross-origin"
+    );
   });
   it("solo permite la cámara (escáner de boletos)", () => {
     expect(securityHeaders["Permissions-Policy"]).toContain("camera=(self)");
@@ -46,10 +52,18 @@ describe("buscadores", () => {
 
 describe("caché de archivos", () => {
   it("solo los archivos con huella se guardan un año", () => {
-    expect(isFingerprintedAsset("/app/dist/public/assets/index-CChhluxg.js")).toBe(true);
-    expect(isFingerprintedAsset("C:\\dist\\public\\assets\\vendor-react-BNvPm4AX.js")).toBe(true);
-    expect(isFingerprintedAsset("/app/dist/public/assets/logo-cuadrazone.png")).toBe(false);
-    expect(isFingerprintedAsset("/app/dist/public/assets/favicon.png")).toBe(false);
+    expect(
+      isFingerprintedAsset("/app/dist/public/assets/index-CChhluxg.js")
+    ).toBe(true);
+    expect(
+      isFingerprintedAsset("C:\\dist\\public\\assets\\vendor-react-BNvPm4AX.js")
+    ).toBe(true);
+    expect(
+      isFingerprintedAsset("/app/dist/public/assets/logo-cuadrazone.png")
+    ).toBe(false);
+    expect(isFingerprintedAsset("/app/dist/public/assets/favicon.png")).toBe(
+      false
+    );
     expect(isFingerprintedAsset("/app/dist/public/index.html")).toBe(false);
   });
 });

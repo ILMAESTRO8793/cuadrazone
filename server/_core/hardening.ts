@@ -41,7 +41,11 @@ export function applySecurityHeaders(
 
 /** Páginas que un buscador puede ver sin cuenta. */
 export function publicPagePaths() {
-  return ["/entrar", "/ayuda", ...Object.keys(legalDocs).map(t => `/legal/${t}`)];
+  return [
+    "/entrar",
+    "/ayuda",
+    ...Object.keys(legalDocs).map(t => `/legal/${t}`),
+  ];
 }
 
 export function robotsTxt(origin: string) {
