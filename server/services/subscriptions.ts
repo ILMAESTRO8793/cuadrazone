@@ -22,6 +22,7 @@ import {
   users,
   type User,
 } from "../../drizzle/schema";
+import { czStores } from "../../drizzle/catalog-schema";
 import { getDb } from "../db";
 import { queueEmail, recipientFor } from "./email";
 import {
@@ -612,6 +613,9 @@ export async function adminListSubscriptions() {
       displayName: czMembershipProfiles.displayName,
       accountName: users.name,
       chosenPlanId: czPlanSelections.planId,
+      businessName: czApplications.businessName,
+      storeName: czStores.name,
+      storeSlug: czStores.slug,
     })
     .from(czApplications)
     .leftJoin(
@@ -623,6 +627,7 @@ export async function adminListSubscriptions() {
       czPlanSelections,
       eq(czPlanSelections.userId, czApplications.userId)
     )
+    .leftJoin(czStores, eq(czStores.userId, czApplications.userId))
     .where(eq(czApplications.status, "approved"))
     .orderBy(desc(czApplications.reviewedAt))
     .limit(500);
@@ -631,6 +636,9 @@ export async function adminListSubscriptions() {
     applicationId: row.applicationId,
     pendingCommissionCents: owed.get(row.userId) ?? 0,
     name: row.displayName || row.accountName || `Vendedor #${row.userId}`,
+    /** Nombre de la tienda publicada; si aún no la creó, el de su solicitud. */
+    storeName: (row.storeName || row.businessName || "") as string,
+    storeSlug: (row.storeSlug ?? null) as string | null,
     email: row.contactEmail,
     phone: row.contactPhone,
     status: row.status as "not_started" | "active" | "past_due" | "cancelled",

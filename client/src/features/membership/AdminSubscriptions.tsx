@@ -42,6 +42,14 @@ const day = (value: Date | string | null | undefined) =>
         year: "numeric",
       })
     : "—";
+/** «Dulces de Ana» → «DA»: marca de la tienda mientras no tenga logo. */
+export const initialsOf = (name: string) =>
+  name
+    .split(/\s+/)
+    .filter(word => /^[\p{L}\p{N}]/u.test(word))
+    .slice(0, 2)
+    .map(word => word[0]!.toUpperCase())
+    .join("") || "?";
 const todayInPanama = () =>
   new Date().toLocaleDateString("en-CA", { timeZone: "America/Panama" });
 
@@ -109,8 +117,12 @@ export function AdminSubscriptions({ enabled }: { enabled: boolean }) {
               className={`admin-entry ${selected === row.applicationId ? "selected" : ""}`}
               onClick={() => setSelected(row.applicationId)}
             >
-              <span>
-                <strong>{row.name}</strong>
+              <i className="admin-store-mark" aria-hidden="true">
+                {initialsOf(row.storeName || row.name)}
+              </i>
+              <span className="admin-entry-text">
+                <strong>{row.storeName || "Tienda sin nombre"}</strong>
+                <small>Vendedor: {row.name}</small>
                 <small>
                   {row.status === "active" && isInTrial(row.trialEndsAt)
                     ? `Prueba gratis hasta ${day(row.trialEndsAt)}`
@@ -309,6 +321,8 @@ type Row = {
   applicationId: number;
   pendingCommissionCents: number;
   name: string;
+  storeName: string;
+  storeSlug: string | null;
   email: string;
   phone: string;
   status: Status;
@@ -389,7 +403,28 @@ function SubscriptionDetail({
 
   return (
     <div>
-      <h2>{row.name}</h2>
+      <div className="admin-store-heading">
+        <i className="admin-store-mark" aria-hidden="true">
+          {initialsOf(row.storeName || row.name)}
+        </i>
+        <div>
+          <h2>
+            {row.storeSlug ? (
+              <a
+                className="member-inline-link"
+                href={`/tienda/${row.storeSlug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {row.storeName || "Tienda sin nombre"}
+              </a>
+            ) : (
+              row.storeName || "Tienda sin nombre"
+            )}
+          </h2>
+          <p>Vendedor: {row.name}</p>
+        </div>
+      </div>
       <p>
         {row.email} ·{" "}
         <a
