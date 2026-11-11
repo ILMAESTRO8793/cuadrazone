@@ -1,5 +1,6 @@
 import { ServicesPanel } from "@/features/services/ServicesPanel";
 import { DeleteStoreSection } from "./DeleteStoreSection";
+import { StoreLogoUploader } from "./StoreLogoUploader";
 import { AuthGate } from "@/features/membership/AuthGate";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { authFetch } from "@/lib/authFetch";
@@ -124,6 +125,7 @@ type StoreSnapshot = {
     description: string;
     province: string;
     city: string;
+    logoUrl?: string | null;
     shippingFeeCents?: number | null;
     homeFeeCents?: number | null;
     deliveryProvinces?: string[];
@@ -843,6 +845,16 @@ function SellerCatalogContent({
             </div>
             <Store size={25} aria-hidden="true" />
           </div>
+          {storeSnapshot?.store ? (
+            <StoreLogoUploader
+              name={storeSnapshot.store.name}
+              logoUrl={storeSnapshot.store.logoUrl ?? null}
+            />
+          ) : (
+            <p className="store-logo-hint">
+              Guarda primero el perfil de tu tienda para poder subir tu logo.
+            </p>
+          )}
           <form className="seller-catalog-form" onSubmit={saveStoreDraft}>
             <div className="seller-catalog-form-grid">
               <label>

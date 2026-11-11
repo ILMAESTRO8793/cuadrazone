@@ -52,6 +52,7 @@ export type DirectoryStore = {
   province: string;
   city: string;
   churchName: string;
+  logoUrl: string | null;
   verified: true;
   businessCategories: BusinessSelection[];
 };

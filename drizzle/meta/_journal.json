@@ -183,6 +183,13 @@
       "when": 1794416875219,
       "tag": "0025_portada_categorias_banners",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "5",
+      "when": 1794429374740,
+      "tag": "0026_logo_tienda",
+      "breakpoints": true
     }
   ]
 }

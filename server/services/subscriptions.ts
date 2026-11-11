@@ -239,7 +239,9 @@ export async function recordSubscriptionPaymentTx(
   const keepsPaidDays =
     heldForCommission ||
     (suspended &&
-      Boolean(app.subscriptionEndsAt && new Date(app.subscriptionEndsAt) > now));
+      Boolean(
+        app.subscriptionEndsAt && new Date(app.subscriptionEndsAt) > now
+      ));
   const period = computePeriod(
     {
       status: keepsPaidDays ? "active" : app.subscriptionStatus,
@@ -274,18 +276,18 @@ export async function recordSubscriptionPaymentTx(
             subscriptionEndsAt: period.end,
           }
         : commissionOverdue
-        ? {
-            subscriptionStatus: "past_due",
-            holdReason: "commission",
-            subscriptionPlanId: input.planId,
-            subscriptionEndsAt: period.end,
-          }
-        : {
-            subscriptionStatus: "active",
-            holdReason: null,
-            subscriptionPlanId: input.planId,
-            subscriptionEndsAt: period.end,
-          }
+          ? {
+              subscriptionStatus: "past_due",
+              holdReason: "commission",
+              subscriptionPlanId: input.planId,
+              subscriptionEndsAt: period.end,
+            }
+          : {
+              subscriptionStatus: "active",
+              holdReason: null,
+              subscriptionPlanId: input.planId,
+              subscriptionEndsAt: period.end,
+            }
     )
     .where(eq(czApplications.id, app.id));
   await tx.insert(czMembershipAudit).values({
@@ -392,7 +394,11 @@ export function reminderStage(
 }
 
 /** Clave del correo: el aviso de 7 días conserva la que ya se usaba. */
-export function reminderKey(applicationId: number, endKey: string, stage: number) {
+export function reminderKey(
+  applicationId: number,
+  endKey: string,
+  stage: number
+) {
   return stage === REMINDER_DAYS
     ? `sub-reminder:${applicationId}:${endKey}`
     : `sub-reminder:${applicationId}:${endKey}:${stage}`;
@@ -537,7 +543,9 @@ export function startSubscriptionSweeper(intervalMs = 15 * 60 * 1000) {
     void startMissingTrials()
       .then(count => {
         if (count > 0)
-          console.log(`[Suscripciones] ${count} tienda(s) aprobada(s) activada(s) con su prueba gratis`);
+          console.log(
+            `[Suscripciones] ${count} tienda(s) aprobada(s) activada(s) con su prueba gratis`
+          );
       })
       .catch(error =>
         console.error(
@@ -557,7 +565,8 @@ export function startSubscriptionSweeper(intervalMs = 15 * 60 * 1000) {
       );
     void sweepExpiredReservations()
       .then(count => {
-        if (count > 0) console.log(`[Eventos] ${count} reserva(s) vencida(s) liberada(s)`);
+        if (count > 0)
+          console.log(`[Eventos] ${count} reserva(s) vencida(s) liberada(s)`);
       })
       .catch(error =>
         console.error(
@@ -616,6 +625,7 @@ export async function adminListSubscriptions() {
       businessName: czApplications.businessName,
       storeName: czStores.name,
       storeSlug: czStores.slug,
+      logoUrl: czStores.logoUrl,
     })
     .from(czApplications)
     .leftJoin(
@@ -639,6 +649,7 @@ export async function adminListSubscriptions() {
     /** Nombre de la tienda publicada; si aún no la creó, el de su solicitud. */
     storeName: (row.storeName || row.businessName || "") as string,
     storeSlug: (row.storeSlug ?? null) as string | null,
+    logoUrl: (row.logoUrl ?? null) as string | null,
     email: row.contactEmail,
     phone: row.contactPhone,
     status: row.status as "not_started" | "active" | "past_due" | "cancelled",

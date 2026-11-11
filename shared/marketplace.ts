@@ -211,6 +211,8 @@ export type PublicStore = {
   province: string;
   city: string;
   churchName: string;
+  /** Logo subido por el vendedor; null muestra las iniciales. */
+  logoUrl: string | null;
   shippingFeeCents: number | null;
   homeFeeCents: number | null;
   deliveryProvinces: string[];

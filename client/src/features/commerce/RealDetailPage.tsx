@@ -1,3 +1,4 @@
+import { StoreLogo } from "@/components/marketplace/StoreLogo";
 import { productConditionLabels } from "@shared/marketplace";
 import { ShippingNote } from "@/lib/ShippingNote";
 import { useEffect, useState } from "react";
@@ -333,8 +334,9 @@ export function RealDetailPage({ slug }: { slug: string }) {
           </p>
           <h1>{p.title}</h1>
           <Link className="live-verified" href={`/tiendas/${p.store.slug}`}>
-            <BadgeCheck size={20} />
+            <StoreLogo name={p.store.name} logoUrl={p.store.logoUrl} size={32} />
             {p.store.name} · Vendedor verificado
+            <BadgeCheck size={20} />
           </Link>
           <p>
             <Star size={16} />{" "}

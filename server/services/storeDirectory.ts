@@ -118,6 +118,7 @@ export async function listPublicStores(
       province: czStores.province,
       city: czStores.city,
       churchName: czApplications.churchName,
+      logoUrl: czStores.logoUrl,
       businessCategories: sql<unknown>`json_extract(${czApplications.details}, '$.businessCategories')`,
     })
     .from(czStores)
@@ -174,6 +175,7 @@ export async function featuredStores(
       province: czStores.province,
       city: czStores.city,
       churchName: czApplications.churchName,
+      logoUrl: czStores.logoUrl,
       businessCategories: sql<unknown>`json_extract(${czApplications.details}, '$.businessCategories')`,
     })
     .from(czStores)

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { StoreLogo } from "@/components/marketplace/StoreLogo";
 import { Link, useLocation, useSearch } from "wouter";
 import { BadgeCheck, MapPin, Store, ArrowRight } from "lucide-react";
 import { trpc } from "@/lib/trpc";
@@ -56,9 +57,7 @@ export function DirectoryStoreCard({ store }: { store: DirectoryStore }) {
   return (
     <article className="directory-store-card">
       <div className="directory-store-top">
-        <span className="directory-store-icon">
-          <Store size={25} />
-        </span>
+        <StoreLogo name={store.name} logoUrl={store.logoUrl} size={52} />
         <span className="directory-verified">
           <BadgeCheck size={16} /> Vendedor verificado
         </span>

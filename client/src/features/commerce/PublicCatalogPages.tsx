@@ -1,3 +1,4 @@
+import { StoreLogo } from "@/components/marketplace/StoreLogo";
 import {
   BusinessClassification,
   StoreSearchMatches,
@@ -371,7 +372,7 @@ export function LiveStorePage({ slug }: { slug: string }) {
     <div className="live-page container">
       <Link href="/mercado">← Volver al catálogo</Link>
       <section className="live-store-banner">
-        <Store size={40} />
+        <StoreLogo name={store.name} logoUrl={store.logoUrl} size={88} />
         <div>
           <p className="eyebrow">VENDEDOR VERIFICADO</p>
           <h1>{store.name}</h1>

@@ -40,6 +40,8 @@ export const czStores = mysqlTable(
     cardPaymentUrl: varchar("cardPaymentUrl", { length: 500 }),
     /** 1 si el vendedor cobra con datáfono al retirar o entregar. */
     cardOnDelivery: int("cardOnDelivery").notNull().default(0),
+    /** Logo de la tienda (/media/catalog/stores/…); vacío muestra las iniciales. */
+    logoUrl: varchar("logoUrl", { length: 500 }),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   },

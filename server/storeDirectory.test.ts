@@ -169,6 +169,7 @@ describe("clasificación y directorio de negocios", () => {
       city: "Panamá",
       province: "Panamá",
       churchName: "Iglesia",
+      logoUrl: null,
       verified: true,
       businessCategories: selection,
     };

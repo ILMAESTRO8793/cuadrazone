@@ -53,15 +53,16 @@ export function storageUrl(key: string) {
 
 /** Sirve únicamente las fotos públicas del catálogo, con caché larga e inmutable. */
 export function registerMediaRoutes(app: Express) {
-  app.use(
-    "/media/catalog",
-    express.static(path.join(storageRoot(), "catalog"), {
+  const publicFolder = (folder: string) =>
+    express.static(path.join(storageRoot(), folder), {
       dotfiles: "deny",
       index: false,
       fallthrough: false,
       immutable: true,
       maxAge: "365d",
       setHeaders: res => res.setHeader("X-Content-Type-Options", "nosniff"),
-    }),
-  );
+    });
+  app.use("/media/catalog", publicFolder("catalog"));
+  // Banners subidos antes del 11/11/2026 quedaron en site/banners.
+  app.use("/media/site/banners", publicFolder(path.join("site", "banners")));
 }

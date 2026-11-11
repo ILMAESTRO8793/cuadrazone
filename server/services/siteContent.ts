@@ -268,7 +268,7 @@ async function uploadBannerImage(req: Request, res: Response) {
     if (!rows.length)
       return res.status(404).json({ error: "Banner no encontrado" });
     const saved = await storagePut(
-      `site/banners/${id}/${randomUUID()}.${IMAGE_EXT[mimeType]}`,
+      `catalog/banners/${id}/${randomUUID()}.${IMAGE_EXT[mimeType]}`,
       req.body,
       mimeType
     );

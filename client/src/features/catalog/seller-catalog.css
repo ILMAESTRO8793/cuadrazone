@@ -707,3 +707,34 @@
 .danger-check input { width: 18px; height: 18px; margin-top: 3px; accent-color: #B42318; }
 .danger-blocked { padding: 12px 14px; border-radius: 10px; background: #FDE8E8; color: #8A1C1C; }
 .danger-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
+.store-logo-uploader {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 16px;
+  margin-bottom: 18px;
+  border: 1px solid #e9e3d9;
+  border-radius: 12px;
+  background: #fffdf8;
+}
+.store-logo-uploader p,
+.store-logo-hint {
+  margin: 4px 0 10px;
+  color: #655d51;
+  font-size: 0.9rem;
+}
+.store-logo-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.store-logo-remove {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: #9b2c2c;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
