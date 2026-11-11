@@ -1,3 +1,4 @@
+import { SectionShowcase } from "@/components/marketplace/SectionShowcase";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useSearch } from "wouter";
 import {
@@ -175,6 +176,7 @@ export function VehicleListPage() {
 
   return (
     <div className="re-page container">
+      <SectionShowcase section="autos" />
       <div className="re-hero">
         <div>
           <p className="eyebrow">AUTOS</p>

@@ -1,3 +1,4 @@
+import { SectionShowcase } from "@/components/marketplace/SectionShowcase";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "wouter";
 import { BriefcaseBusiness, CalendarClock, MapPin, Star } from "lucide-react";
@@ -105,6 +106,7 @@ export function JobListPage() {
   const list = trpc.jobs.list.useQuery(query);
   return (
     <div className="re-page container">
+      <SectionShowcase section="empleos" />
       <JobsHeader title="Encuentra tu próximo empleo" subtitle="Vacantes de empresas y emprendedores en Panamá. Crea tu CV gratis y aplica con un clic." />
       <FilterDrawer active={countActiveFilters(f)}>
       <form className="re-filters" onSubmit={e => e.preventDefault()} aria-label="Filtros">

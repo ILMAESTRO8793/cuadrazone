@@ -1,0 +1,87 @@
+/* Vitrina estilo Amazon arriba de cada sección. */
+.showcase {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.95fr) minmax(0, 3fr);
+  gap: 14px;
+  margin: 8px 0 26px;
+}
+.showcase--no-reel { grid-template-columns: minmax(0, 1fr); }
+
+/* Reel grande */
+.showcase-reel { position: relative; border-radius: 18px; overflow: hidden; background: #0b2a4a; min-height: 460px; }
+.showcase-reel-link { position: absolute; inset: 0; display: block; color: #fff; }
+.showcase-reel video, .showcase-reel img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.showcase-reel-text {
+  position: absolute; left: 0; right: 0; top: 0; padding: 20px 20px 60px;
+  display: flex; flex-direction: column; gap: 4px;
+  background: linear-gradient(180deg, rgba(5, 18, 34, 0.78) 0%, rgba(5, 18, 34, 0) 100%);
+}
+.showcase-reel-text small { font-size: 15px; opacity: 0.9; }
+.showcase-reel-text strong { font-family: var(--cz-font-display, inherit); font-size: clamp(24px, 2.6vw, 34px); line-height: 1.05; }
+.showcase-reel-controls { position: absolute; left: 14px; bottom: 14px; display: flex; gap: 8px; }
+.showcase-reel-controls button {
+  width: 34px; height: 34px; border-radius: 50%; border: 0; display: grid; place-items: center;
+  background: rgba(0, 0, 0, 0.75); color: #fff; cursor: pointer;
+}
+
+/* Filas */
+.showcase-rows { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.showcase-row { min-width: 0; }
+.showcase-row h2 { font-size: 20px; margin: 0 0 8px; color: var(--cz-navy, #0b1f3b); }
+.showcase-track-wrap { position: relative; }
+.showcase-track {
+  display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory;
+  scrollbar-width: none; padding-bottom: 2px;
+}
+.showcase-track::-webkit-scrollbar { display: none; }
+.showcase-arrow {
+  position: absolute; top: 50%; transform: translateY(-50%); z-index: 2;
+  width: 44px; height: 88px; border: 1px solid #d9dde3; background: rgba(255, 255, 255, 0.96);
+  display: grid; place-items: center; cursor: pointer; color: #0b1f3b; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+}
+.showcase-arrow--left { left: -6px; border-radius: 0 10px 10px 0; }
+.showcase-arrow--right { right: -6px; border-radius: 10px 0 0 10px; }
+
+/* Tiendas destacadas: bloques grandes con color, como los de Amazon */
+.showcase-store {
+  flex: 0 0 clamp(210px, 22%, 290px); scroll-snap-align: start;
+  border-radius: 16px; overflow: hidden; position: relative; aspect-ratio: 3 / 4.2;
+  color: #fff; display: block; background: #0b2a4a;
+}
+.showcase-store-media { position: absolute; inset: 0; display: grid; place-items: center; }
+.showcase-store-media img, .showcase-store-media video { width: 100%; height: 100%; object-fit: cover; }
+.showcase-store-logo { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); border: 3px solid rgba(255, 255, 255, 0.85); }
+.showcase-store-text {
+  position: absolute; left: 0; right: 0; top: 0; padding: 14px 16px 40px;
+  display: flex; flex-direction: column; gap: 3px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0) 100%);
+}
+.showcase-store-text small { font-size: 13px; opacity: 0.92; }
+.showcase-store-text strong { font-size: 22px; line-height: 1.08; font-weight: 800; }
+.showcase-store-text em { font-style: normal; font-size: 13px; opacity: 0.9; }
+
+/* Productos promocionados: tarjetas blancas */
+.showcase-product {
+  flex: 0 0 clamp(160px, 15%, 200px); scroll-snap-align: start;
+  background: #fff; border: 1px solid #e3e6ea; border-radius: 14px; padding: 12px;
+  display: flex; flex-direction: column; gap: 2px; color: #0b1f3b;
+}
+.showcase-product strong { font-size: 16px; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.showcase-product small { font-size: 12px; color: #667085; }
+.showcase-product-media { margin-top: 8px; aspect-ratio: 1; display: grid; place-items: center; border-radius: 10px; overflow: hidden; background: #f4f5f7; }
+.showcase-product-media img, .showcase-product-media video { width: 100%; height: 100%; object-fit: cover; }
+
+.showcase a:focus-visible, .showcase button:focus-visible { outline: 3px solid #d9a400; outline-offset: 2px; }
+.showcase-store:hover strong, .showcase-product:hover strong { text-decoration: underline; }
+
+@media (max-width: 860px) {
+  .showcase { grid-template-columns: 1fr; }
+  .showcase-reel { min-height: 0; aspect-ratio: 4 / 3; max-height: 52vh; }
+  .showcase-store { aspect-ratio: 4 / 5; }
+  .showcase-store { flex-basis: 62%; }
+  .showcase-product { flex-basis: 42%; }
+  .showcase-arrow { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .showcase-track { scroll-behavior: auto; }
+}

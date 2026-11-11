@@ -5,6 +5,7 @@ import { registerServiceImageRoutes } from "../services/serviceListings";
 import { registerEventImageRoutes } from "../services/events";
 import { registerBannerImageRoutes } from "../services/siteContent";
 import { registerStoreLogoRoutes } from "../services/storeLogo";
+import { registerShowcaseMediaRoutes } from "../services/showcase";
 import { registerPropertyImageRoutes } from "../services/realEstate";
 import { registerVehicleImageRoutes } from "../services/vehicles";
 import { registerDocumentRoutes } from "../services/privateDocuments";
@@ -47,6 +48,7 @@ async function startServer() {
   registerEventImageRoutes(app);
   registerBannerImageRoutes(app);
   registerStoreLogoRoutes(app);
+  registerShowcaseMediaRoutes(app);
   registerPropertyImageRoutes(app);
   registerVehicleImageRoutes(app);
   const server = createServer(app);

@@ -1,3 +1,5 @@
+import { SectionShowcase } from "@/components/marketplace/SectionShowcase";
+import { StoreStars } from "@/components/marketplace/VerificationStars";
 import { StoreLogo } from "@/components/marketplace/StoreLogo";
 import {
   BusinessClassification,
@@ -153,6 +155,7 @@ export function LiveCatalogPage() {
   const current = new URLSearchParams(search);
   return (
     <div className="live-page container">
+      <SectionShowcase section="comercios" />
       <p className="eyebrow">CATÁLOGO PERSISTENTE · PANAMÁ</p>
       <h1>Descubre tiendas de nuestra comunidad</h1>
       <p className="live-lead">
@@ -376,6 +379,7 @@ export function LiveStorePage({ slug }: { slug: string }) {
         <div>
           <p className="eyebrow">VENDEDOR VERIFICADO</p>
           <h1>{store.name}</h1>
+          <StoreStars slug={store.slug} size={22} />
           <p>{store.description}</p>
           <p>
             {store.province} · {store.city} · {store.churchName}

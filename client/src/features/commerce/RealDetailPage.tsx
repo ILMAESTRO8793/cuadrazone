@@ -1,3 +1,4 @@
+import { StoreStars } from "@/components/marketplace/VerificationStars";
 import { StoreLogo } from "@/components/marketplace/StoreLogo";
 import { productConditionLabels } from "@shared/marketplace";
 import { ShippingNote } from "@/lib/ShippingNote";
@@ -338,6 +339,7 @@ export function RealDetailPage({ slug }: { slug: string }) {
             {p.store.name} · Vendedor verificado
             <BadgeCheck size={20} />
           </Link>
+          <StoreStars slug={p.store.slug} size={18} />
           <p>
             <Star size={16} />{" "}
             {p.reviewCount

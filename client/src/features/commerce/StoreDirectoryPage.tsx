@@ -1,3 +1,4 @@
+import { StoreStars } from "@/components/marketplace/VerificationStars";
 import { useEffect, useState } from "react";
 import { StoreLogo } from "@/components/marketplace/StoreLogo";
 import { Link, useLocation, useSearch } from "wouter";
@@ -62,6 +63,7 @@ export function DirectoryStoreCard({ store }: { store: DirectoryStore }) {
           <BadgeCheck size={16} /> Vendedor verificado
         </span>
       </div>
+      <StoreStars slug={store.slug} size={16} />
       <Link href={`/tiendas/${store.slug}`}>
         <h3>{store.name}</h3>
       </Link>

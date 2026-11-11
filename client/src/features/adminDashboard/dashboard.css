@@ -245,7 +245,7 @@
 
 /* Detalle de la tienda */
 .czd-sheet { width: min(560px, 100vw) !important; max-width: 100vw !important; overflow-y: auto; background: #f5f7ee !important; }
-.czd-detail { --olive: #5b7a1e; --olive-100: #eef2e1; --line: #e2e6d4; --muted: #5e6650; --ink: #1c2410; --olive-700: #3f5317; display: flex; flex-direction: column; gap: 18px; padding: 0 20px 28px; color: var(--ink); }
+.czd-detail { --gold: #d9a400; --gold-bright: #f2c230; --olive-950: #172008; --danger: #a3311f; --olive: #5b7a1e; --olive-100: #eef2e1; --line: #e2e6d4; --muted: #5e6650; --ink: #1c2410; --olive-700: #3f5317; display: flex; flex-direction: column; gap: 18px; padding: 0 20px 28px; color: var(--ink); }
 .czd-detail section { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
 .czd-detail h3 { font-family: "Bricolage Grotesque", sans-serif; font-size: 16px; margin: 0 0 10px; }
 .czd-detail-head { flex-direction: row !important; align-items: center; gap: 14px; padding: 20px 0 0 !important; }
@@ -286,3 +286,13 @@
 .member-page .czd h2, .member-page .czd h3 { color: var(--ink); }
 .member-page .czd .czd-partner h3 { color: #fff; }
 .member-page .czd .czd-partner--reserve h3 { color: var(--ink); }
+
+/* Estrellas de verificación en el detalle de la tienda */
+.czd-stars ul { list-style: none; padding: 0; margin: 10px 0 0; display: flex; flex-direction: column; gap: 8px; }
+.czd-stars li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 8px 10px; border: 1px solid #e2e6d4; border-radius: 12px; }
+.czd-stars li.is-on { background: #eef2e1; border-color: #c9d3ab; }
+.czd-stars li > div { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.czd-stars small { color: #5e6650; overflow-wrap: anywhere; }
+.czd-stars input { border: 1px solid #cfd4c0; border-radius: 8px; padding: 7px 10px; font: inherit; font-size: 13px; width: 100%; }
+.czd-primary--sm { padding: 7px 14px; border-radius: 9px; font-size: 13px; align-self: center; }
+.czd-store-cell .verification-stars { margin: 2px 0; }

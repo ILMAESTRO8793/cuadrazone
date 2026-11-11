@@ -1,3 +1,4 @@
+import { SectionShowcase } from "@/components/marketplace/SectionShowcase";
 import { useMemo, useState } from "react";
 import { Link } from "wouter";
 import { Clock, MapPin, Phone, Store } from "lucide-react";
@@ -89,6 +90,7 @@ export function ServiceListPage() {
   const list = trpc.services.list.useQuery(query);
   return (
     <div className="re-page container">
+      <SectionShowcase section="servicios" />
       <div className="re-hero">
         <div>
           <p className="eyebrow">SERVICIOS</p>

@@ -1,3 +1,4 @@
+import { SectionShowcase } from "@/components/marketplace/SectionShowcase";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useSearch } from "wouter";
 import { Bath, BedDouble, Car as CarIcon, MapPin, Maximize2, Phone, Star } from "lucide-react";
@@ -100,6 +101,7 @@ export function RealEstateListPage() {
 
   return (
     <div className="re-page container">
+      <SectionShowcase section="bienes_raices" />
       <div className="re-hero">
         <div>
           <p className="eyebrow">BIENES RAÍCES</p>

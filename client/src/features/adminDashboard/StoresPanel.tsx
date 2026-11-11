@@ -12,6 +12,9 @@ import {
 import { subscriptionPlanName } from "@shared/pricing";
 import { trpc } from "@/lib/trpc";
 import { StoreLogo } from "@/components/marketplace/StoreLogo";
+import { StoreStars, VerificationStars } from "@/components/marketplace/VerificationStars";
+import { verificationStarInfo, verificationStars, type VerificationStar } from "@shared/stars";
+import { toast } from "sonner";
 import {
   Sheet,
   SheetContent,
@@ -130,6 +133,7 @@ export function StoresPanel({ enabled }: { enabled: boolean }) {
                     <StoreLogo name={s.name} logoUrl={s.logoUrl} size={36} />
                     <span>
                       <strong>{s.name}</strong>
+                      <StoreStars slug={s.slug} size={13} />
                       <small>
                         {s.kind === "servicios" ? "Servicios" : "Comercio"} ·{" "}
                         {s.province}
@@ -251,6 +255,8 @@ function StoreDetail({ id }: { id: number }) {
           </div>
         </div>
       </SheetHeader>
+
+      <StarsEditor storeId={d.id} slug={d.slug} />
 
       <div className="czd-tiles czd-tiles--3">
         <Tile label="Vendido (12 meses)" value={money(d.last12.soldCents)} />
@@ -417,5 +423,75 @@ function StoreDetail({ id }: { id: number }) {
         )}
       </section>
     </div>
+  );
+}
+
+/** El administrador otorga o retira cada estrella, con la acreditación que la respalda. */
+function StarsEditor({ storeId, slug }: { storeId: number; slug: string }) {
+  const utils = trpc.useUtils();
+  const q = trpc.stars.adminForStore.useQuery({ storeId });
+  const set = trpc.stars.set.useMutation();
+  const [notes, setNotes] = useState<Partial<Record<VerificationStar, string>>>({});
+  const awarded = new Map((q.data ?? []).map(s => [s.star, s]));
+
+  async function toggle(star: VerificationStar) {
+    const has = awarded.has(star);
+    const note = (notes[star] ?? "").trim();
+    if (!has && note.length < 3)
+      return toast.error("Escribe qué acreditación respalda esta estrella");
+    if (has && !confirm(`¿Quitar la ${verificationStarInfo[star].label.toLowerCase()}?`)) return;
+    try {
+      await set.mutateAsync({ storeId, star, awarded: !has, note });
+      await Promise.all([
+        utils.stars.adminForStore.invalidate({ storeId }),
+        utils.stars.forStores.invalidate({ slugs: [slug] }),
+      ]);
+      toast.success(has ? "Estrella retirada" : "Estrella otorgada");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Ocurrió un error");
+    }
+  }
+
+  return (
+    <section className="czd-stars">
+      <h3>Estrellas de verificación</h3>
+      <p className="czd-muted">
+        Otórgalas solo con acreditación real. Se ven en la tienda, en el
+        directorio y en sus productos.
+      </p>
+      <ul>
+        {verificationStars.map(star => {
+          const info = verificationStarInfo[star];
+          const has = awarded.get(star);
+          return (
+            <li key={star} className={has ? "is-on" : ""}>
+              <VerificationStars size={22} stars={[star]} />
+              <div>
+                <strong>{info.label}</strong>
+                {has ? (
+                  <small>{has.note || "Sin nota"}</small>
+                ) : (
+                  <input
+                    value={notes[star] ?? ""}
+                    maxLength={300}
+                    placeholder="Acreditación que la respalda"
+                    aria-label={`Acreditación de la ${info.label.toLowerCase()}`}
+                    onChange={e => setNotes(n => ({ ...n, [star]: e.target.value }))}
+                  />
+                )}
+              </div>
+              <button
+                type="button"
+                className={has ? "czd-danger" : "czd-primary czd-primary--sm"}
+                disabled={set.isPending || q.isLoading}
+                onClick={() => void toggle(star)}
+              >
+                {has ? "Quitar" : "Otorgar"}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }

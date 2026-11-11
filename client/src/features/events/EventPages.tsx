@@ -1,3 +1,4 @@
+import { SectionShowcase } from "@/components/marketplace/SectionShowcase";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { CalendarDays, MapPin, Store, Ticket } from "lucide-react";
@@ -100,6 +101,7 @@ export function EventListPage() {
   const list = trpc.events.list.useQuery(query);
   return (
     <div className="re-page container">
+      <SectionShowcase section="eventos" />
       <div className="re-hero">
         <div>
           <p className="eyebrow">EVENTOS</p>
