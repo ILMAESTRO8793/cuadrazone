@@ -1792,6 +1792,7 @@
 .seller-plan-card.plan-card--visibility { border-top: 3px solid #b58c3c; background: #fffcf6; }
 .seller-plan-card.plan-card--selected { box-shadow: 0 0 0 2px #9b7228; }
 .plan-pending-note { border-left: 3px solid #b58c3c; padding-left: 12px; color: #72551e !important; }
+.plan-stars { display: flex; align-items: center; gap: 10px; margin: 4px 0 10px; font-weight: 700; font-size: 14px; }
 .plan-selection-note { font-size: .74rem; color: #58626d; margin-top: 12px; line-height: 1.5; }
 .plan-buyer-strip { max-width: 1040px; display: flex; align-items: center; gap: 20px; background: #eaf5f2; padding: 26px; margin: 28px 0; border-radius: 10px; }
 .plan-buyer-strip > svg { flex-shrink: 0; }

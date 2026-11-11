@@ -1,5 +1,6 @@
 import { Check, Sparkles, Store } from "lucide-react";
 import { Link } from "wouter";
+import { VerificationStars } from "@/components/marketplace/VerificationStars";
 import {
   sellerPlanIds,
   getSellerPlan,
@@ -50,10 +51,16 @@ export function SellerPlanCards({
               ))}
             </ul>
             {id === "mayor_visibilidad" && (
-              <p className="plan-pending-note">
-                Destaque y emblemas pendientes de habilitación. No garantiza
-                ventas ni primer puesto permanente.
-              </p>
+              <>
+                <div className="plan-stars">
+                  <VerificationStars size={22} />
+                  <span>Estrellas de verificación</span>
+                </div>
+                <p className="plan-pending-note">
+                  Cada estrella se otorga solo con acreditación real. No
+                  garantiza ventas ni primer puesto permanente.
+                </p>
+              </>
             )}
             {onChoose ? (
               <button
@@ -98,9 +105,10 @@ export function PlanConditions() {
         cobrada.
       </p>
       <p>
-        La verificación de identidad es obligatoria para ambos. Los cuatro
-        emblemas Cuadrangulares requieren acreditación real y autorización
-        institucional vigente: la confianza no se compra.
+        La verificación de identidad es obligatoria para ambos. Las cinco
+        estrellas de verificación (roja, amarilla, morada, azul y verde)
+        requieren acreditación real y autorización institucional vigente: la
+        confianza no se compra.
       </p>
       <p>
         Con Mayor Visibilidad, tus publicaciones aparecen en la franja{" "}
@@ -108,7 +116,8 @@ export function PlanConditions() {
         Eventos cuando cumplen los filtros de quien busca, identificadas como{" "}
         <strong>ubicación de pago</strong>. La franja rota cada 10 minutos entre
         las tiendas destacadas: no se promete una primera posición permanente.
-        La prueba gratis no incluye destacados.
+        Además, tu tienda puede salir en los banners de publicidad de la
+        portada. La prueba gratis no incluye destacados ni publicidad.
       </p>
       <p>
         El envío e impuestos aplicables se informan por separado. La comisión

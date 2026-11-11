@@ -277,3 +277,12 @@
 @media (prefers-reduced-motion: reduce) {
   .czd *, .czd *::before, .czd *::after { transition: none !important; animation: none !important; }
 }
+
+/* Los títulos generales de la cuenta son azul marino con otra letra: aquí manda el dashboard. */
+.member-page .czd h1,
+.member-page .czd h2,
+.member-page .czd h3 { font-family: var(--display); letter-spacing: -0.01em; }
+.member-page .czd .czd-hero h1 { color: var(--gold-bright); font-weight: 800; }
+.member-page .czd h2, .member-page .czd h3 { color: var(--ink); }
+.member-page .czd .czd-partner h3 { color: #fff; }
+.member-page .czd .czd-partner--reserve h3 { color: var(--ink); }

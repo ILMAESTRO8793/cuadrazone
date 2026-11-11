@@ -25,7 +25,8 @@ export const SELLER_PLANS = {
       "Todos los beneficios del plan Normal",
       "Espacios superiores destacados por categoría, con rotación",
       "Ubicación identificada como Destacado — ubicación de pago",
-      "Cuatro emblemas solo con acreditación y autorización institucional",
+      "Publicidad de tu tienda en los banners de la portada de CuadraZone",
+      "Cinco estrellas de verificación (roja, amarilla, morada, azul y verde), solo con acreditación",
     ],
   },
 } as const;
