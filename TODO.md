@@ -74,7 +74,7 @@ Evidencia de planes: migración aditiva 0004 aplicada, 39 rutas sincronizadas, p
 - [x] Migraciones automáticas al arrancar; probado con MySQL real (22 tablas, reinicio sin duplicar).
 - [x] Eliminados los módulos, plugins y referencias de Manus; 98 pruebas, tipos y compilación pasan.
 - [x] Preparados `Dockerfile`, `railway.json`, `.env.example` y `docs/despliegue-railway.md`.
-- [ ] Desplegar en Railway y probar el inicio de sesión con una cuenta real de Google.
+- [x] Desplegar en Railway y probar el inicio de sesión con una cuenta real de Google (11/11/2026: credenciales configuradas; en la app Android se oculta el botón).
 - [ ] Reemplazar las imágenes de demostración por las originales.
 
 ## Cierre de la etapa 2 — 18 de octubre
