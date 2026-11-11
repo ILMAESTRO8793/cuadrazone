@@ -13,6 +13,7 @@ import { eventsRouter } from "./routers/events";
 import { appointmentsRouter } from "./routers/appointments";
 import { sellerRouter } from "./routers/seller";
 import { adminPanelRouter, claimsRouter } from "./routers/adminPanel";
+import { adminDashboardRouter } from "./routers/adminDashboard";
 import { profileDisplayName } from "./db";
 
 export const appRouter = router({
@@ -30,6 +31,7 @@ export const appRouter = router({
   seller: sellerRouter,
   claims: claimsRouter,
   adminPanel: adminPanelRouter,
+  adminDashboard: adminDashboardRouter,
   auth: router({
     // El nombre que la persona escribe en su perfil manda sobre el de la cuenta
     // (que en las cuentas por código está vacío): así lo saluda la cabecera.

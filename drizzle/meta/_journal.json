@@ -190,6 +190,13 @@
       "when": 1794429374740,
       "tag": "0026_logo_tienda",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "5",
+      "when": 1794437041960,
+      "tag": "0027_finanzas_dashboard",
+      "breakpoints": true
     }
   ]
 }

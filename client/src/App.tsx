@@ -209,7 +209,10 @@ function Router() {
         <Route path="/admin/portada">
           {() => <AdminVerificationPage key="portada" initialTab="portada" />}
         </Route>
-        <Route path="/admin">{() => <AdminVerificationPage />}</Route>
+        <Route path="/admin/solicitudes">
+          {() => <AdminVerificationPage key="solicitudes" initialTab="solicitudes" />}
+        </Route>
+        <Route path="/admin">{() => <AdminVerificationPage key="dashboard" initialTab="dashboard" />}</Route>
         <Route path="/ayuda" component={HelpPage} />
         <Route path="/legal/:topic">
           {params => <LegalPage topic={params.topic} />}

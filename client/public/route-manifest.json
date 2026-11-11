@@ -67,6 +67,9 @@
       "path": "/admin/reclamos"
     },
     {
+      "path": "/admin/solicitudes"
+    },
+    {
       "path": "/admin/moderacion"
     },
     {
