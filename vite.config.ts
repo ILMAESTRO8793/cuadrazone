@@ -20,19 +20,15 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       output: {
-        // Las librerías cambian poco: van aparte para que el teléfono las
-        // conserve en caché entre versiones y solo baje el código nuevo.
+        // Las librerías cambian poco: van en un archivo aparte para que el
+        // teléfono lo conserve en caché entre versiones.
         manualChunks(id) {
           if (!id.includes("node_modules")) return undefined;
           // Las del QR se cargan aparte, solo en boletos y escáner.
           if (/[\/]node_modules[\/](jsqr|qrcode|dijkstrajs|pngjs)[\/]/.test(id))
             return undefined;
-          if (/[\/]node_modules[\/](react|react-dom|scheduler|wouter)[\/]/.test(id))
-            return "vendor-react";
-          if (/[\/]node_modules[\/](@tanstack|@trpc|superjson|zod)[\/]/.test(id))
-            return "vendor-data";
-          if (/[\/]node_modules[\/]lucide-react[\/]/.test(id))
-            return "vendor-icons";
+          // Todas las demás juntas: separarlas en varios archivos crea
+          // dependencias cruzadas que rompen React al cargar.
           return "vendor";
         },
       },
