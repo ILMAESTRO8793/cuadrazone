@@ -138,7 +138,8 @@ Evidencia de planes: migración aditiva 0004 aplicada, 39 rutas sincronizadas, p
 - [x] Bandeja de salida con reintentos y sin duplicados; envío por la API de Brevo.
 - [x] 11 avisos: solicitud, aprobación/rechazo, pedidos, estados, recibos, recordatorio y vencimiento.
 - [x] Probado con un Brevo de prueba local, incluida una caída y su reenvío automático.
-- [ ] Crear la cuenta de Brevo, verificar el remitente y configurar las 3 variables en Railway.
+- [x] Crear la cuenta de Brevo, verificar el remitente y configurar las 3 variables en Railway (11/11/2026: `/api/auth/methods` responde `email: true`).
+- [ ] Confirmar la entrega real: entrar con correo en `/entrar` y recibir el código.
 
 ## Entrar con correo o celular — 24 de octubre
 - [x] Página /entrar con Google, correo y celular; códigos seguros con límites.

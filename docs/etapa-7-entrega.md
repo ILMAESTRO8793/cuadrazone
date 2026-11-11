@@ -25,8 +25,9 @@ CuadraZone funciona en `https://www.cuadrazone.com`, pero **no se debe anunciar 
 | Pendiente | Qué falta | Qué pasa mientras tanto |
 |---|---|---|
 | Pagos automáticos | Cuenta Yappy Comercial (o PagueloFácil/Tilopay) de CuadraZone | Las mensualidades y comisiones se registran a mano en Suscripciones |
-| Correos | Cuenta de Brevo con remitente verificado y sus 3 variables en Railway | Los correos automáticos están apagados: no se guardan ni se envían |
-| SMS | Celular con SMS Gateway for Android (o Twilio) y sus variables | No se puede entrar con el celular; sí con Google o correo (si Brevo está activo) |
+| Correos | Configurados el 11/11/2026 (`/api/auth/methods` → `email: true`). Falta confirmar que llega un correo real | Se envían por Brevo |
+| SMS | Celular con SMS Gateway for Android (o Twilio) y sus variables | No se puede entrar con el celular; sí con correo |
+| Entrar con Google | `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET` en Railway (`/api/auth/methods` → `google: false`) | No aparece el botón de Google |
 | Documentos legales | Revisión de un abogado; nombre legal del responsable y correo de contacto en Privacidad | Siguen marcados como borradores |
 | Emblemas institucionales | Acreditación y autorización de cada institución | No se muestran |
 | Prueba con cuentas reales | Recorrido completo: vendedor real aprobado, venta, reclamo, pago registrado | — |
