@@ -2,7 +2,7 @@
 .svc-input, .svc-request input, .svc-request select, .svc-request textarea { min-height: 42px; padding: 0 12px; border: 1px solid #9AA8A5; border-radius: 10px; font: inherit; background: #fff; color: #0B1F3B; }
 .svc-request textarea { padding: 10px 12px; min-height: 110px; resize: vertical; }
 .svc-editor { display: flex; flex-direction: column; gap: 14px; }
-.svc-requests { margin-top: 28px; }
+.svc-requests { margin-top: 8px; }
 .svc-requests h2 { font-size: 22px; color: #0B1F3B; }
 .svc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 18px; }
 .svc-card { display: flex; flex-direction: column; overflow: hidden; border-radius: 18px; background: #fff; border: 1px solid #DCE3E1; text-decoration: none; color: #0B1F3B; transition: transform .15s ease, box-shadow .15s ease; }
@@ -34,3 +34,13 @@
 .svc-status-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; padding: 12px 16px; border-radius: 12px; font-size: 14.5px; border: 1px solid #DCE3E1; background: #FFF8EC; color: #5C430F; }
 .svc-status-bar--published { background: #E3F1EC; color: #0F5132; border-color: #CDE6DC; }
 .svc-status-actions { display: inline-flex; flex-wrap: wrap; gap: 8px; }
+
+/* Pestañas: servicios y solicitudes por separado */
+.svc-tabs { display: flex; gap: 6px; margin: 4px 0 18px; border-bottom: 2px solid #E4DCCB; flex-wrap: wrap; }
+.svc-tabs button { background: none; border: 0; border-bottom: 3px solid transparent; margin-bottom: -2px; padding: 10px 14px; font-weight: 700; font-size: 16px; color: #5B6B7F; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+.svc-tabs button.is-active { color: #0B1F3B; border-bottom-color: #E0B243; }
+.svc-tabs button:focus-visible { outline: 2px solid #E0B243; outline-offset: 2px; }
+.svc-tab-badge { background: #E0B243; color: #0B1F3B; border-radius: 999px; padding: 2px 8px; font-size: 12px; }
+.svc-tabs + .svc-requests { margin-top: 0; }
+.svc-delete { color: #A12C2C; border-color: #E8C4C4; }
+.svc-delete:hover { background: #FBEDED; }

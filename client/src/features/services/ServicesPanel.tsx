@@ -57,7 +57,9 @@ export function ServicesPanel({ hasStore }: { hasStore: boolean }) {
   const setStatus = trpc.services.setStatus.useMutation();
   const remove = trpc.services.remove.useMutation();
   const setRequestStatus = trpc.services.setRequestStatus.useMutation();
+  const removeRequest = trpc.services.removeRequest.useMutation();
   const [form, setForm] = useState<Form | null>(null);
+  const [tab, setTab] = useState<"services" | "requests">("services");
   const [uploading, setUploading] = useState(false);
   const set = <K extends keyof Form>(k: K, v: Form[K]) => setForm(f => (f ? { ...f, [k]: v } : f));
   const category = serviceCategoryOptions.find(c => c.id === form?.categoryId);
@@ -108,6 +110,22 @@ export function ServicesPanel({ hasStore }: { hasStore: boolean }) {
       if (updated) setForm(fromService(updated));
       toast.success("Fotos agregadas");
     } catch (error) { toast.error(errorText(error)); } finally { setUploading(false); }
+  }
+  async function deleteRequest(id: number) {
+    if (!confirm("¿Eliminar esta solicitud? No se puede deshacer.")) return;
+    try {
+      await removeRequest.mutateAsync({ id });
+      await Promise.all([utils.services.myRequests.invalidate(), utils.services.mine.invalidate()]);
+      toast.success("Solicitud eliminada");
+    } catch (error) { toast.error(errorText(error)); }
+  }
+  async function deleteService(id: number) {
+    if (!confirm("¿Borrar este servicio y sus solicitudes? No se puede deshacer.")) return;
+    try {
+      await remove.mutateAsync({ id });
+      await Promise.all([utils.services.mine.invalidate(), utils.services.myRequests.invalidate()]);
+      toast.success("Servicio borrado");
+    } catch (error) { toast.error(errorText(error)); }
   }
   async function changeStatus(id: number, status: "published" | "paused" | "draft") {
     try {
@@ -226,6 +244,15 @@ export function ServicesPanel({ hasStore }: { hasStore: boolean }) {
         </div>
         <button className="seller-catalog-button seller-catalog-button--gold" type="button" onClick={() => setForm(empty())}>+ Nuevo servicio</button>
       </section>
+      <div className="svc-tabs" role="tablist" aria-label="Servicios y solicitudes">
+        <button type="button" role="tab" aria-selected={tab === "services"} className={tab === "services" ? "is-active" : ""} onClick={() => setTab("services")}>
+          Mis servicios{mine.data ? ` (${mine.data.services.length})` : ""}
+        </button>
+        <button type="button" role="tab" aria-selected={tab === "requests"} className={tab === "requests" ? "is-active" : ""} onClick={() => setTab("requests")}>
+          Solicitudes recibidas{pending ? <span className="svc-tab-badge">{pending} nuevas</span> : null}
+        </button>
+      </div>
+      {tab === "services" && (<>
       {mine.isLoading && <p role="status">Cargando…</p>}
       {mine.data && mine.data.services.length === 0 && (
         <div className="re-empty"><h3>Todavía no tienes servicios</h3><p>Crea el primero: clases, reparaciones, consultas, servicios para eventos…</p></div>
@@ -246,13 +273,15 @@ export function ServicesPanel({ hasStore }: { hasStore: boolean }) {
               {s.status !== "published" && <button className="btn btn-gold" onClick={() => void changeStatus(s.id, "published")}>Publicar</button>}
               {s.status === "published" && <Link className="btn btn-outline" href={`/servicio/${s.slug}`}>Ver</Link>}
               {s.status === "published" && <button className="btn btn-outline" onClick={() => void changeStatus(s.id, "paused")}>Pausar</button>}
-              <button className="btn btn-outline" onClick={async () => { if (confirm("¿Borrar este servicio y sus solicitudes?")) { await remove.mutateAsync({ id: s.id }); await utils.services.mine.invalidate(); } }}>Borrar</button>
+              <button className="btn btn-outline" disabled={remove.isPending} onClick={() => void deleteService(s.id)}>Borrar</button>
             </div>
           </li>
         ))}
       </ul>
-      <section className="svc-requests" aria-labelledby="svc-requests-title">
-        <h2 id="svc-requests-title">Solicitudes recibidas{pending ? ` · ${pending} nuevas` : ""}</h2>
+      </>)}
+      {tab === "requests" && (
+      <section className="svc-requests" aria-label="Solicitudes recibidas">
+        {requests.isLoading && <p role="status">Cargando…</p>}
         {requests.data && requests.data.length === 0 && <p className="re-muted">Cuando alguien solicite uno de tus servicios aparecerá aquí y te llegará un correo.</p>}
         <ul className="re-mine">
           {requests.data?.map(r => {
@@ -272,12 +301,14 @@ export function ServicesPanel({ hasStore }: { hasStore: boolean }) {
                 <div className="re-mine-actions">
                   <a className="btn btn-gold" href={`https://wa.me/${digits}?text=${encodeURIComponent(`Hola ${r.name}, te escribo por tu solicitud en CuadraZone: ${r.serviceTitle}`)}`} target="_blank" rel="noopener noreferrer">WhatsApp</a>
                   <a className="btn btn-outline" href={`tel:${r.phone}`}>Llamar</a>
+                  <button type="button" className="btn btn-outline svc-delete" disabled={removeRequest.isPending} onClick={() => void deleteRequest(r.id)}>Eliminar</button>
                 </div>
               </li>
             );
           })}
         </ul>
       </section>
+      )}
     </>
   );
 }

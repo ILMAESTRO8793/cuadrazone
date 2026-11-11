@@ -497,6 +497,20 @@ export async function setRequestStatus(
   return { status };
 }
 
+/** El vendedor borra para siempre una solicitud recibida. */
+export async function deleteServiceRequest(user: User, id: number) {
+  const db = await requireDb();
+  const rows = await db
+    .select({ id: czServiceRequests.id })
+    .from(czServiceRequests)
+    .innerJoin(czServices, eq(czServices.id, czServiceRequests.serviceId))
+    .where(and(eq(czServiceRequests.id, id), eq(czServices.userId, user.id)))
+    .limit(1);
+  if (!rows[0]) fail("NOT_FOUND", "La solicitud no existe");
+  await db.delete(czServiceRequests).where(eq(czServiceRequests.id, id));
+  return { deleted: true };
+}
+
 // ───────────── Fotos ─────────────
 
 async function uploadImage(req: Request, res: Response) {

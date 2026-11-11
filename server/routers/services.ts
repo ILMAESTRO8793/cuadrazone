@@ -14,6 +14,7 @@ import {
   requestService,
   saveService,
   setRequestStatus,
+  deleteServiceRequest,
   setServiceStatus,
 } from "../services/serviceListings";
 
@@ -52,6 +53,10 @@ export const servicesRouter = router({
       csrf(ctx);
       return setRequestStatus(ctx.user as any, input.id, input.status);
     }),
+  removeRequest: protectedProcedure.input(id).mutation(({ ctx, input }) => {
+    csrf(ctx);
+    return deleteServiceRequest(ctx.user as any, input.id);
+  }),
   /** Qué impide eliminar la tienda y qué se borraría. */
   deletionCheck: protectedProcedure.query(({ ctx }) => storeDeletionCheck(ctx.user as any)),
   /** Elimina la tienda para siempre; hay que escribir su nombre exacto. */
