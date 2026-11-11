@@ -15,5 +15,8 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["server/**/*.test.ts", "server/**/*.spec.ts"],
+    // Con toda la batería en paralelo, la primera importación de un servicio
+    // puede pasar de 5 s en Windows; no es un fallo de la lógica.
+    testTimeout: 30000,
   },
 });

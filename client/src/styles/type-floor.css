@@ -126,7 +126,7 @@
 .footer-social span {
     font-size: 12px
 }
-.footer-top h3 {
+.footer-top :is(h2, h3) {
     font-size: 13px
 }
 .footer-top > div:not(:first-child) > a {
@@ -331,7 +331,7 @@
     }
 }
 @media (max-width: 560px) {
-    .footer-top h3 {
+    .footer-top :is(h2, h3) {
         font-size: 13px
     }
 }

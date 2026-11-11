@@ -15,6 +15,7 @@ import type { Request } from "express";
 import { COOKIE_NAME } from "@shared/const";
 import { isPublicPath, loginRedirectFor } from "@shared/accessGate";
 import { sdk } from "./sdk";
+import { isFingerprintedAsset } from "./hardening";
 
 /**
  * Para ver CuadraZone hay que iniciar sesión. Si quien pide una página no
@@ -132,7 +133,21 @@ export function serveStatic(app: Express) {
       : path.resolve(import.meta.dirname, "public");
   if (!fs.existsSync(distPath))
     throw new Error(`Missing built frontend: ${distPath}`);
-  app.use(express.static(distPath, { index: false }));
+  app.use(
+    express.static(distPath, {
+      index: false,
+      setHeaders(res, filePath) {
+        // Los archivos con huella cambian de nombre en cada versión: se pueden
+        // guardar un año. Logos y fotos fijas, una hora.
+        res.setHeader(
+          "Cache-Control",
+          isFingerprintedAsset(filePath)
+            ? "public, max-age=31536000, immutable"
+            : "public, max-age=3600"
+        );
+      },
+    })
+  );
   app.use("*", async (req, res, next) => {
     if (req.originalUrl.startsWith("/api/")) {
       res.status(404).json({ error: "Endpoint no encontrado" });

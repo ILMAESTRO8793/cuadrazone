@@ -10,7 +10,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
-import jsQR from "jsqr";
+import type jsQRType from "jsqr";
 import { provinceOptions } from "@shared/marketplace";
 import {
   MAX_EVENT_IMAGES,
@@ -794,6 +794,12 @@ export function TicketScannerPage({ eventId }: { eventId: number }) {
   useEffect(() => {
     if (!cameraOn) return;
     let frame = 0;
+    let cancelled = false;
+    // El lector de QR se descarga solo al encender la cámara.
+    let jsQR: typeof jsQRType | null = null;
+    void import("jsqr").then(m => {
+      if (!cancelled) jsQR = m.default;
+    });
     const tick = () => {
       const video = videoRef.current;
       const canvas = canvasRef.current;
@@ -803,7 +809,7 @@ export function TicketScannerPage({ eventId }: { eventId: number }) {
         canvas.width = w;
         canvas.height = h;
         const ctx = canvas.getContext("2d", { willReadFrequently: true });
-        if (ctx) {
+        if (ctx && jsQR) {
           ctx.drawImage(video, 0, 0, w, h);
           const found = jsQR(ctx.getImageData(0, 0, w, h).data, w, h, {
             inversionAttempts: "dontInvert",
@@ -814,7 +820,10 @@ export function TicketScannerPage({ eventId }: { eventId: number }) {
       frame = requestAnimationFrame(tick);
     };
     frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(frame);
+    };
   }, [cameraOn]);
 
   useEffect(() => stop, [stop]);

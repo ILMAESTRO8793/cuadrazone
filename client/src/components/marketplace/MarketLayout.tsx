@@ -390,6 +390,7 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
           <div className="container main-nav">
             <button
               className="category-menu"
+              aria-label="Categorías"
               aria-expanded={menuOpen}
               onClick={() => setMenuOpen(value => !value)}
             >
@@ -520,7 +521,7 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
             </div>
           </div>
           <div>
-            <h3>Descubre</h3>
+            <h2>Descubre</h2>
             <Link href="/tiendas">Tiendas por categoría</Link>
             <Link href="/mercado">Productos de tiendas activas</Link>
             <Link href="/catalogo">Catálogo de ejemplo</Link>
@@ -529,14 +530,14 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
             <Link href="/servicios">Servicios profesionales</Link>
           </div>
           <div>
-            <h3>Forma parte</h3>
+            <h2>Forma parte</h2>
             <Link href="/vender">Quiero vender</Link>
             <Link href="/suscripciones">Cuentas y plan vendedor</Link>
             <Link href="/mi-cuenta">Mi cuenta</Link>
             <Link href="/ayuda">Preguntas frecuentes</Link>
           </div>
           <div>
-            <h3>Confianza y ayuda</h3>
+            <h2>Confianza y ayuda</h2>
             <Link href="/legal/terminos">Términos y condiciones</Link>
             <Link href="/legal/privacidad">Privacidad</Link>
             <Link href="/legal/datos-sensibles">Datos sensibles</Link>

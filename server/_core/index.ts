@@ -13,6 +13,7 @@ import { createServer } from "http";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { registerMediaRoutes } from "../storage";
+import { registerHardening } from "./hardening";
 import { runMigrations } from "./migrate";
 import { startSubscriptionSweeper } from "../services/subscriptions";
 import { startEmailWorker } from "../services/email";
@@ -35,6 +36,7 @@ async function startServer() {
   // Railway (y la mayoría de hostings) entregan HTTPS a través de un proxy.
   app.set("trust proxy", 1);
   app.disable("x-powered-by");
+  registerHardening(app);
   registerMediaRoutes(app);
   registerDocumentRoutes(app);
   registerBillingRoutes(app);

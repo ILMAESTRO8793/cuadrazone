@@ -157,7 +157,6 @@ export function getPageMeta(url: string, snapshot: PublicSnapshot = {}) {
         "/admin/verificaciones",
         "/admin/denominaciones",
         "/admin/suscripciones",
-        "/entrar",
         "/bienes-raices/mis-anuncios",
         "/autos/mis-anuncios",
         "/empleos/mi-cv",

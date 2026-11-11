@@ -1179,7 +1179,7 @@ img {
   color: #b0b3a8;
   margin-left: 4px;
 }
-.footer-top h3 {
+.footer-top :is(h2, h3) {
   font-family: "DM Sans", sans-serif;
   letter-spacing: 0;
   font-size: 11px;
@@ -1544,7 +1544,7 @@ img {
     grid-column: 1;
     margin-top: 15px;
   }
-  .footer-top h3 {
+  .footer-top :is(h2, h3) {
     margin-top: 0;
   }
 }
@@ -1870,7 +1870,7 @@ img {
     margin-right: 16px;
     margin-top: 10px;
   }
-  .footer-top h3 {
+  .footer-top :is(h2, h3) {
     font-size: 11px;
     margin-bottom: 13px;
   }

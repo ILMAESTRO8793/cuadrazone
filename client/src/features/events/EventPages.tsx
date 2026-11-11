@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { CalendarDays, MapPin, Store, Ticket } from "lucide-react";
 import { toast } from "sonner";
-import QRCode from "qrcode";
 import type { inferRouterOutputs } from "@trpc/server";
 import type { AppRouter } from "../../../../server/routers";
 import { provinceOptions } from "@shared/marketplace";
@@ -451,11 +450,15 @@ function TicketQr({ code, used }: { code: string; used: boolean }) {
   const [src, setSrc] = useState("");
   useEffect(() => {
     let alive = true;
-    QRCode.toDataURL(ticketQrPayload(code), {
-      margin: 1,
-      width: 240,
-      errorCorrectionLevel: "M",
-    })
+    // La librería del QR se descarga solo cuando hay boletos que mostrar.
+    import("qrcode")
+      .then(({ default: QRCode }) =>
+        QRCode.toDataURL(ticketQrPayload(code), {
+          margin: 1,
+          width: 240,
+          errorCorrectionLevel: "M",
+        })
+      )
       .then(url => alive && setSrc(url))
       .catch(() => alive && setSrc(""));
     return () => {
