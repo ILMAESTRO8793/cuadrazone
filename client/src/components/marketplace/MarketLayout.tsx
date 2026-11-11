@@ -7,7 +7,6 @@ import {
   ArrowRight,
   ChevronDown,
   Heart,
-  Info,
   MapPin,
   Menu,
   Search,
@@ -481,16 +480,6 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
           </div>
         )}
       </header>
-      <div className="prototype-note">
-        <div className="container">
-          <Info size={14} />
-          <span>
-            Etapa 3 · Catálogo, carrito y pedidos persistentes. Los ejemplos
-            están separados. No se procesan pagos electrónicos.
-          </span>
-          <Link href="/ayuda">Saber más</Link>
-        </div>
-      </div>
       <main id="main-content" className="site-main">
         {children}
       </main>
@@ -550,7 +539,7 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
         <div className="container footer-bottom">
           <span>© 2026 CuadraZone · Panamá · USD</span>
           <span>
-            <ShieldCheck size={14} /> Vista previa · etapa 3 de 7
+            <ShieldCheck size={14} /> Vendedores verificados
           </span>
         </div>
         <nav className="footer-legal" aria-label="Avisos legales">

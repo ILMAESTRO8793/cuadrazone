@@ -22,7 +22,8 @@ describe("CuadraZone preview", () => {
     expect(result.html).toContain('href="/mercado" class="gate-choice');
     expect(result.html).toContain('href="/servicios" class="gate-choice');
     expect(result.html).toContain("/assets/logo-cuadrazone.png");
-    expect(result.html).toContain("No se procesan pagos");
+    expect(result.html).not.toContain("Etapa 3");
+    expect(result.html).not.toContain("etapa 3 de 7");
   });
   it("places the verified verse below the unchanged logo, separate from business copy", () => {
     const html = renderPage("/").html;

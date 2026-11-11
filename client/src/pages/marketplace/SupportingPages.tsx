@@ -635,7 +635,7 @@ const faqs = [
   },
   {
     q: "¿Cómo se verificará una tienda?",
-    a: "La revisión solicitará los requisitos indicados en Vende en CuadraZone. Etapa 1 no recibe documentos reales y la insignia mostrada es ilustrativa.",
+    a: "Envías tu solicitud con tu cédula y una foto de tu Yappy o cuenta bancaria. El equipo de CuadraZone la revisa y te avisa por correo cuando tu tienda queda aprobada.",
   },
   {
     q: "¿Puedo reservar un servicio o evento?",
