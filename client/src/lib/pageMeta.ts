@@ -5,7 +5,7 @@ export function getPageMeta(url: string, snapshot: PublicSnapshot = {}) {
   const path = new URL(url, "https://route-parser.invalid").pathname;
   let title = "CuadraZone | Comunidad, compras y propósito en Panamá";
   let description =
-    "Descubre productos, libros cristianos, eventos y servicios de emprendedores en Panamá. Vista previa del marketplace CuadraZone, sin cobros activos.";
+    "Marketplace de emprendedores de Panamá con valores cristianos: productos, libros cristianos, servicios, eventos, bienes raíces, autos y empleos.";
   let status = 200;
   const titles: Record<string, string> = {
     "/mercado": "Catálogo de tiendas activas",
