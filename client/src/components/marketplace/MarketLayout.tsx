@@ -563,8 +563,7 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
               ))}
             </ul>
             <p>
-              © 2026 CuadraZone · {LEGAL_OWNER.name} · RUC {LEGAL_OWNER.ruc} DV{" "}
-              {LEGAL_OWNER.dv} ·{" "}
+              © 2026 CuadraZone ·{" "}
               <a href={`mailto:${LEGAL_OWNER.email}`}>{LEGAL_OWNER.email}</a>.
               Todos los derechos reservados.
             </p>
