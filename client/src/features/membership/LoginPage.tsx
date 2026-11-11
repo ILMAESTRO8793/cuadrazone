@@ -4,6 +4,14 @@ import { safeReturnPath } from "@shared/const";
 import { Input } from "@/components/ui/input";
 
 type Methods = { google: boolean; email: boolean; phone: boolean };
+
+/** ¿Estamos dentro de la app Android/iOS de CuadraZone? */
+function insideApp() {
+  return (
+    typeof document !== "undefined" &&
+    document.documentElement.classList.contains("cz-app")
+  );
+}
 type Channel = "email" | "phone";
 
 async function post(url: string, body: unknown) {
@@ -43,7 +51,11 @@ export function LoginPage() {
   useEffect(() => {
     fetch("/api/auth/methods", { credentials: "include" })
       .then(r => r.json())
-      .then(setMethods)
+      .then((m: Methods) =>
+        // Google no deja iniciar sesión dentro de la app (vista web incrustada:
+        // «403 disallowed_useragent»). Ahí se entra con el código.
+        setMethods(insideApp() ? { ...m, google: false } : m)
+      )
       .catch(() => setMethods({ google: false, email: false, phone: false }));
   }, []);
 
