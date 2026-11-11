@@ -10,11 +10,11 @@ Revisión del 11 de noviembre de 2026 sobre `https://www.cuadrazone.com`.
 | `robots.txt` y `sitemap.xml` | Redirigían al inicio de sesión: los buscadores recibían una respuesta inválida | Se sirven antes del control de acceso. Solo ofrecen `/entrar`, `/ayuda` y los documentos legales; el resto queda bloqueado |
 | Indexación de `/entrar` | Marcada `noindex`: buscar «CuadraZone» no llevaba a ninguna página | Ahora se puede indexar |
 | Caché de archivos | JS y CSS con `max-age=0`: el teléfono los volvía a pedir siempre | Los archivos con huella se guardan un año; logos y fotos fijas, una hora |
-| Peso del JavaScript | Un solo archivo de 1,2 MB (364 KB comprimido) | Librerías en archivos aparte que se conservan entre versiones; el lector y el generador de QR solo se bajan cuando se usan. Carga inicial ≈ 300 KB comprimidos |
+| Peso del JavaScript | Un solo archivo de 1,2 MB (364 KB comprimido) | Librerías en un archivo aparte que se conserva entre versiones; el lector y el generador de QR solo se bajan cuando se usan. Carga inicial ≈ 300 KB comprimidos. Un primer intento con varios archivos de librerías rompió React al cargar; se detectó con Lighthouse en vivo y se corrigió en minutos |
 | Accesibilidad (Lighthouse) | Botón «Categorías» sin nombre en el celular; títulos del pie fuera de orden | Corregidos |
 | Pruebas | Dos pruebas fallaban a veces por tiempo con toda la batería | Límite de tiempo más amplio; la lógica no cambió |
 
-Lighthouse en el celular, página `/entrar`, antes de las correcciones: Accesibilidad 94, Buenas prácticas 100, SEO 58. Las causas del SEO bajo eran `robots.txt` y el `noindex`, ambas corregidas; falta volver a medir después de desplegar.
+Lighthouse en el celular, página `/entrar`: antes Accesibilidad 94, Buenas prácticas 100, SEO 58; después de desplegar, **100, 100 y 100**.
 
 Documentación nueva: `docs/arquitectura.md` (por qué cada pieza, seguridad y protección de documentos) y `docs/manual-administrador.md`.
 
@@ -37,5 +37,5 @@ CuadraZone funciona en `https://www.cuadrazone.com`, pero **no se debe anunciar 
 2. `https://www.cuadrazone.com/robots.txt` muestra el texto (no redirige a `/entrar`).
 3. `https://www.cuadrazone.com/sitemap.xml` lista las páginas abiertas.
 4. Un archivo de `/assets/index-….js` responde con `Cache-Control: public, max-age=31536000, immutable`.
-5. Volver a pasar Lighthouse en el celular sobre `/entrar`.
+5. Volver a pasar Lighthouse en el celular sobre `/entrar` (11/11/2026: 100 / 100 / 100).
 6. Probar el escáner de boletos (la cámara sigue permitida) y abrir un documento privado desde `/admin` (el visor sigue funcionando).

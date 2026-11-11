@@ -40,7 +40,7 @@ El respaldo completo de la base de datos (`/admin`, solo administradores) incluy
 
 ## Rendimiento en el celular
 
-- El JavaScript se divide en librerías (React, datos, íconos) y código propio. Los archivos llevan huella en el nombre y se guardan un año en el teléfono, así que tras una actualización solo se descarga lo que cambió.
+- El JavaScript va en dos archivos: librerías y código propio (separar más las librerías rompió React al cargar, por dependencias cruzadas). Los archivos llevan huella en el nombre y se guardan un año en el teléfono, así que tras una actualización solo se descarga lo que cambió.
 - El lector de QR y el generador de QR se descargan solo al abrir el escáner o «Mis boletos».
 - Las fotos de la portada tienen versión de 640 px para el celular y cargan a medida que se acercan a la pantalla.
 - Railway entrega las respuestas comprimidas (gzip).
