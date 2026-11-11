@@ -569,3 +569,32 @@ export const czAppointmentBlocks = mysqlTable(
     index("cz_appointment_blocks_appt_ix").on(table.appointmentId),
   ]
 );
+
+/** Etapa 6 · Categorías de productos que el administrador agrega, renombra u oculta. */
+export const czCatalogCategories = mysqlTable("cz_catalog_categories", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 120 }).notNull().unique(),
+  active: int("active").notNull().default(1),
+  sortOrder: int("sortOrder").notNull().default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+/** Etapa 6 · Banners de la portada, administrados desde /admin/portada. */
+export const czBanners = mysqlTable(
+  "cz_banners",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    title: varchar("title", { length: 80 }).notNull(),
+    subtitle: varchar("subtitle", { length: 160 }).notNull().default(""),
+    imageUrl: varchar("imageUrl", { length: 500 }),
+    linkUrl: varchar("linkUrl", { length: 300 }).notNull().default(""),
+    active: int("active").notNull().default(0),
+    sortOrder: int("sortOrder").notNull().default(0),
+    startsAt: timestamp("startsAt"),
+    endsAt: timestamp("endsAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [index("cz_banners_active_ix").on(table.active, table.sortOrder)]
+);

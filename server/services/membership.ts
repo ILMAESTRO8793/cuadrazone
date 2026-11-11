@@ -22,7 +22,6 @@ import {
   type DocumentSnapshot,
   storeKindError,
 } from "@shared/membership";
-import { catalogCategories } from "@shared/marketplace";
 import {
   businessSelectionsInput,
   readBusinessSelections,
@@ -1143,5 +1142,5 @@ export { documentKinds, applicationInput };
 function readProductCategories(details: unknown): ApplicationSnapshot["productCategories"] {
   if (typeof details === "string") { try { details = JSON.parse(details); } catch { return []; } }
   const values = (details as { productCategories?: unknown } | null)?.productCategories;
-  return Array.isArray(values) ? (values.filter(v => (catalogCategories as readonly string[]).includes(String(v))) as ApplicationSnapshot["productCategories"]) : [];
+  return Array.isArray(values) ? (values.filter(v => typeof v === "string" && v.length >= 2 && v.length <= 120) as ApplicationSnapshot["productCategories"]) : [];
 }

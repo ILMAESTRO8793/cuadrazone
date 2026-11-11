@@ -2,7 +2,7 @@ import {
   BusinessClassification,
   StoreSearchMatches,
 } from "./StoreDirectoryPage";
-import { catalogCategories } from "@shared/marketplace";
+import { useCatalogCategories } from "@/lib/catalogCategories";
 import { useEffect, useState } from "react";
 import { Link, useLocation, useSearch } from "wouter";
 import { BadgeCheck, Heart, Package, Search, Store } from "lucide-react";
@@ -100,6 +100,7 @@ export function RealProductCard({ product }: { product: RealProduct }) {
   );
 }
 export function LiveCatalogPage() {
+  const catalogCategories = useCatalogCategories();
   const search = useSearch();
   const [, navigate] = useLocation();
   const { snapshot, mounted } = usePublicCatalog();

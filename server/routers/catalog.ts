@@ -1,3 +1,4 @@
+import { liveBanners } from "../services/siteContent";
 import {
   featuredStores,
   listPublicStores,
@@ -66,6 +67,7 @@ export const catalogRouter = router({
     .input(suggestInput)
     .query(({ input }) => service(() => suggest(input.q))),
   categories: publicProcedure.query(() => categories()),
+  banners: publicProcedure.query(() => liveBanners()),
 
   myStore: protectedProcedure.query(({ ctx }) =>
     service(() => getMyStore(ctx.user.id))

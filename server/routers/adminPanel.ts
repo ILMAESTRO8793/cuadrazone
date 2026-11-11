@@ -20,6 +20,14 @@ import {
   respondClaim,
   withdrawClaim,
 } from "../services/claims";
+import {
+  adminDeleteBanner,
+  adminListBanners,
+  adminListCategories,
+  adminSaveBanner,
+  adminSaveCategory,
+} from "../services/siteContent";
+import { saveBannerInput, saveCategoryInput } from "@shared/siteContent";
 
 function csrf(ctx: {
   req: { headers: Record<string, string | string[] | undefined> };
@@ -59,6 +67,26 @@ export const claimsRouter = router({
 
 /** Etapa 6 · Panel del administrador. */
 export const adminPanelRouter = router({
+  banners: adminProcedure.query(() => adminListBanners()),
+  saveBanner: adminProcedure
+    .input(saveBannerInput)
+    .mutation(({ ctx, input }) => {
+      csrf(ctx);
+      return adminSaveBanner(input);
+    }),
+  deleteBanner: adminProcedure
+    .input(z.object({ id: z.number().int().positive() }).strict())
+    .mutation(({ ctx, input }) => {
+      csrf(ctx);
+      return adminDeleteBanner(input.id);
+    }),
+  categories: adminProcedure.query(() => adminListCategories()),
+  saveCategory: adminProcedure
+    .input(saveCategoryInput)
+    .mutation(({ ctx, input }) => {
+      csrf(ctx);
+      return adminSaveCategory(input);
+    }),
   claims: adminProcedure
     .input(z.object({ filter: z.enum(["pending", "all"]) }).strict())
     .query(({ input }) => adminListClaims(input.filter)),

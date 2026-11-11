@@ -2,6 +2,7 @@ import {
   readBusinessSelections,
   type BusinessSelection,
 } from "@shared/businessCategories";
+import { activeCatalogCategories, isAllowedProductCategory } from "./siteContent";
 import {
   and,
   asc,
@@ -20,11 +21,9 @@ import {
 import { TRPCError } from "@trpc/server";
 import {
   bookInput,
-  catalogCategories,
   listPublicInput,
   saveStoreInput,
   readFeeMap,
-  legacyCatalogCategories,
   type BookMetadata,
   type DeliveryMode,
   type ListPublicInput,
@@ -755,8 +754,8 @@ export async function suggest(q: string): Promise<string[]> {
   return output;
 }
 
-export function categories(): readonly string[] {
-  return catalogCategories;
+export function categories(): Promise<string[]> {
+  return activeCatalogCategories();
 }
 
 async function ownerProduct(
@@ -1129,7 +1128,17 @@ export async function saveProduct(
     // Los productos (cosas tangibles) son solo para tiendas de comercio.
     if (readiness.application.storeKind === "servicios")
       throw new CatalogError("PRECONDITION_FAILED", "Tu tienda es de servicios: publica servicios, no productos");
-    if (![...catalogCategories, ...legacyCatalogCategories].includes(input.category as never))
+    const previousCategory =
+      input.id !== undefined
+        ? ((
+            await tx
+              .select({ category: czProducts.category })
+              .from(czProducts)
+              .where(and(eq(czProducts.id, input.id), eq(czProducts.ownerUserId, userId)))
+              .limit(1)
+          )[0]?.category ?? null)
+        : null;
+    if (!(await isAllowedProductCategory(tx, input.category, previousCategory)))
       throw new CatalogError("BAD_REQUEST", "Escoge una categoría de productos de la lista");
     let productId: number;
     let existing: Product | undefined;
@@ -1364,8 +1373,8 @@ export async function listMyProducts(userId: number): Promise<OwnerProduct[]> {
   );
 }
 
-export async function getPublicCategories(): Promise<readonly string[]> {
-  return catalogCategories;
+export async function getPublicCategories(): Promise<string[]> {
+  return activeCatalogCategories();
 }
 
 export async function assertCatalogImageOwner(

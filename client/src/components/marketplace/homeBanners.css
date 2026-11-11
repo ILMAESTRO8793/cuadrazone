@@ -1,0 +1,59 @@
+/* ── Banners de la portada (administrados en /admin/portada) ── */
+.home-banners {
+  padding-top: 20px;
+  padding-bottom: 4px;
+}
+.home-banners-track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: min(88%, 820px);
+  gap: 14px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+  padding-bottom: 6px;
+}
+.home-banners-track.is-single {
+  grid-auto-columns: 100%;
+}
+.home-banner {
+  position: relative;
+  display: block;
+  aspect-ratio: 8 / 3;
+  min-height: 150px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #071e38;
+  color: #fff;
+  text-decoration: none;
+  scroll-snap-align: start;
+}
+.home-banner img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.home-banner-text {
+  position: absolute;
+  inset: auto 0 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 40px 20px 16px;
+  background: linear-gradient(to top, rgba(7, 30, 56, 0.88), rgba(7, 30, 56, 0));
+}
+.home-banner-text strong {
+  font-size: clamp(18px, 2.6vw, 26px);
+  line-height: 1.15;
+  color: #fff;
+}
+.home-banner-text span {
+  font-size: 15px;
+  color: #f7f1e6;
+}
+a.home-banner:focus-visible {
+  outline: 3px solid #d9ad49;
+  outline-offset: 3px;
+}

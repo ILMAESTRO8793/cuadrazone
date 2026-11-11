@@ -1,4 +1,4 @@
-import { catalogCategories } from "@shared/marketplace";
+import { useCatalogCategories } from "@/lib/catalogCategories";
 import { getSellerPlan, sellerPlanLabel } from "@shared/pricing";
 import { AuthGate } from "@/features/membership/AuthGate";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -87,6 +87,7 @@ function formatBytes(size: number) {
 }
 
 function SellerApplicationContent() {
+  const activeCategories = useCatalogCategories();
   const { user } = useAuth();
   const utils = trpc.useUtils();
   const membership = trpc.membership.me.useQuery(undefined, {
@@ -614,7 +615,7 @@ function SellerApplicationContent() {
                   <small>Elige hasta 8.</small>
                 </div>
                 <div className="kind-chips">
-                  {catalogCategories.map(category => {
+                  {form.productCategories.filter(c => !activeCategories.includes(c)).concat(activeCategories).map(category => {
                     const on = form.productCategories.includes(category);
                     return (
                       <button

@@ -202,3 +202,141 @@
 .ap2-bars {
   margin-top: 4px;
 }
+
+/* ── Portada: banners y categorías ── */
+.ap2-stack {
+  display: grid;
+  gap: 18px;
+}
+.ap2-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.ap2-actions .btn {
+  min-height: 40px;
+}
+.ap2-form input:not([type="checkbox"]) {
+  min-height: 40px;
+  padding: 6px 10px;
+  border: 1px solid #9aa8a5;
+  border-radius: 10px;
+  font: inherit;
+  background: #fff;
+}
+.ap2-banner-form {
+  padding: 14px;
+  border-radius: 14px;
+  background: #fbf7ef;
+  border: 1px solid #eadfca;
+}
+.ap2-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+}
+.ap2-form label.ap2-check {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+.ap2-check input {
+  width: 20px;
+  height: 20px;
+}
+.ap2-banners {
+  display: grid;
+  gap: 12px;
+}
+.ap2-banner {
+  display: grid;
+  grid-template-columns: 180px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px;
+  border-radius: 14px;
+  border: 1px solid #dce3e1;
+  background: #fff;
+}
+.ap2-banner.is-live {
+  border-color: #d9ad49;
+  box-shadow: 0 0 0 1px #d9ad49 inset;
+}
+.ap2-banner-img {
+  aspect-ratio: 8 / 3;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #f1ece2;
+  display: grid;
+  place-items: center;
+  color: #6b5a3a;
+  font-size: 13px;
+}
+.ap2-banner-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ap2-banner-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.ap2-banner-body strong {
+  color: #071e38;
+}
+.ap2-banner-body small {
+  color: #5d6b69;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 700px) {
+  .ap2-banner {
+    grid-template-columns: 1fr;
+  }
+}
+.ap2-categories {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.ap2-categories li {
+  display: grid;
+  grid-template-columns: 1fr 80px auto;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid #e5eae8;
+}
+.ap2-categories li.is-hidden {
+  background: #f6f6f4;
+  color: #6c7472;
+}
+.ap2-categories li > input {
+  min-height: 38px;
+  padding: 6px 10px;
+  border: 1px solid #9aa8a5;
+  border-radius: 10px;
+  font: inherit;
+}
+.ap2-cat-name {
+  display: flex;
+  flex-direction: column;
+  font-weight: 600;
+}
+.ap2-cat-name small {
+  font-weight: 400;
+  color: #5d6b69;
+}
+@media (max-width: 640px) {
+  .ap2-categories li {
+    grid-template-columns: 1fr 72px;
+  }
+  .ap2-categories li .ap2-actions {
+    grid-column: 1 / -1;
+  }
+}

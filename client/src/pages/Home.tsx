@@ -1,4 +1,5 @@
 import { LiveFeatured } from "@/features/commerce/LiveFeatured";
+import { HomeBanners } from "@/components/marketplace/HomeBanners";
 import { sellerPlanLabel } from "@shared/pricing";
 import { useState } from "react";
 import { Link } from "wouter";
@@ -151,6 +152,7 @@ export default function Home() {
           </div>
         </section>
       </div>
+      <HomeBanners />
       <div className="featured-band">
         <LiveFeatured />
       </div>

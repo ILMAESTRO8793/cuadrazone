@@ -14,9 +14,10 @@ import {
 } from "./services/catalog";
 
 describe("contrato del catálogo CuadraZone", () => {
-  it("mantiene categorías variadas sin sembrar personas", () => {
-    expect(categories()).toEqual(catalogCategories);
-    expect(categories().length).toBeGreaterThan(8);
+  it("mantiene categorías variadas sin sembrar personas", async () => {
+    // Sin base de datos se ofrecen las categorías de siempre.
+    expect(await categories()).toEqual([...catalogCategories]);
+    expect((await categories()).length).toBeGreaterThan(8);
   });
 
   it("valida precios, límites y orden de búsqueda", () => {

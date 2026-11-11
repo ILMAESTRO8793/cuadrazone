@@ -4,11 +4,11 @@ import { AuthGate } from "@/features/membership/AuthGate";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { authFetch } from "@/lib/authFetch";
 import { trpc } from "@/lib/trpc";
+import { useCatalogCategories, withCurrent } from "@/lib/catalogCategories";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
   saveStoreInput,
-  catalogCategories,
   type OwnerProduct,
   type ProductKind,
   type ProductStatus,
@@ -284,6 +284,7 @@ function SellerCatalogContent({
   const { user, loading } = useAuth();
   const enabled = !loading && Boolean(user);
   const utils = trpc.useUtils();
+  const catalogCategories = useCatalogCategories();
   const storeQuery = trpc.catalog.myStore.useQuery(undefined, {
     enabled,
     retry: false,
@@ -1131,7 +1132,7 @@ function SellerCatalogContent({
                       }
                       required
                     >
-                      {catalogCategories.map(category => (
+                      {withCurrent(catalogCategories, productForm.category).map(category => (
                         <option key={category} value={category}>
                           {category}
                         </option>

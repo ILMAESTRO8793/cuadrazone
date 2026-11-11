@@ -5,7 +5,7 @@ import {
   businessSelectionsOptional,
   type BusinessSelection,
 } from "@shared/businessCategories";
-import { catalogCategories, storeKinds, type StoreKind } from "./marketplace";
+import { storeKinds, type StoreKind } from "./marketplace";
 
 export const applicationStatuses = [
   "draft",
@@ -37,7 +37,7 @@ export const applicationInput = z
     /** Servicios: categorías de servicio. Comercio: queda vacío. */
     businessCategories: businessSelectionsOptional.default([]),
     /** Comercio: categorías de productos. Servicios: queda vacío. */
-    productCategories: z.array(z.enum(catalogCategories)).max(8).default([]),
+    productCategories: z.array(z.string().trim().min(2).max(120)).max(8).default([]),
     identificationType: z.enum(["cedula", "residencia"]),
     identificationNumber: z.string().trim().min(4).max(40),
     documentExpiry: z

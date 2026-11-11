@@ -294,4 +294,12 @@ Decisiones del propietario: las ventas pasadas y los pagos se conservan sin dato
 - **Moderación:** el administrador oculta productos, servicios y eventos con un motivo (`moderatedAt`, `moderationReason`); salen de la vista pública y el vendedor no puede volver a publicarlos hasta que el administrador lo permita. Las reseñas ocultas (`hiddenAt`) no se muestran ni cuentan en el promedio. Cada acción se avisa por correo y queda en la auditoría.
 - **Suspensión de vendedores:** `subscriptionStatus = past_due` con `holdReason = "suspended"`. Un pago extiende el período pero no reactiva la tienda; solo el administrador levanta la suspensión (vuelve a activa si su período sigue pagado y no debe comisión vencida).
 - **Reportes:** usuarios (total, activos y nuevos en 30 días), vendedores por plan y situación, ingresos de CuadraZone por mes (mensualidades y comisiones por fecha de pago), ventas de 90 días (pedidos, boletos, citas y por categoría) y reclamos.
-- **Pendiente:** editar categorías y banners desde el panel.
+- Categorías y banners: hechos el 11 de noviembre (ver abajo).
+
+## Portada administrable — 11 de noviembre de 2026
+
+- **Pestaña Portada** en `/admin/portada` (migración 0025, tablas `cz_banners` y `cz_catalog_categories`).
+- **Banners del inicio:** título, texto corto, foto horizontal (JPG/PNG/WebP hasta 5 MB, `/api/admin/banners/:id/image`, solo administradores), enlace, orden y fechas opcionales «desde/hasta» en hora de Panamá (el «hasta» incluye todo ese día). Se ven hasta 6 a la vez, debajo de las entradas principales y arriba de los destacados. Un banner sin foto, oculto o fuera de fechas no se muestra; sin banners vigentes, el inicio queda igual que antes.
+- **Enlaces seguros:** solo páginas de CuadraZone (empiezan con «/») o direcciones `https://`. Se rechazan `//otro-sitio`, `http://` y `javascript:`.
+- **Categorías de productos:** la migración copia las 21 categorías de siempre. El administrador puede agregar, renombrar (los productos que la usaban pasan al nombre nuevo), ordenar u ocultar. Ocultar no borra nada: los productos ya publicados la conservan y pueden editarse sin cambiarla, pero nadie la puede escoger de nuevo. El filtro del Mercado, el formulario de productos y la solicitud de vendedor usan la lista de la base de datos.
+- Las categorías de servicios siguen fijas en el código (`shared/businessCategories.ts`).

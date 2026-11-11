@@ -176,6 +176,13 @@
       "when": 1794254971566,
       "tag": "0024_panel_administrador",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "5",
+      "when": 1794416875219,
+      "tag": "0025_portada_categorias_banners",
+      "breakpoints": true
     }
   ]
 }

@@ -73,6 +73,9 @@
       "path": "/admin/reportes"
     },
     {
+      "path": "/admin/portada"
+    },
+    {
       "path": "/mis-citas"
     },
     {
