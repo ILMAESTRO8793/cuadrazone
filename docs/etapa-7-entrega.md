@@ -12,6 +12,7 @@ Revisión del 11 de noviembre de 2026 sobre `https://www.cuadrazone.com`.
 | Caché de archivos | JS y CSS con `max-age=0`: el teléfono los volvía a pedir siempre | Los archivos con huella se guardan un año; logos y fotos fijas, una hora |
 | Peso del JavaScript | Un solo archivo de 1,2 MB (364 KB comprimido) | Librerías en un archivo aparte que se conserva entre versiones; el lector y el generador de QR solo se bajan cuando se usan. Carga inicial ≈ 300 KB comprimidos. Un primer intento con varios archivos de librerías rompió React al cargar; se detectó con Lighthouse en vivo y se corrigió en minutos |
 | Accesibilidad (Lighthouse) | Botón «Categorías» sin nombre en el celular; títulos del pie fuera de orden | Corregidos |
+| Documentos legales | Pendientes de revisión | Revisión legal hecha, según el titular (11/11/2026) |
 | Correos con Brevo | Apagados | Configurados el 11/11/2026; el código para entrar con correo llegó |
 | Pruebas | Dos pruebas fallaban a veces por tiempo con toda la batería | Límite de tiempo más amplio; la lógica no cambió |
 
@@ -28,7 +29,6 @@ CuadraZone funciona en `https://www.cuadrazone.com`, pero **no se debe anunciar 
 | Pagos automáticos | Cuenta Yappy Comercial (o PagueloFácil/Tilopay) de CuadraZone | Las mensualidades y comisiones se registran a mano en Suscripciones |
 | SMS | Celular con SMS Gateway for Android (o Twilio) y sus variables | No se puede entrar con el celular; sí con correo |
 | Entrar con Google | `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET` en Railway (`/api/auth/methods` → `google: false`) | No aparece el botón de Google |
-| Documentos legales | Revisión de un abogado; nombre legal del responsable y correo de contacto en Privacidad | Siguen marcados como borradores |
 | Emblemas institucionales | Acreditación y autorización de cada institución | No se muestran |
 | Prueba con cuentas reales | Recorrido completo: vendedor real aprobado, venta, reclamo, pago registrado | — |
 

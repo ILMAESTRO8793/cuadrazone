@@ -7,8 +7,9 @@
  *
  * Nota interna: estos textos se redactaron con base en la legislación
  * panameña vigente (Ley 81 de 2019 y su reglamento, Ley 45 de 2007 y Ley 51
- * de 2008) y en cómo funciona hoy la plataforma. Deben ser revisados por un
- * abogado idóneo en Panamá antes de considerarse definitivos.
+ * de 2008) y en cómo funciona hoy la plataforma. La revisión legal quedó
+ * hecha el 11 de noviembre de 2026, según el titular. Cualquier cambio de
+ * fondo debe volver a revisarse antes de publicarse.
  */
 import { sellerPlanLabel } from "@shared/pricing";
 
