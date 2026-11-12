@@ -1,6 +1,7 @@
 import { ServicesPanel } from "@/features/services/ServicesPanel";
 import { DeleteStoreSection } from "./DeleteStoreSection";
 import { StoreLogoUploader } from "./StoreLogoUploader";
+import { StoreBrandingEditor } from "./StoreBrandingEditor";
 import { AuthGate } from "@/features/membership/AuthGate";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { authFetch } from "@/lib/authFetch";
@@ -846,10 +847,13 @@ function SellerCatalogContent({
             <Store size={25} aria-hidden="true" />
           </div>
           {storeSnapshot?.store ? (
-            <StoreLogoUploader
-              name={storeSnapshot.store.name}
-              logoUrl={storeSnapshot.store.logoUrl ?? null}
-            />
+            <>
+              <StoreLogoUploader
+                name={storeSnapshot.store.name}
+                logoUrl={storeSnapshot.store.logoUrl ?? null}
+              />
+              <StoreBrandingEditor storeName={storeSnapshot.store.name} />
+            </>
           ) : (
             <p className="store-logo-hint">
               Guarda primero el perfil de tu tienda para poder subir tu logo.

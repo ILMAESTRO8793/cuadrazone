@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Check, Sparkles, Store } from "lucide-react";
 import { Link } from "wouter";
 import { VerificationStars } from "@/components/marketplace/VerificationStars";
@@ -20,10 +21,23 @@ export function SellerPlanCards({
   disabled?: boolean;
   onChoose?: (id: SellerPlanId) => void;
 }) {
+  const [cycle, setCycle] = useState<"mensual" | "anual">("mensual");
+  const money = (cents: number) => `US${(cents / 100).toFixed(2)}`;
   return (
+    <>
+    <div className="plan-cycle" role="radiogroup" aria-label="Forma de pago">
+      <button type="button" role="radio" aria-checked={cycle === "mensual"} className={cycle === "mensual" ? "is-active" : ""} onClick={() => setCycle("mensual")}>
+        Pago mensual
+      </button>
+      <button type="button" role="radio" aria-checked={cycle === "anual"} className={cycle === "anual" ? "is-active" : ""} onClick={() => setCycle("anual")}>
+        Pago anual <span>−{ANNUAL_DISCOUNT_PCT} %</span>
+      </button>
+    </div>
     <div className="plan-grid seller-plan-grid">
       {sellerPlanIds.map(id => {
         const plan = getSellerPlan(id);
+        const annual = planAmountCents(id, 12);
+        const saved = plan.monthlyCents * 12 - annual;
         return (
           <article
             className={`plan-card seller-plan-card ${id === "mayor_visibilidad" ? "plan-card--visibility" : ""} ${selected === id ? "plan-card--selected" : ""}`}
@@ -40,15 +54,29 @@ export function SellerPlanCards({
                 : "Más exposición para tu negocio"}
             </div>
             <h2>{plan.name}</h2>
-            <div className="plan-price">
-              <strong>{sellerPlanLabel(id)}</strong>
-              <span>/ mes</span>
-            </div>
-            <p className="plan-annual">
-              o <strong>{sellerPlanAnnualLabel(id)} al año</strong> pagando los
-              12 meses juntos: {ANNUAL_DISCOUNT_PCT} % de descuento (ahorras US$
-              {((plan.monthlyCents * 12 - planAmountCents(id, 12)) / 100).toFixed(2)})
-            </p>
+            {cycle === "mensual" ? (
+              <>
+                <div className="plan-price">
+                  <strong>{sellerPlanLabel(id)}</strong>
+                  <span>/ mes</span>
+                </div>
+                <p className="plan-annual">
+                  o <strong>{sellerPlanAnnualLabel(id)} al año</strong> con{" "}
+                  {ANNUAL_DISCOUNT_PCT} % de descuento
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="plan-price">
+                  <strong>{sellerPlanAnnualLabel(id)}</strong>
+                  <span>/ año</span>
+                </div>
+                <p className="plan-annual">
+                  Equivale a <strong>{money(Math.floor(annual / 12))} al mes</strong>.
+                  Ahorras {money(saved)} frente a pagar mes a mes.
+                </p>
+              </>
+            )}
             <p>{plan.description}</p>
             <ul>
               {plan.benefits.map(item => (
@@ -64,6 +92,10 @@ export function SellerPlanCards({
                   <VerificationStars size={22} />
                   <span>Estrellas de verificación</span>
                 </div>
+                <p className="plan-stars-why">
+                  Las estrellas le dicen al comprador que tu tienda es de
+                  confianza: más credibilidad, más ganas de comprarte.
+                </p>
                 <p className="plan-pending-note">
                   Tu tienda muestra las cinco estrellas mientras tu plan Mayor
                   Visibilidad esté pagado y vigente. No garantiza ventas ni
@@ -98,6 +130,7 @@ export function SellerPlanCards({
         );
       })}
     </div>
+    </>
   );
 }
 

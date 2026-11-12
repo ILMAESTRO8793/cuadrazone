@@ -1,3 +1,4 @@
+import { StoreBrandBadge, StoreTagline } from "@/components/marketplace/StoreBrand";
 import { StoreStars } from "@/components/marketplace/VerificationStars";
 import { useEffect, useState } from "react";
 import { StoreLogo } from "@/components/marketplace/StoreLogo";
@@ -64,9 +65,11 @@ export function DirectoryStoreCard({ store }: { store: DirectoryStore }) {
         </span>
       </div>
       <StoreStars slug={store.slug} size={16} />
+      <StoreBrandBadge slug={store.slug} />
       <Link href={`/tiendas/${store.slug}`}>
         <h3>{store.name}</h3>
       </Link>
+      <StoreTagline slug={store.slug} />
       <p className="directory-store-description">
         {store.description ||
           "Conoce los productos y servicios de este negocio."}

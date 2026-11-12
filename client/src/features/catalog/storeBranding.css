@@ -1,0 +1,24 @@
+.brand-editor { margin: 18px 0; padding: 18px; border: 1px solid #e3d3a8; border-radius: 14px; background: #fffdf7; display: flex; flex-direction: column; gap: 12px; }
+.brand-editor h3 { margin: 0; font-size: 18px; display: inline-flex; align-items: center; gap: 8px; }
+.brand-editor--locked { flex-direction: row; align-items: flex-start; gap: 14px; background: #f8f5ee; border-style: dashed; }
+.brand-editor--locked p { margin: 6px 0 12px; color: #5c5038; line-height: 1.55; }
+.brand-editor-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.brand-muted { color: #6c6253; font-size: 13px; margin: 0; }
+.brand-preview { min-height: 130px; border-radius: 12px; border-top: 6px solid; background-size: cover; background-position: center; display: flex; flex-direction: column; justify-content: flex-end; padding: 16px; gap: 2px; }
+.brand-preview strong { font-size: 22px; text-shadow: 0 1px 6px rgba(0, 0, 0, 0.45); }
+.brand-preview span { font-size: 14px; text-shadow: 0 1px 6px rgba(0, 0, 0, 0.45); }
+.brand-cover-actions { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; }
+.brand-cover-actions label { cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.brand-form { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
+.brand-form > label { display: flex; flex-direction: column; gap: 6px; font-weight: 600; width: 100%; }
+.brand-form input:not([type="color"]) { border: 1px solid #ccc4b5; border-radius: 8px; padding: 10px; font: inherit; width: 100%; }
+.brand-form fieldset { border: 0; padding: 0; margin: 0; }
+.brand-form legend { font-weight: 600; margin-bottom: 6px; }
+.brand-swatches { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.brand-swatches > button:not(.brand-clear) { width: 32px; height: 32px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 0 1px #d8cfbd; cursor: pointer; }
+.brand-swatches > button.is-on { box-shadow: 0 0 0 3px #1d2733; }
+.brand-custom { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; }
+.brand-custom input { width: 34px; height: 34px; padding: 0; border: 0; background: none; cursor: pointer; }
+.brand-clear { border: 0; background: none; color: #6c6253; text-decoration: underline; cursor: pointer; font-size: 13px; }
+.brand-badge { display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 800; letter-spacing: 0.01em; }
+.brand-editor button:focus-visible, .brand-editor input:focus-visible, .brand-editor a:focus-visible { outline: 3px solid #ae832f; outline-offset: 2px; }

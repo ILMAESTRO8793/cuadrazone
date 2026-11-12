@@ -1,3 +1,4 @@
+import { StoreBrandBadge, useStoreBranding } from "@/components/marketplace/StoreBrand";
 import { SectionShowcase } from "@/components/marketplace/SectionShowcase";
 import { StoreStars } from "@/components/marketplace/VerificationStars";
 import { StoreLogo } from "@/components/marketplace/StoreLogo";
@@ -371,14 +372,40 @@ export function LiveStorePage({ slug }: { slug: string }) {
       </div>
     );
   const { store, products } = data.data;
+  return <StorePageView store={store} products={products} classification={data.data.businessCategories} />;
+}
+
+function StorePageView({
+  store,
+  products,
+  classification,
+}: {
+  store: any;
+  products: any[];
+  classification: any;
+}) {
+  const branding = useStoreBranding(store.slug);
+  const brand = branding?.brandColor || (branding ? "#0b2a4a" : "");
   return (
     <div className="live-page container">
       <Link href="/mercado">← Volver al catálogo</Link>
-      <section className="live-store-banner">
+      <section
+        className={`live-store-banner${branding ? " is-branded" : ""}`}
+        style={
+          branding
+            ? ({
+                "--brand": brand,
+                backgroundImage: branding.coverUrl ? `url(${branding.coverUrl})` : undefined,
+              } as React.CSSProperties)
+            : undefined
+        }
+      >
         <StoreLogo name={store.name} logoUrl={store.logoUrl} size={88} />
         <div>
           <p className="eyebrow">VENDEDOR VERIFICADO</p>
+          <StoreBrandBadge slug={store.slug} />
           <h1>{store.name}</h1>
+          {branding?.tagline && <p className="store-brand-tagline">{branding.tagline}</p>}
           <StoreStars slug={store.slug} size={22} />
           <p>{store.description}</p>
           <p>
@@ -389,7 +416,7 @@ export function LiveStorePage({ slug }: { slug: string }) {
       </section>
       <section className="live-panel">
         <h2>Categorías de este negocio</h2>
-        <BusinessClassification selections={data.data.businessCategories} />
+        <BusinessClassification selections={classification} />
       </section>
       <h2>Productos de esta tienda</h2>
       <div className="live-product-grid">

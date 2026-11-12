@@ -1,3 +1,4 @@
+import { StoreBrandBadge } from "@/components/marketplace/StoreBrand";
 import { StoreStars } from "@/components/marketplace/VerificationStars";
 import { StoreLogo } from "@/components/marketplace/StoreLogo";
 import { productConditionLabels } from "@shared/marketplace";
@@ -340,6 +341,7 @@ export function RealDetailPage({ slug }: { slug: string }) {
             <BadgeCheck size={20} />
           </Link>
           <StoreStars slug={p.store.slug} size={18} />
+          <StoreBrandBadge slug={p.store.slug} />
           <p>
             <Star size={16} />{" "}
             {p.reviewCount

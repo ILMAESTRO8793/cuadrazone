@@ -17,6 +17,7 @@ import { adminDashboardRouter } from "./routers/adminDashboard";
 import { starsRouter } from "./routers/stars";
 import { showcaseRouter } from "./routers/showcase";
 import { servicePubRouter } from "./routers/servicePub";
+import { brandingRouter } from "./routers/branding";
 import { profileDisplayName } from "./db";
 
 export const appRouter = router({
@@ -38,6 +39,7 @@ export const appRouter = router({
   stars: starsRouter,
   showcase: showcaseRouter,
   servicePub: servicePubRouter,
+  branding: brandingRouter,
   auth: router({
     // El nombre que la persona escribe en su perfil manda sobre el de la cuenta
     // (que en las cuentas por código está vacío): así lo saluda la cabecera.

@@ -1,0 +1,10 @@
+.store-brand-badge { display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 800; letter-spacing: 0.01em; white-space: nowrap; }
+.store-brand-tagline { margin: 4px 0 0; font-style: italic; font-size: 15px; color: inherit; opacity: 0.9; }
+
+/* Página de la tienda con marca: portada de fondo y franja del color propio */
+.live-store-banner.is-branded { position: relative; overflow: hidden; color: #fff; border: 0; border-top: 6px solid var(--brand, #b8862b); background-color: var(--brand, #0b2a4a); background-size: cover; background-position: center; min-height: 220px; align-items: flex-end; }
+.live-store-banner.is-branded::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(5, 10, 20, 0.15) 0%, rgba(5, 10, 20, 0.72) 100%); }
+.live-store-banner.is-branded > * { position: relative; }
+.live-store-banner.is-branded h1, .live-store-banner.is-branded p { color: #fff; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.45); }
+.live-store-banner.is-branded .eyebrow { color: #fff; opacity: 0.9; }
+.live-store-banner.is-branded .store-logo { border: 3px solid #fff; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35); }
