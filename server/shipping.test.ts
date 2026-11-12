@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { coveredProvinces, readFeeMap, saveStoreInput, shippingFeeFor } from "../shared/marketplace";
 import { deliveryQuote } from "./services/commerce";
+import { MIN_ORDER_CENTS, meetsMinimum, shippingDeal } from "../shared/shippingRules";
 
 const perProvince = { shippingFeeCents: 300, deliveryProvinces: ["Panamá", "Chiriquí"], shippingFeesByProvince: { "Panamá": 300, "Chiriquí": 1200 } };
 const legacy = { shippingFeeCents: 500, deliveryProvinces: ["Panamá", "Colón"], shippingFeesByProvince: null };
@@ -25,10 +26,22 @@ describe("envío por provincia", () => {
     expect(parsed.shippingFeesByProvince).toEqual({ "Chiriquí": 1200 });
     expect(saveStoreInput.safeParse({ name: "Tienda", description: "", province: "Panamá", city: "Chilibre", shippingFeesByProvince: { "Narnia": 1 } }).success).toBe(false);
   });
-  it("cotiza en la compra con la provincia y rechaza las no cubiertas", () => {
-    const store = { ...perProvince, homeFeeCents: 200, deliveryProvinces: JSON.stringify(perProvince.deliveryProvinces) } as any;
-    expect(deliveryQuote(store, "shipping", "Chiriquí")).toBe(1200);
-    expect(deliveryQuote(store, "pickup", "Colón")).toBe(0);
-    expect(() => deliveryQuote(store, "shipping", "Colón")).toThrow(/no envía/);
+  it("en la compra la entrega siempre es 0: gratis o acordada aparte", () => {
+    const store = { ...perProvince, homeFeeCents: 200 } as any;
+    expect(deliveryQuote(store, "shipping", "Chiriquí")).toBe(0);
+    expect(deliveryQuote(store, "shipping", "Colón")).toBe(0);
+  });
+});
+
+describe("reglas de entrega de comercios", () => {
+  it("gratis en la misma provincia, sin importar tildes ni mayúsculas", () => {
+    expect(shippingDeal("Chiriquí", "chiriqui")).toBe("free");
+    expect(shippingDeal("Panamá", "Colón")).toBe("coordinate");
+    expect(shippingDeal("", "Panamá")).toBe("coordinate");
+  });
+  it("compra mínima de US$10 por tienda", () => {
+    expect(MIN_ORDER_CENTS).toBe(1000);
+    expect(meetsMinimum(999)).toBe(false);
+    expect(meetsMinimum(1000)).toBe(true);
   });
 });

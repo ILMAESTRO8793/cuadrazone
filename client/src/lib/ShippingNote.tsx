@@ -1,5 +1,5 @@
 import { MapPin, Truck } from "lucide-react";
-import { shippingFeeFor } from "@shared/marketplace";
+import { shippingDeal } from "@shared/shippingRules";
 import { useMarket } from "@/contexts/MarketContext";
 
 type StoreShipping = {
@@ -9,27 +9,26 @@ type StoreShipping = {
   shippingFeesByProvince?: Record<string, number>;
 };
 
-const usd = (cents: number) => `US$${(cents / 100).toFixed(2)}`;
 
 /**
- * Dónde está la tienda y cuánto cuesta el envío a la provincia del comprador
- * (la que eligió arriba en «Explorar en»).
+ * Dónde está la tienda y cómo llega a la provincia del comprador (la que eligió
+ * arriba en «Explorar en»): gratis en la misma provincia; si no, se acuerda
+ * directo con el vendedor.
  */
 export function ShippingNote({ store, modes }: { store: StoreShipping; modes: readonly string[] }) {
   const { province } = useMarket();
-  const fee = modes.includes("shipping") ? shippingFeeFor(store, province) : null;
+  const ships = modes.includes("shipping") || modes.includes("home");
+  const free = shippingDeal(store.province, province) === "free";
   return (
     <div className="ship-note">
       <span className="ship-origin"><MapPin size={14} aria-hidden="true" /> Desde {store.province}</span>
-      <span className={`ship-dest ${fee === null ? "ship-dest--none" : ""}`}>
+      <span className="ship-dest">
         <Truck size={14} aria-hidden="true" />{" "}
-        {fee !== null
-          ? fee === 0
-            ? `Envío gratis a ${province}`
-            : `Envío a ${province}: ${usd(fee)}`
-          : modes.includes("pickup")
-            ? `No envía a ${province} · retiro en ${store.province}`
-            : `No envía a ${province}`}
+        {!ships
+          ? `Retiro en ${store.province}`
+          : free
+            ? `Envío gratis en ${store.province}`
+            : `Envío a ${province}: lo acuerdas y pagas con el vendedor`}
       </span>
     </div>
   );

@@ -26,9 +26,10 @@ export function SubscriptionsPage() {
             <p className="intro-copy">
               Dos planes para vendedores; los compradores no pagan nada.{" "}
               <strong>Los primeros 3 meses son gratis.</strong> Después pagas
-              la mensualidad del plan. Si vendes productos físicos, pagas 8% de
-              comisión por venta durante la prueba y 5% después, siempre sin el
-              envío. <strong>Los servicios no pagan comisión.</strong>
+              la mensualidad del plan. Si vendes productos físicos, no pagas
+              comisión durante la prueba; después, 10% por venta con el plan
+              Normal y 5% con Mayor Visibilidad.{" "}
+              <strong>Los servicios no pagan comisión.</strong>
             </p>
           </div>
           <span className="demo-badge">
@@ -78,8 +79,8 @@ export function SubscriptionsPage() {
               verificados.
             </li>
             <li>
-              Al ser aprobado, tu tienda se activa con 3 meses gratis (los
-              productos físicos pagan 8% de comisión por venta).
+              Al ser aprobado, tu tienda se activa con 3 meses gratis y sin
+              comisión.
             </li>
             <li>
               Antes de que termine la prueba, paga tu primera mensualidad; desde

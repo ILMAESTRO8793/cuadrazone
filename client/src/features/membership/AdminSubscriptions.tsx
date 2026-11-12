@@ -435,7 +435,7 @@ function SubscriptionDetail({
         Estado:{" "}
         <strong>
           {row.status === "active" && isInTrial(row.trialEndsAt)
-            ? `Prueba gratis hasta ${day(row.trialEndsAt)} (comisión 8%)`
+            ? `Prueba gratis hasta ${day(row.trialEndsAt)} (sin comisión)`
             : `${statusText[row.status]} (comisión 5%)`}
         </strong>
         {row.planId && sellerPlanIds.includes(row.planId as SellerPlanId) && (
@@ -454,7 +454,7 @@ function SubscriptionDetail({
         <h3>Registrar pago de mensualidad</h3>
         <p>
           {row.status === "active" && isInTrial(row.trialEndsAt)
-            ? "Está en su prueba gratis. Si paga por adelantado, los meses se suman al terminar la prueba y la comisión sigue en 8% hasta entonces."
+            ? "Está en su prueba gratis. Si paga por adelantado, los meses se suman al terminar la prueba y no paga comisión hasta entonces."
             : "Primero confirma en tu cuenta de Yappy o del banco que el dinero llegó."}
         </p>
         <label>

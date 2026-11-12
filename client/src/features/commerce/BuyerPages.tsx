@@ -1,7 +1,12 @@
 import type { CartItemDTO, DeliveryMode } from "@shared/commerce";
 import { ClaimBox } from "./ClaimBox";
 import { paymentMethodLabels } from "@shared/commerce";
-import { coveredProvinces, shippingFeeFor } from "@shared/marketplace";
+import {
+  MIN_ORDER_LABEL,
+  meetsMinimum,
+  shippingDeal,
+  shippingDealLabel,
+} from "@shared/shippingRules";
 import { useMarket } from "@/contexts/MarketContext";
 import { useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
@@ -125,7 +130,11 @@ function CartContent() {
             <p>
               Artículos <strong>{usd(cart.data.subtotalCents)}</strong>
             </p>
-            <p>CuadraZone no te cobra recargos: pagas los artículos y el envío que define cada vendedor.</p>
+            <p>
+              Compra mínima de {MIN_ORDER_LABEL} por tienda. Envío gratis si la
+              tienda está en tu misma provincia; si no, acuerdas y pagas el
+              envío directo con el vendedor.
+            </p>
             {cart.data.items.every(
               item => item.available && item.quantity <= item.stock
             ) ? (
@@ -211,41 +220,35 @@ function CheckoutContent() {
   function offered(g: CartItemDTO): DeliveryMode[] {
     return (["pickup", "shipping", "home"] as const).filter(
       mode =>
-        (cart.data?.items
+        cart.data?.items
           .filter(i => i.storeId === g.storeId)
-          .every(i => (i.productDeliveryModes ?? []).includes(mode)) ??
-          false) &&
-        (mode === "pickup" ||
-          (coveredProvinces({ deliveryProvinces: g.storeDeliveryProvinces, shippingFeesByProvince: g.storeShippingFees }).includes(province) &&
-            (mode === "shipping"
-              ? shippingFeeOf(g)
-              : g.storeHomeFeeCents) != null))
+          .every(i => (i.productDeliveryModes ?? []).includes(mode)) ?? false
     );
   }
-  function shippingFeeOf(g: CartItemDTO) {
-    return shippingFeeFor(
-      { shippingFeeCents: g.storeShippingFeeCents, deliveryProvinces: g.storeDeliveryProvinces, shippingFeesByProvince: g.storeShippingFees },
-      province
-    );
+  /** Subtotal de una tienda: debe llegar a la compra mínima. */
+  function storeSubtotal(g: CartItemDTO) {
+    return (cart.data?.items ?? [])
+      .filter(i => i.storeId === g.storeId && i.available)
+      .reduce((sum, i) => sum + i.priceCents * i.quantity, 0);
   }
   function chosen(g: CartItemDTO) {
     const options = offered(g);
     return options.includes(modes[g.storeId]) ? modes[g.storeId] : options[0];
   }
-  function fee(g: CartItemDTO) {
-    const mode = chosen(g);
-    return mode === "shipping"
-      ? (shippingFeeOf(g) ?? 0)
-      : mode === "home"
-        ? (g.storeHomeFeeCents ?? 0)
-        : 0;
-  }
-  const deliveryFees = groups.reduce((sum, g) => sum + fee(g), 0);
-  const estimate = (cart.data?.subtotalCents ?? 0) + deliveryFees;
+  // CuadraZone no cobra la entrega: gratis en la misma provincia; en otra, se acuerda con el vendedor.
+  const deliveryFees = 0;
+  const estimate = cart.data?.subtotalCents ?? 0;
   const missingMode = groups.some(g => !chosen(g));
+  const belowMinimum = groups.filter(g => !meetsMinimum(storeSubtotal(g)));
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const values = new FormData(e.currentTarget);
+    if (belowMinimum.length) {
+      toast.error(
+        `La compra mínima es de ${MIN_ORDER_LABEL} por tienda: ${belowMinimum.map(g => g.storeName).join(", ")}.`
+      );
+      return;
+    }
     if (missingMode) {
       toast.error(
         "Alguna tienda no ofrece una modalidad común para estos artículos y esta provincia."
@@ -407,23 +410,27 @@ function CheckoutContent() {
                         ? "Retiro personal"
                         : mode === "shipping"
                           ? "Envío"
-                          : "A domicilio"}{" "}
-                      ·{" "}
-                      {usd(
-                        mode === "pickup"
-                          ? 0
-                          : mode === "shipping"
-                            ? (g.storeShippingFeeCents ?? 0)
-                            : (g.storeHomeFeeCents ?? 0)
-                      )}
+                          : "A domicilio"}
+                      {mode !== "pickup" &&
+                        (shippingDeal(g.storeProvince, province) === "free"
+                          ? " · Gratis"
+                          : " · A coordinar con el vendedor")}
                     </option>
                   ))}
                 </select>
                 <small>
-                  {offered(g).length
-                    ? `Cobertura confirmada por la tienda para ${province}.`
-                    : "Estos artículos no comparten una modalidad configurada para esta provincia. Cambia la provincia, separa el pedido o consulta al vendedor."}
+                  {!offered(g).length
+                    ? "Estos artículos no comparten una modalidad de entrega. Separa el pedido o consulta al vendedor."
+                    : chosen(g) === "pickup"
+                      ? `Retiras en ${g.storeProvince || "la tienda"}.`
+                      : shippingDealLabel(g.storeProvince, province)}
                 </small>
+                {!meetsMinimum(storeSubtotal(g)) && (
+                  <small role="alert" className="live-error-text">
+                    Compra mínima en {g.storeName}: {MIN_ORDER_LABEL}. Llevas{" "}
+                    {usd(storeSubtotal(g))}.
+                  </small>
+                )}
               </label>
             ))}
             <h2>Pago directo al vendedor</h2>
@@ -460,7 +467,16 @@ function CheckoutContent() {
               Subtotal <strong>{usd(cart.data.subtotalCents)}</strong>
             </p>
             <p>
-              Entrega <strong>{usd(deliveryFees)}</strong>
+              Entrega{" "}
+              <strong>
+                {groups.some(
+                  g =>
+                    chosen(g) !== "pickup" &&
+                    shippingDeal(g.storeProvince, province) === "coordinate"
+                )
+                  ? "Gratis o a coordinar"
+                  : usd(deliveryFees)}
+              </strong>
             </p>
             <p>
               <strong>Total estimado</strong>
@@ -470,9 +486,8 @@ function CheckoutContent() {
               Recargo de CuadraZone al comprador: <strong>US$0.00</strong>
             </p>
             <p className="live-muted">
-              El total definitivo se calcula en servidor con la tarifa
-              configurada de cada tienda. No se acepta un total proporcionado
-              por el navegador.
+              El total definitivo se calcula en el servidor. El envío a otra
+              provincia no va en este total: lo pagas directo al vendedor.
             </p>
             {create.error && <RequestError message={create.error.message} />}
             <button
@@ -481,6 +496,7 @@ function CheckoutContent() {
               disabled={
                 create.isPending ||
                 missingMode ||
+                belowMinimum.length > 0 ||
                 cart.data.items.some(i => !i.available || i.quantity > i.stock)
               }
             >

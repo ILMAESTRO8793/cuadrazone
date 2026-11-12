@@ -195,9 +195,9 @@ export default function Home() {
             <strong>
               Mayor Visibilidad {sellerPlanLabel("mayor_visibilidad")}/mes
             </strong>
-            . Los primeros 3 meses son gratis. Los productos físicos pagan 8% de
-            comisión por venta en la prueba y 5% después; los servicios no pagan
-            comisión.
+            . Los primeros 3 meses son gratis y sin comisión. Después, los
+            productos físicos pagan 10% de comisión por venta con el plan Normal
+            y 5% con Mayor Visibilidad; los servicios no pagan comisión.
           </p>
         </div>
         <Link className="btn btn-gold" href="/vender">

@@ -49,7 +49,7 @@ import {
   type OwnEventDTO,
   type TicketOrderStatus,
 } from "@shared/events";
-import { commissionBpsAt, commissionCents } from "@shared/pricing";
+import { commissionBpsFor, commissionCents } from "@shared/pricing";
 import { sdk } from "../_core/sdk";
 import { getDb } from "../db";
 import { storagePut } from "../storage";
@@ -98,13 +98,14 @@ const iso = (d: Date | string | null | undefined) =>
 
 // ───────────── Comisión y códigos ─────────────
 
-/** Comisión de una venta de boletos: misma tasa que los productos (8% en la prueba, 5% después). */
+/** Comisión de una venta de boletos: misma tasa que los productos (0% en la prueba, 10% Normal, 5% Mayor Visibilidad). */
 export function ticketCommission(
   totalCents: number,
   trialEndsAt: Date | string | null | undefined,
-  now = new Date()
+  now = new Date(),
+  planId: string | null = null
 ) {
-  const bps = commissionBpsAt(trialEndsAt, now);
+  const bps = commissionBpsFor(planId, trialEndsAt, now);
   return { bps, cents: commissionCents(totalCents, bps) };
 }
 
@@ -789,14 +790,18 @@ export async function markOrderPaid(
         "Esta reserva fue cancelada. Pide al comprador que aparte de nuevo."
       );
     const apps = await tx
-      .select({ trialEndsAt: czApplications.trialEndsAt })
+      .select({
+        trialEndsAt: czApplications.trialEndsAt,
+        planId: czApplications.subscriptionPlanId,
+      })
       .from(czApplications)
       .where(eq(czApplications.userId, user.id))
       .limit(1);
     const commission = ticketCommission(
       order.totalCents,
       apps[0]?.trialEndsAt ?? null,
-      now
+      now,
+      apps[0]?.planId ?? null
     );
     const result = await tx
       .update(czTicketOrders)

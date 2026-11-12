@@ -83,12 +83,11 @@ describe("CuadraZone commerce invariants", () => {
     expect(affectedRows([{ insertId: 42 }, []])).toBe(0);
   });
 
-  it("cotiza retiro, tarifa cero y cobertura sin confundir null con cero", () => {
-    const store = { shippingFeeCents: 0, homeFeeCents: null, deliveryProvinces: ["Panamá"] };
+  it("CuadraZone no cobra la entrega: gratis o acordada con el vendedor", () => {
+    const store = { shippingFeeCents: 500, homeFeeCents: null, deliveryProvinces: ["Panamá"] };
     expect(deliveryQuote(store, "pickup", "Darién")).toBe(0);
     expect(deliveryQuote(store, "shipping", "Panamá")).toBe(0);
-    expect(() => deliveryQuote(store, "home", "Panamá")).toThrow();
-    expect(() => deliveryQuote(store, "shipping", "Darién")).toThrow();
+    expect(deliveryQuote(store, "home", "Darién")).toBe(0);
   });
 
   it("valida total esperado, enteros y límite monetario", () => {

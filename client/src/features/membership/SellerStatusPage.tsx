@@ -2,9 +2,8 @@ import {
   commissionPercentLabel,
   getSellerPlan,
   isInTrial,
-  PAID_COMMISSION_BPS,
+  planCommissionBps,
   sellerPlanLabel,
-  TRIAL_COMMISSION_BPS,
   TRIAL_MONTHS,
   TRIAL_PLAN_ID,
 } from "@shared/pricing";
@@ -161,10 +160,9 @@ export function SellerStatusPage() {
               {inTrial ? (
                 <p>
                   <strong>Prueba gratis</strong> hasta el {trialEnds}: no pagas
-                  mensualidad y la comisión es de{" "}
-                  {commissionPercentLabel(TRIAL_COMMISSION_BPS)} por venta.
-                  Después pagarás {sellerPlanLabel(planId)} al mes y la comisión
-                  baja a {commissionPercentLabel(PAID_COMMISSION_BPS)}.{" "}
+                  mensualidad ni comisión. Después pagarás{" "}
+                  {sellerPlanLabel(planId)} al mes y una comisión de{" "}
+                  {commissionPercentLabel(planCommissionBps(planId))} por venta.{" "}
                   {prepaid
                     ? `Ya pagaste por adelantado: tu mensualidad cubre hasta el ${endsAt}.`
                     : "Para no quedar oculto, paga tu primera mensualidad antes de esa fecha."}
@@ -172,8 +170,8 @@ export function SellerStatusPage() {
               ) : subscription?.status === "active" ? (
                 <p>
                   <strong>Suscripción activa</strong> hasta el {endsAt}, con
-                  comisión de {commissionPercentLabel(PAID_COMMISSION_BPS)} por
-                  venta entregada. Para renovar, paga antes de esa fecha y tus
+                  comisión de {commissionPercentLabel(planCommissionBps(planId))}{" "}
+                  por venta entregada. Para renovar, paga antes de esa fecha y tus
                   meses se suman al período actual.
                 </p>
               ) : (
@@ -193,11 +191,10 @@ export function SellerStatusPage() {
           )}
           {app?.status === "approved" && <SellerBilling />}
           <p>
-            Los primeros {TRIAL_MONTHS} meses desde tu aprobación son gratis con{" "}
-            {commissionPercentLabel(TRIAL_COMMISSION_BPS)} de comisión en
-            productos físicos; después, mensualidad del plan y{" "}
-            {commissionPercentLabel(PAID_COMMISSION_BPS)} de comisión por venta
-            de productos. Los servicios no pagan comisión.
+            Los primeros {TRIAL_MONTHS} meses desde tu aprobación son gratis y
+            sin comisión; después, mensualidad del plan y comisión por venta de
+            productos: 10% con Normal y 5% con Mayor Visibilidad. Los servicios
+            no pagan comisión.
           </p>
         </section>
       </div>

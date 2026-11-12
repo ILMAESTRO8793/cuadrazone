@@ -60,18 +60,19 @@ describe("validación del pago", () => {
   });
 });
 
-import { commissionBpsAt, commissionCents, commissionPercentLabel, isInTrial, subscriptionPlanName } from "../shared/pricing";
+import { commissionBpsFor, commissionCents, commissionPercentLabel, isInTrial, subscriptionPlanName } from "../shared/pricing";
 
 describe("comisión por venta", () => {
-  it("cobra 8% mientras dura la prueba y 5% después, aunque pague por adelantado", () => {
+  it("0% en la prueba; después 10% Normal y 5% Mayor Visibilidad", () => {
     const now = new Date("2026-10-22T12:00:00Z");
-    expect(commissionBpsAt(new Date("2027-01-22T12:00:00Z"), now)).toBe(800);
-    expect(commissionBpsAt("2027-01-22T12:00:00.000Z", now)).toBe(800);
-    expect(commissionBpsAt(new Date("2026-10-22T11:59:59Z"), now)).toBe(500);
-    expect(commissionBpsAt(null, now)).toBe(500);
-    expect(commissionBpsAt("no es fecha", now)).toBe(500);
+    expect(commissionBpsFor("normal", new Date("2027-01-22T12:00:00Z"), now)).toBe(0);
+    expect(commissionBpsFor("mayor_visibilidad", "2027-01-22T12:00:00.000Z", now)).toBe(0);
+    expect(commissionBpsFor("prueba", null, now)).toBe(0);
+    expect(commissionBpsFor("normal", new Date("2026-10-22T11:59:59Z"), now)).toBe(1000);
+    expect(commissionBpsFor("mayor_visibilidad", null, now)).toBe(500);
+    expect(commissionBpsFor(null, "no es fecha", now)).toBe(1000);
     expect(isInTrial(new Date("2027-01-01T00:00:00Z"), now)).toBe(true);
-    expect(commissionPercentLabel(800)).toBe("8%");
+    expect(commissionPercentLabel(1000)).toBe("10%");
   });
   it("calcula sobre el subtotal y redondea al centavo", () => {
     expect(commissionCents(2500, 800)).toBe(200);

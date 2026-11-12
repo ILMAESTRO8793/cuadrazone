@@ -62,10 +62,10 @@ describe("CuadraZone preview", () => {
     expect(result.html).toContain("Mayor Visibilidad");
     expect(result.html).toContain("Normal");
     expect(result.html).not.toContain("USD 10.00");
-    expect(result.html).toContain("Productos físicos: 5% de comisión por venta entregada");
+    expect(result.html).toContain("Productos físicos: 10% de comisión por venta entregada");
     expect(result.html).toContain("Los servicios no pagan comisión.");
     expect(result.html).toContain("Los primeros 3 meses son gratis");
-    expect(result.html).not.toContain("0% de comisión");
+    expect(result.html).not.toMatch(/(^|[^0-9])0% de comisión/);
   });
   it("uses the shared USD 19.99 seller fee without restoring a buyer subscription", () => {
     expect(SELLER_MONTHLY_FEE_CENTS).toBe(1999);

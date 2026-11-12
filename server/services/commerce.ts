@@ -2,7 +2,8 @@ import { and, asc, desc, eq, inArray, isNull, ne, or, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { getDb } from "../db";
 import { czApplications } from "../../drizzle/schema";
-import { commissionBpsAt, commissionCents } from "@shared/pricing";
+import { commissionBpsFor, commissionCents } from "@shared/pricing";
+import { MIN_ORDER_LABEL, meetsMinimum } from "@shared/shippingRules";
 import { czProducts, czStores, czVariants } from "../../drizzle/catalog-schema";
 import {
   czCarts, czCartItems, czFavorites, czOrders, czOrderItems, czReviews,
@@ -15,7 +16,7 @@ import {
   type PaymentMethod, type PublicProductDTO, paymentMethodLabels
 } from "@shared/commerce";
 import type { PublicProduct } from "@shared/marketplace";
-import { coveredProvinces, isAllowedCardLink, readFeeMap, shippingFeeFor, storeAcceptsYappy } from "@shared/marketplace";
+import { isAllowedCardLink, readFeeMap, storeAcceptsYappy } from "@shared/marketplace";
 import { queueEmail, recipientFor } from "./email";
 import { orderPlacedBuyer, orderPlacedSeller, orderStatusChanged } from "./emailMessages";
 import { assertActiveStore, assertSellerOwner } from "./catalog";
@@ -74,14 +75,13 @@ function parseJsonArray(value: unknown): string[] {
 }
 function parseModes(value: unknown): DeliveryMode[] { return parseJsonArray(value).filter((x): x is DeliveryMode => x === "shipping" || x === "pickup" || x === "home"); }
 
-export function deliveryQuote(store: Pick<CatalogStore, "shippingFeeCents" | "homeFeeCents" | "deliveryProvinces"> & { shippingFeesByProvince?: unknown }, mode: DeliveryMode, province: string): number {
-  if (mode === "pickup") return 0;
-  const coverage = { deliveryProvinces: parseJsonArray(store.deliveryProvinces), shippingFeesByProvince: store.shippingFeesByProvince };
-  if (!coveredProvinces(coverage).includes(province)) fail("PRECONDITION_FAILED", "La tienda no envía a la provincia seleccionada");
-  // Envío: precio de esa provincia. A domicilio: la tarifa a domicilio de la tienda.
-  const fee = mode === "shipping" ? shippingFeeFor({ shippingFeeCents: store.shippingFeeCents, ...coverage }, province) : store.homeFeeCents;
-  if (fee === null || !Number.isInteger(fee) || fee < 0 || fee > MAX_MONEY_CENTS) fail("PRECONDITION_FAILED", "La tienda no tiene una tarifa válida para esta entrega");
-  return fee;
+/**
+ * Lo que CuadraZone cobra por la entrega: siempre 0. En la misma provincia el
+ * envío es gratis; en otra provincia el comprador lo acuerda y lo paga directo
+ * con el vendedor (shared/shippingRules.ts).
+ */
+export function deliveryQuote(_store: unknown, _mode: DeliveryMode, _province: string): number {
+  return 0;
 }
 
 async function activeStore(tx: Db | Tx, storeId: number): Promise<CatalogStore> {
@@ -146,7 +146,7 @@ async function cartFor(tx: Db | Tx, userId: number): Promise<CartDTO> {
     if (available) { try { await activeStore(tx, row.store.id); active = true; } catch { active = false; } }
     const availableNow = active && row.variant.stock >= row.item.quantity;
     items.push({ id: row.item.id, variantId: row.variant.id, quantity: row.item.quantity, productId: row.product.id, title: row.product.title,
-      slug: row.product.slug, image: parseJsonArray(row.product.imageUrls)[0] ?? null, storeId: row.store.id, storeName: row.store.name,
+      slug: row.product.slug, image: parseJsonArray(row.product.imageUrls)[0] ?? null, storeId: row.store.id, storeName: row.store.name, storeProvince: row.store.province,
       storeShippingFeeCents: row.store.shippingFeeCents ?? null, storeHomeFeeCents: row.store.homeFeeCents ?? null,
       storeDeliveryProvinces: parseJsonArray(row.store.deliveryProvinces), storeShippingFees: readFeeMap(row.store.shippingFeesByProvince), productDeliveryModes: parseModes(row.product.deliveryModes),
       priceCents: row.variant.priceCents, stock: row.variant.stock, available: availableNow, size: row.variant.size, color: row.variant.color });
@@ -326,6 +326,11 @@ export async function checkout(userId: number, input: { checkoutKey: string; exp
       if (error instanceof CommerceError) throw error;
       fail("BAD_REQUEST", error instanceof Error ? error.message : "Total inválido");
     }
+    for (const group of groups.values()) {
+      const subtotal = calculateSubtotal(group.lines.map(l => ({ priceCents: l.variant.priceCents, quantity: l.item.quantity })));
+      if (!meetsMinimum(subtotal))
+        fail("PRECONDITION_FAILED", `La compra mínima en ${group.lines[0]!.store.name} es de ${MIN_ORDER_LABEL}. Agrega más artículos de esa tienda.`);
+    }
     assertServiceCheckoutTotal(input.expectedTotalCents, quotedTotal);
     const created: number[] = [];
     for (const [storeId, group] of groups) {
@@ -338,10 +343,10 @@ export async function checkout(userId: number, input: { checkoutKey: string; exp
       if (!Number.isSafeInteger(totalCents) || totalCents > MAX_MONEY_CENTS) fail("BAD_REQUEST", "El total excede el límite permitido");
       // La tasa de comisión del vendedor queda fijada al momento de la compra.
       const sellerUserId = (await tx.select({ userId: czStores.userId }).from(czStores).where(eq(czStores.id, storeId)).limit(1))[0]!.userId;
-      const sellerTrialEndsAt = (await tx.select({ trialEndsAt: czApplications.trialEndsAt }).from(czApplications).where(eq(czApplications.userId, sellerUserId)).limit(1))[0]?.trialEndsAt ?? null;
+      const sellerApp = (await tx.select({ trialEndsAt: czApplications.trialEndsAt, planId: czApplications.subscriptionPlanId }).from(czApplications).where(eq(czApplications.userId, sellerUserId)).limit(1))[0];
       const orderNumber = `CZ-${input.checkoutKey.slice(0, 8)}-${storeId}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
       const result = await tx.insert(czOrders).values({ number: orderNumber, userId, storeId, checkoutKey: input.checkoutKey,
-        status: "pending", paymentMethod: input.paymentMethod, paymentStatus: paymentStatusFor(input.paymentMethod), subtotalCents, deliveryFeeCents: group.deliveryFeeCents, totalCents, deliveryMode: mode, commissionBps: commissionBpsAt(sellerTrialEndsAt),
+        status: "pending", paymentMethod: input.paymentMethod, paymentStatus: paymentStatusFor(input.paymentMethod), subtotalCents, deliveryFeeCents: group.deliveryFeeCents, totalCents, deliveryMode: mode, commissionBps: commissionBpsFor(sellerApp?.planId ?? null, sellerApp?.trialEndsAt ?? null),
         recipientName: input.recipientName, phone: input.phone, province: input.province, city: input.city, address: input.address, stockRestored: 0 });
       const orderId = listInsertId(result); created.push(orderId);
       for (const line of lines) {

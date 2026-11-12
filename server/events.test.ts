@@ -294,18 +294,16 @@ describe("escanear en la entrada", () => {
 });
 
 describe("comisión de boletos", () => {
-  it("8% durante la prueba gratis y 5% después, como los productos", async () => {
+  it("0% durante la prueba gratis; después 10% Normal y 5% Mayor Visibilidad", async () => {
     const { ticketCommission } = await import("./services/events");
     const trialEnds = new Date("2027-01-01T00:00:00Z");
-    expect(ticketCommission(4500, trialEnds, now)).toEqual({
-      bps: 800,
-      cents: 360,
-    });
+    expect(ticketCommission(4500, trialEnds, now)).toEqual({ bps: 0, cents: 0 });
     expect(
-      ticketCommission(4500, trialEnds, new Date("2027-02-01T00:00:00Z"))
-    ).toEqual({ bps: 500, cents: 225 });
-    expect(ticketCommission(1999, null, now)).toEqual({ bps: 500, cents: 100 });
-    expect(ticketCommission(0, trialEnds, now).cents).toBe(0);
+      ticketCommission(4500, trialEnds, new Date("2027-02-01T00:00:00Z"), "normal")
+    ).toEqual({ bps: 1000, cents: 450 });
+    expect(
+      ticketCommission(1999, null, now, "mayor_visibilidad")
+    ).toEqual({ bps: 500, cents: 100 });
   });
 
   it("al marcar pagado fija la comisión y entrega los boletos", async () => {
@@ -324,7 +322,7 @@ describe("comisión de boletos", () => {
       select: table => {
         if (table === czTicketOrders) return [{ order, event }];
         if (table === czApps)
-          return [{ trialEndsAt: new Date("2027-01-01T00:00:00Z") }];
+          return [{ trialEndsAt: new Date("2026-01-01T00:00:00Z"), planId: "normal" }];
         return [];
       },
       update: (table, set) => {
@@ -338,11 +336,11 @@ describe("comisión de boletos", () => {
     };
     const { markOrderPaid } = await import("./services/events");
     const result = await markOrderPaid(organizer, 5, now);
-    expect(result).toEqual({ status: "paid", commissionCents: 240 });
+    expect(result).toEqual({ status: "paid", commissionCents: 300 });
     expect(saved).toMatchObject({
       status: "paid",
-      commissionBps: 800,
-      commissionCents: 240,
+      commissionBps: 1000,
+      commissionCents: 300,
       expiresAt: null,
     });
     expect(tickets).toHaveLength(2);

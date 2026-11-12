@@ -35,6 +35,8 @@ export const cartItemDto = z.object({
   image: z.string().nullable(),
   storeId: positiveId,
   storeName: z.string(),
+  /** Provincia de la tienda: envío gratis si coincide con la del comprador. */
+  storeProvince: z.string().default(""),
   storeShippingFeeCents: moneyCents.nullable(),
   storeHomeFeeCents: moneyCents.nullable(),
   storeDeliveryProvinces: z.array(z.string()),

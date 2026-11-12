@@ -12,7 +12,8 @@ export const SELLER_PLANS = {
     benefits: [
       "Tienda y directorio por categorías y especialidades",
       "Productos y libros con inventario y pedidos",
-      "Productos físicos: 5% de comisión por venta entregada (sin el envío). Servicios: sin comisión",
+      "Productos físicos: 10% de comisión por venta entregada. Servicios: sin comisión",
+      "Envío gratis cuando tú y el comprador están en la misma provincia",
       "Sin prioridad comercial de pago",
     ],
   },
@@ -23,6 +24,7 @@ export const SELLER_PLANS = {
     description: "Una opción para dar más exposición a tu negocio.",
     benefits: [
       "Todos los beneficios del plan Normal",
+      "Comisión más baja: 5% por venta entregada",
       "Espacios superiores destacados por categoría, con rotación",
       "Ubicación identificada como Destacado — ubicación de pago",
       "La estrella roja «Tienda Destacada»: los compradores ven tu tienda con mayor credibilidad",
@@ -81,10 +83,11 @@ export const PLAN_ACTIVATION_NOTICE =
   "Elegir un plan no cobra nada. Los primeros 3 meses son gratis; después se paga la mensualidad del plan elegido.";
 
 /*
- * Modelo de cobro (22 de octubre de 2026):
- * - Prueba: los primeros 3 meses desde la aprobación no pagan mensualidad y la
- *   comisión es de 8% por venta entregada.
- * - Después: mensualidad del plan y comisión de 5% por venta entregada.
+ * Modelo de cobro (12 de noviembre de 2026):
+ * - Prueba: los primeros 3 meses desde la aprobación no pagan mensualidad ni
+ *   comisión.
+ * - Después: mensualidad del plan y comisión por venta entregada: 10% con el
+ *   plan Normal, 5% con Mayor Visibilidad.
  * La comisión aplica solo a la venta de productos físicos; los servicios (clases,
  * cursos, trabajos a domicilio, consultas) no pagan comisión, solo la mensualidad
  * (decisión del 23/10/2026). Se calcula solo sobre los productos (sin envío) y queda fijada
@@ -92,22 +95,34 @@ export const PLAN_ACTIVATION_NOTICE =
  */
 export const TRIAL_PLAN_ID = "prueba";
 export const TRIAL_MONTHS = 3;
-export const TRIAL_COMMISSION_BPS = 800;
-export const PAID_COMMISSION_BPS = 500;
-
-/**
- * Tasa en puntos básicos (800 = 8%) según la fecha: 8% mientras dure la prueba
- * gratuita, 5% después. Depende de la fecha y no del pago, para que pagar la
- * mensualidad por adelantado no baje la comisión de los meses gratis.
- */
-export function commissionBpsAt(trialEndsAt: Date | string | null | undefined, now: Date = new Date()): number {
-  if (!trialEndsAt) return PAID_COMMISSION_BPS;
-  const end = new Date(trialEndsAt);
-  return !Number.isNaN(end.getTime()) && now < end ? TRIAL_COMMISSION_BPS : PAID_COMMISSION_BPS;
-}
+export const TRIAL_COMMISSION_BPS = 0;
+export const NORMAL_COMMISSION_BPS = 1000;
+export const FEATURED_COMMISSION_BPS = 500;
+/** Compatibilidad: la comisión del plan Normal. */
+export const PAID_COMMISSION_BPS = NORMAL_COMMISSION_BPS;
 
 export function isInTrial(trialEndsAt: Date | string | null | undefined, now: Date = new Date()): boolean {
-  return commissionBpsAt(trialEndsAt, now) === TRIAL_COMMISSION_BPS;
+  if (!trialEndsAt) return false;
+  const end = new Date(trialEndsAt);
+  return !Number.isNaN(end.getTime()) && now < end;
+}
+
+/** Comisión del plan, sin contar la prueba: 5% Mayor Visibilidad, 10% Normal. */
+export function planCommissionBps(planId: string | null | undefined): number {
+  return planId === "mayor_visibilidad" ? FEATURED_COMMISSION_BPS : NORMAL_COMMISSION_BPS;
+}
+
+/**
+ * Tasa en puntos básicos (1000 = 10%): 0 durante la prueba gratuita; después,
+ * la del plan. La prueba depende de la fecha y no del pago.
+ */
+export function commissionBpsFor(
+  planId: string | null | undefined,
+  trialEndsAt: Date | string | null | undefined,
+  now: Date = new Date()
+): number {
+  if (isInTrial(trialEndsAt, now) || planId === TRIAL_PLAN_ID) return TRIAL_COMMISSION_BPS;
+  return planCommissionBps(planId);
 }
 
 /** Comisión en centavos sobre el subtotal de productos, redondeada al centavo. */
