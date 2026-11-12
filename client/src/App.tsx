@@ -49,6 +49,7 @@ import { isPublicPath, loginRedirectFor } from "@shared/accessGate";
 import { AccountPage } from "./features/membership/AccountPage";
 import { SellerApplicationPage } from "./features/membership/SellerApplicationPage";
 import { SellerPlanPage } from "./features/membership/SellerPlanPage";
+import { SellerAccessGate } from "./features/membership/SellerAccessGate";
 import { LoginPage } from "./features/membership/LoginPage";
 import { ComingSoonPage, RealEstateDetailPage, RealEstateListPage, RealEstateMinePage } from "./features/realEstate/RealEstatePages";
 import { VehicleDetailPage, VehicleListPage, VehicleMinePage } from "./features/vehicles/VehiclePages";
@@ -130,12 +131,12 @@ function Router() {
         <Route path="/mensajes" component={MessagesPage} />
         <Route path="/notificaciones" component={NotificationsPage} />
         <Route path="/vendedor/plan" component={SellerPlanPage} />
-        <Route path="/vendedor/panel" component={SellerDashboardPage} />
-        <Route path="/vendedor/productos">{() => <SellerCatalogPage />}</Route>
+        <Route path="/vendedor/panel">{() => <SellerAccessGate><SellerDashboardPage /></SellerAccessGate>}</Route>
+        <Route path="/vendedor/productos">{() => <SellerAccessGate><SellerCatalogPage /></SellerAccessGate>}</Route>
         <Route path="/vendedor/tienda">
-          {() => <SellerCatalogPage tab="store" />}
+          {() => <SellerAccessGate><SellerCatalogPage tab="store" /></SellerAccessGate>}
         </Route>
-        <Route path="/vendedor/pedidos">{() => <OrdersPage seller />}</Route>
+        <Route path="/vendedor/pedidos">{() => <SellerAccessGate><OrdersPage seller /></SellerAccessGate>}</Route>
         <Route path="/vendedor/mensajes" component={MessagesPage} />
         <Route path="/catalogo">{() => <CatalogPage />}</Route>
         <Route path="/libros">
@@ -143,11 +144,11 @@ function Router() {
         </Route>
         <Route path="/eventos" component={EventListPage} />
         <Route path="/mis-boletos" component={MyTicketsPage} />
-        <Route path="/vendedor/eventos" component={SellerEventsPage} />
+        <Route path="/vendedor/eventos">{() => <SellerAccessGate><SellerEventsPage /></SellerAccessGate>}</Route>
         <Route path="/mis-citas" component={MyAppointmentsPage} />
-        <Route path="/vendedor/agenda" component={ProviderAgendaPage} />
+        <Route path="/vendedor/agenda">{() => <SellerAccessGate><ProviderAgendaPage /></SellerAccessGate>}</Route>
         <Route path="/vendedor/escanear/:id">
-          {p => <TicketScannerPage key={p.id} eventId={Number(p.id)} />}
+          {p => <SellerAccessGate><TicketScannerPage key={p.id} eventId={Number(p.id)} /></SellerAccessGate>}
         </Route>
         <Route path="/servicios" component={ServiceListPage} />
         <Route path="/producto/:slug">

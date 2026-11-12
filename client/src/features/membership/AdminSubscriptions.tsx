@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import {
   commissionPercentLabel,
   getSellerPlan,
+  planAmountCents,
   isInTrial,
   sellerPlanIds,
   subscriptionPlanName,
@@ -178,7 +179,7 @@ function AdvertiserPlans() {
   const [method, setMethod] = useState<AdvertiserMethod>("yappy");
   const [reference, setReference] = useState("");
   const [paidOn, setPaidOn] = useState(todayInPanama());
-  const amount = getSellerPlan(planId).monthlyCents * months;
+  const amount = planAmountCents(planId, months);
   async function save(e: React.FormEvent) {
     e.preventDefault();
     try {
@@ -348,7 +349,7 @@ function SubscriptionDetail({
   const [note, setNote] = useState("");
   const [confirming, setConfirming] = useState(false);
   const [reason, setReason] = useState("");
-  const amountCents = getSellerPlan(planId).monthlyCents * months;
+  const amountCents = planAmountCents(planId, months);
   const digits = row.phone.replace(/\D/g, "");
   const referenceOk = method === "efectivo" || reference.trim().length >= 3;
 
@@ -484,7 +485,7 @@ function SubscriptionDetail({
           >
             {Array.from({ length: 12 }, (_, i) => i + 1).map(n => (
               <option key={n} value={n}>
-                {n} {n === 1 ? "mes" : "meses"}
+                {n === 12 ? "1 año (12 meses) · 10 % de descuento" : `${n} ${n === 1 ? "mes" : "meses"}`}
               </option>
             ))}
           </select>

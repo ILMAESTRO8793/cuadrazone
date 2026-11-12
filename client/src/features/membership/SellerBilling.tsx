@@ -21,6 +21,7 @@ import {
 import { MAX_DOCUMENT_BYTES } from "@shared/membership";
 import {
   getSellerPlan,
+  planAmountCents,
   sellerPlanIds,
   type SellerPlanId,
 } from "@shared/pricing";
@@ -297,7 +298,7 @@ function PaymentClaimForm({
     const subscription =
       concept === "commission"
         ? 0
-        : getSellerPlan(planId).monthlyCents * months;
+        : planAmountCents(planId, months);
     const commission = concept === "subscription" ? 0 : commissionDueCents;
     return subscription + commission;
   }, [concept, planId, months, commissionDueCents]);
@@ -416,7 +417,7 @@ function PaymentClaimForm({
             >
               {Array.from({ length: 12 }, (_, i) => i + 1).map(n => (
                 <option key={n} value={n}>
-                  {n} {n === 1 ? "mes" : "meses"}
+                  {n === 12 ? "1 año (12 meses) · 10 % de descuento" : `${n} ${n === 1 ? "mes" : "meses"}`}
                 </option>
               ))}
             </select>

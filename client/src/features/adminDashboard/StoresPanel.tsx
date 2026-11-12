@@ -432,7 +432,7 @@ function StarsEditor({ storeId, slug }: { storeId: number; slug: string }) {
   const q = trpc.stars.adminForStore.useQuery({ storeId });
   const set = trpc.stars.set.useMutation();
   const [notes, setNotes] = useState<Partial<Record<VerificationStar, string>>>({});
-  const awarded = new Map((q.data ?? []).map(s => [s.star, s]));
+  const awarded = new Map((q.data?.stars ?? []).map(s => [s.star, s]));
 
   async function toggle(star: VerificationStar) {
     const has = awarded.has(star);
@@ -456,9 +456,16 @@ function StarsEditor({ storeId, slug }: { storeId: number; slug: string }) {
     <section className="czd-stars">
       <h3>Estrellas de verificación</h3>
       <p className="czd-muted">
-        Otórgalas solo con acreditación real. Se ven en la tienda, en el
-        directorio y en sus productos.
+        Las tiendas con Mayor Visibilidad pagado tienen las cinco estrellas
+        automáticamente. A las demás puedes dárselas aquí una por una. Se ven
+        en la tienda, en el directorio y en sus productos.
       </p>
+      {q.data?.automatic && (
+        <p className="czd-stars-auto">
+          Esta tienda tiene Mayor Visibilidad pagado: ya muestra las cinco
+          estrellas.
+        </p>
+      )}
       <ul>
         {verificationStars.map(star => {
           const info = verificationStarInfo[star];

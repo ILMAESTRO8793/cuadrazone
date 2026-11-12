@@ -9,6 +9,7 @@ import {
   TRIAL_MONTHS,
   TRIAL_PLAN_ID,
   getSellerPlan,
+  planAmountCents,
   sellerPlanIds,
   sellerPlanLabel,
   type SellerPlanId,
@@ -104,7 +105,7 @@ export function computePeriod(
 }
 
 export function expectedAmountCents(planId: SellerPlanId, months: number) {
-  return getSellerPlan(planId).monthlyCents * months;
+  return planAmountCents(planId, months);
 }
 
 /** Valida y normaliza el pago antes de tocar la base de datos. */
@@ -127,7 +128,7 @@ export function validatePaymentInput(
   if (input.amountCents !== expected)
     fail(
       "BAD_REQUEST",
-      `El monto debe ser US$${(expected / 100).toFixed(2)} (${input.months} × ${getSellerPlan(input.planId).name})`
+      `El monto debe ser US$${(expected / 100).toFixed(2)} (${input.months === 12 ? "1 año con 10 % de descuento" : `${input.months} × ${getSellerPlan(input.planId).name}`})`
     );
   return { ...input, ...validateReceipt(input, today) };
 }

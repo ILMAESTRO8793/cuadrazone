@@ -25,8 +25,7 @@ export const SELLER_PLANS = {
       "Todos los beneficios del plan Normal",
       "Espacios superiores destacados por categoría, con rotación",
       "Ubicación identificada como Destacado — ubicación de pago",
-      "Publicidad de tu tienda en los banners de la portada de CuadraZone",
-      "Cinco estrellas de verificación (roja, amarilla, morada, azul y verde), solo con acreditación",
+      "Tu tienda lleva las cinco estrellas de verificación (roja, amarilla, morada, azul y verde)",
     ],
   },
 } as const;
@@ -34,6 +33,23 @@ export const PLAN_CATALOG_VERSION = "2026-10-10-v1";
 export function getSellerPlan(id: SellerPlanId) {
   return SELLER_PLANS[id];
 }
+/** Pagar el año completo (12 meses) tiene 10 % de descuento. */
+export const ANNUAL_DISCOUNT_PCT = 10;
+export const ANNUAL_MONTHS = 12;
+
+/** Lo que cuesta pagar `months` meses de un plan; 12 meses llevan el descuento anual. */
+export function planAmountCents(id: SellerPlanId, months: number): number {
+  const full = getSellerPlan(id).monthlyCents * months;
+  return months === ANNUAL_MONTHS
+    ? Math.round((full * (100 - ANNUAL_DISCOUNT_PCT)) / 100)
+    : full;
+}
+
+/** Precio anual con descuento, p. ej. «US$215.89». */
+export function sellerPlanAnnualLabel(id: SellerPlanId) {
+  return `US$${(planAmountCents(id, ANNUAL_MONTHS) / 100).toFixed(2)}`;
+}
+
 export function sellerPlanLabel(id: SellerPlanId) {
   return `US$${(getSellerPlan(id).monthlyCents / 100).toFixed(2)}`;
 }

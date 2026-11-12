@@ -7,6 +7,7 @@ import { TRPCError } from "@trpc/server";
 import { and, asc, eq, inArray } from "drizzle-orm";
 import express, { type Express, type Request, type Response } from "express";
 import { czStores } from "../../drizzle/catalog-schema";
+import { czApplications } from "../../drizzle/schema";
 import { czShowcaseItems } from "../../drizzle/showcase-schema";
 import {
   MAX_SHOWCASE_TILES,
@@ -100,9 +101,23 @@ export async function publicShowcase(
   const db = await getDb();
   if (!db) return { reel: null, stores: [], products: [] };
   const today = panamaDateKey(now);
-  const live = (await selectItems([section, "todas"])).filter(i =>
+  const items = (await selectItems([section, "todas"])).filter(i =>
     isShowcaseLive(i, today)
   );
+  // Una tienda con el plan vencido no sale en la vitrina.
+  const storeIds = Array.from(new Set(items.map(i => i.storeId).filter((id): id is number => id !== null)));
+  const activeIds = new Set(
+    storeIds.length
+      ? (
+          await db
+            .select({ id: czStores.id })
+            .from(czStores)
+            .innerJoin(czApplications, eq(czApplications.userId, czStores.userId))
+            .where(and(inArray(czStores.id, storeIds), eq(czApplications.subscriptionStatus, "active")))
+        ).map(r => r.id)
+      : []
+  );
+  const live = items.filter(i => i.storeId === null || activeIds.has(i.storeId));
   const tile = (i: AdminShowcaseItem): ShowcaseTile => ({
     id: i.id,
     zone: i.zone,

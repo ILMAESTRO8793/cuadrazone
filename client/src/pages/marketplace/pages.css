@@ -1921,3 +1921,4 @@
 .service-pub-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .service-pub-muted { color: #6c6253; font-size: 13px; }
 @media (max-width: 640px) { .service-pub-card { flex-direction: column; padding: 18px; } }
+.plan-annual { margin: -4px 0 10px; font-size: 14px; color: #3f5317; background: #eef2e1; border-radius: 8px; padding: 8px 10px; }

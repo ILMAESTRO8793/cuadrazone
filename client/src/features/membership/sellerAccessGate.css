@@ -1,0 +1,8 @@
+.seller-gate { padding-block: 48px 72px; display: grid; place-items: center; }
+.seller-gate-loading { padding-block: 48px; color: #625b50; }
+.seller-gate-card { max-width: 620px; width: 100%; background: #fff; border: 1px solid #e6dfd2; border-radius: 20px; padding: 32px 28px; text-align: center; box-shadow: 0 20px 50px -30px rgba(11, 31, 59, 0.35); }
+.seller-gate-icon { width: 60px; height: 60px; border-radius: 50%; display: inline-grid; place-items: center; background: #fbf0d6; color: #8a6420; margin-bottom: 12px; }
+.seller-gate-card h1 { font-size: clamp(24px, 4vw, 32px); margin: 0 0 10px; }
+.seller-gate-card > p { color: #4c4639; line-height: 1.6; margin: 0 auto 16px; max-width: 46ch; }
+.seller-gate-card ul { text-align: left; margin: 0 auto 22px; padding-left: 20px; max-width: 46ch; color: #625b50; line-height: 1.7; }
+.seller-gate-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }

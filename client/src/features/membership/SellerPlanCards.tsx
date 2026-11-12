@@ -5,6 +5,9 @@ import {
   sellerPlanIds,
   getSellerPlan,
   sellerPlanLabel,
+  sellerPlanAnnualLabel,
+  planAmountCents,
+  ANNUAL_DISCOUNT_PCT,
   type SellerPlanId,
 } from "@shared/pricing";
 
@@ -41,6 +44,11 @@ export function SellerPlanCards({
               <strong>{sellerPlanLabel(id)}</strong>
               <span>/ mes</span>
             </div>
+            <p className="plan-annual">
+              o <strong>{sellerPlanAnnualLabel(id)} al año</strong> pagando los
+              12 meses juntos: {ANNUAL_DISCOUNT_PCT} % de descuento (ahorras US$
+              {((plan.monthlyCents * 12 - planAmountCents(id, 12)) / 100).toFixed(2)})
+            </p>
             <p>{plan.description}</p>
             <ul>
               {plan.benefits.map(item => (
@@ -57,8 +65,9 @@ export function SellerPlanCards({
                   <span>Estrellas de verificación</span>
                 </div>
                 <p className="plan-pending-note">
-                  Cada estrella se otorga solo con acreditación real. No
-                  garantiza ventas ni primer puesto permanente.
+                  Tu tienda muestra las cinco estrellas mientras tu plan Mayor
+                  Visibilidad esté pagado y vigente. No garantiza ventas ni
+                  primer puesto permanente.
                 </p>
               </>
             )}
@@ -105,10 +114,11 @@ export function PlanConditions() {
         cobrada.
       </p>
       <p>
-        La verificación de identidad es obligatoria para ambos. Las cinco
-        estrellas de verificación (roja, amarilla, morada, azul y verde)
-        requieren acreditación real y autorización institucional vigente: la
-        confianza no se compra.
+        La verificación de identidad es obligatoria para ambos. Con Mayor
+        Visibilidad pagado, tu tienda muestra las cinco estrellas de
+        verificación (roja, amarilla, morada, azul y verde) en su página, en el
+        directorio y en tus productos. Si el plan vence, las estrellas se
+        quitan solas.
       </p>
       <p>
         Con Mayor Visibilidad, tus publicaciones aparecen en la franja{" "}
@@ -116,8 +126,9 @@ export function PlanConditions() {
         Eventos cuando cumplen los filtros de quien busca, identificadas como{" "}
         <strong>ubicación de pago</strong>. La franja rota cada 10 minutos entre
         las tiendas destacadas: no se promete una primera posición permanente.
-        Además, tu tienda puede salir en los banners de publicidad de la
-        portada. La prueba gratis no incluye destacados ni publicidad.
+        La prueba gratis no incluye destacados. La publicidad personalizada
+        (banners hechos a tu medida) no está incluida en ningún plan: es el
+        servicio aparte Service Pub, que pides desde «Mi plan».
       </p>
       <p>
         El envío e impuestos aplicables se informan por separado. La comisión

@@ -3,7 +3,8 @@ import { TRPCError } from "@trpc/server";
 import { and, asc, eq, inArray } from "drizzle-orm";
 import { czStores } from "../../drizzle/catalog-schema";
 import { czStoreStars } from "../../drizzle/verification-schema";
-import { sortStars, type VerificationStar } from "@shared/stars";
+import { czApplications } from "../../drizzle/schema";
+import { sortStars, verificationStars, type VerificationStar } from "@shared/stars";
 import { getDb } from "../db";
 
 async function requireDb() {
@@ -24,11 +25,46 @@ export async function starsForSlugs(slugs: string[]) {
     .select({ slug: czStores.slug, star: czStoreStars.star })
     .from(czStoreStars)
     .innerJoin(czStores, eq(czStores.id, czStoreStars.storeId))
-    .where(inArray(czStores.slug, unique));
+    .innerJoin(czApplications, eq(czApplications.userId, czStores.userId))
+    // Con el plan vencido no se muestran estrellas.
+    .where(and(inArray(czStores.slug, unique), eq(czApplications.subscriptionStatus, "active")));
   const grouped = new Map<string, string[]>();
   for (const r of rows) grouped.set(r.slug, [...(grouped.get(r.slug) ?? []), r.star]);
   for (const [slug, stars] of grouped) out[slug] = sortStars(stars);
+  // Mayor Visibilidad pagado y vigente: la tienda lleva las cinco estrellas.
+  const featured = await db
+    .select({ slug: czStores.slug })
+    .from(czStores)
+    .innerJoin(czApplications, eq(czApplications.userId, czStores.userId))
+    .where(
+      and(
+        inArray(czStores.slug, unique),
+        eq(czApplications.status, "approved"),
+        eq(czApplications.subscriptionStatus, "active"),
+        eq(czApplications.subscriptionPlanId, "mayor_visibilidad")
+      )
+    );
+  for (const f of featured) out[f.slug] = [...verificationStars];
   return out;
+}
+
+/** ¿Tiene Mayor Visibilidad pagado y vigente? Entonces sus cinco estrellas son automáticas. */
+async function hasMayorVisibilidad(storeId: number) {
+  const db = await requireDb();
+  const rows = await db
+    .select({ id: czStores.id })
+    .from(czStores)
+    .innerJoin(czApplications, eq(czApplications.userId, czStores.userId))
+    .where(
+      and(
+        eq(czStores.id, storeId),
+        eq(czApplications.status, "approved"),
+        eq(czApplications.subscriptionStatus, "active"),
+        eq(czApplications.subscriptionPlanId, "mayor_visibilidad")
+      )
+    )
+    .limit(1);
+  return rows.length > 0;
 }
 
 /** Para el administrador: estrellas de una tienda con su nota y fecha. */
@@ -39,7 +75,10 @@ export async function adminStoreStars(storeId: number) {
     .from(czStoreStars)
     .where(eq(czStoreStars.storeId, storeId))
     .orderBy(asc(czStoreStars.id));
-  return rows.map(r => ({ star: r.star as VerificationStar, note: r.note, createdAt: new Date(r.createdAt).toISOString() }));
+  return {
+    automatic: await hasMayorVisibilidad(storeId),
+    stars: rows.map(r => ({ star: r.star as VerificationStar, note: r.note, createdAt: new Date(r.createdAt).toISOString() })),
+  };
 }
 
 export async function setStoreStar(
