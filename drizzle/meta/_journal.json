@@ -211,6 +211,13 @@
       "when": 1794439928931,
       "tag": "0029_vitrina_secciones",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "5",
+      "when": 1794441625083,
+      "tag": "0030_service_pub",
+      "breakpoints": true
     }
   ]
 }

@@ -21,6 +21,26 @@ export const showcaseZoneLabels: Record<ShowcaseZone, string> = {
 };
 export const MAX_SHOWCASE_TILES = 12;
 
+/** Una foto que ya está en CuadraZone (logo, producto o servicio). */
+export const catalogMediaPath = z
+  .string()
+  .max(500)
+  .regex(/^\/media\/catalog\/[A-Za-z0-9][A-Za-z0-9._\/-]*$/, "Foto inválida")
+  .refine(v => !v.includes(".."), "Foto inválida");
+
+/** Algo que se puede promocionar: una tienda, un producto o un servicio. */
+export type PromoCandidate = {
+  key: string;
+  kind: "tienda" | "producto" | "servicio";
+  title: string;
+  subtitle: string;
+  imageUrl: string | null;
+  linkUrl: string;
+  storeId: number;
+  storeName: string;
+  featured: boolean;
+};
+
 const day = z.string().regex(/^(\d{4}-\d{2}-\d{2})?$/, "Fecha inválida").default("");
 export const saveShowcaseInput = z
   .object({
@@ -33,6 +53,8 @@ export const saveShowcaseInput = z
       message: "El enlace debe empezar con / (página de CuadraZone) o https://",
     }),
     storeId: z.number().int().positive().nullable().default(null),
+    /** Foto ya existente (al escoger un producto); si no, se sube aparte. */
+    mediaUrl: catalogMediaPath.nullable().optional(),
     active: z.boolean(),
     sortOrder: z.number().int().min(0).max(9999).default(0),
     startsOn: day,

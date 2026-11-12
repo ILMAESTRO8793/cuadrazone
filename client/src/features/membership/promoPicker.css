@@ -1,0 +1,21 @@
+.pp { border: 1px solid #e6dfd2; border-radius: 12px; background: #fff; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.pp-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.pp-head strong { display: inline-flex; align-items: center; gap: 6px; }
+.pp-tabs { display: inline-flex; background: #f4efe4; border-radius: 10px; padding: 3px; }
+.pp-tabs button { border: 0; background: none; padding: 8px 12px; border-radius: 8px; font-weight: 700; color: #6c6253; cursor: pointer; }
+.pp-tabs button.is-active { background: #fff; color: #1d2733; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); }
+.pp-filters { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+.pp-filters input[type="search"] { flex: 1 1 240px; border: 1px solid #ccc4b5; border-radius: 8px; padding: 9px 11px; font: inherit; }
+.pp-filters label { display: inline-flex !important; flex-direction: row !important; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; }
+.pp-muted { color: #6c6253; font-size: 14px; margin: 0; }
+.pp-grid { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; max-height: 320px; overflow-y: auto; }
+.pp-grid button { width: 100%; display: flex; gap: 10px; align-items: center; text-align: left; border: 1px solid #e9e3d9; border-radius: 10px; background: #fff; padding: 8px; cursor: pointer; }
+.pp-grid button:hover { border-color: #b78f3b; }
+.pp-grid button.is-picked { border-color: #a37b2a; background: #fbf6e8; box-shadow: inset 0 0 0 1px #a37b2a; }
+.pp-img { width: 56px; height: 56px; border-radius: 8px; overflow: hidden; flex-shrink: 0; display: grid; place-items: center; background: #f4efe4; }
+.pp-img img { width: 100%; height: 100%; object-fit: cover; }
+.pp-text { display: flex; flex-direction: column; min-width: 0; gap: 1px; }
+.pp-text b { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pp-text small { font-size: 12px; color: #6c6253; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pp-text em { font-style: normal; font-size: 11px; color: #8a6a22; font-weight: 700; }
+.pp button:focus-visible, .pp input:focus-visible { outline: 3px solid #ae832f; outline-offset: 2px; }

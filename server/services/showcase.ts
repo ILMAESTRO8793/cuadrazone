@@ -153,6 +153,9 @@ export async function adminSaveShowcase(input: SaveShowcaseInput) {
     storeId: input.storeId,
     active: input.active ? 1 : 0,
     sortOrder: input.sortOrder,
+    ...(input.mediaUrl && !input.mediaUrl.startsWith("/media/catalog/showcase/")
+      ? { mediaUrl: input.mediaUrl, mediaType: "image" }
+      : {}),
     startsOn: input.startsOn,
     endsOn: input.endsOn,
   };

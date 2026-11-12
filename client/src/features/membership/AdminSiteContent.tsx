@@ -14,6 +14,7 @@ import {
   type AdminCategoryDTO,
 } from "@shared/siteContent";
 import { trpc } from "@/lib/trpc";
+import { PromoPicker } from "./PromoPicker";
 import "./adminPanels.css";
 
 const errorText = (e: unknown) =>
@@ -28,6 +29,8 @@ type BannerDraft = {
   sortOrder: number;
   startsOn: string;
   endsOn: string;
+  /** Foto tomada de una tienda, producto o servicio escogido. */
+  imageUrl?: string;
 };
 const emptyBanner: BannerDraft = {
   title: "",
@@ -59,6 +62,7 @@ function BannerManager({ enabled }: { enabled: boolean }) {
   const [draft, setDraft] = useState<BannerDraft | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [mode, setMode] = useState<"escoger" | "personalizado">("escoger");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const refresh = () => {
@@ -86,8 +90,12 @@ function BannerManager({ enabled }: { enabled: boolean }) {
     e.preventDefault();
     if (!draft) return;
     try {
-      if (draft.id === undefined && !file)
-        throw new Error("Agrega la foto del banner");
+      if (draft.id === undefined && !file && !draft.imageUrl)
+        throw new Error(
+          mode === "escoger"
+            ? "Escoge una tienda, un producto o un servicio"
+            : "Agrega la foto del banner"
+        );
       const { id } = await save.mutateAsync(draft);
       if (file) await upload(id, file);
       toast.success("Banner guardado");
@@ -161,6 +169,7 @@ function BannerManager({ enabled }: { enabled: boolean }) {
             className="btn btn-gold"
             onClick={() => {
               setFile(null);
+              setMode("escoger");
               setDraft({ ...emptyBanner });
             }}
           >
@@ -178,6 +187,54 @@ function BannerManager({ enabled }: { enabled: boolean }) {
       {draft && (
         <form className="ap2-form ap2-banner-form" onSubmit={submit}>
           <h3>{draft.id ? "Editar banner" : "Nuevo banner"}</h3>
+          <div className="ap2-mode" role="tablist" aria-label="Tipo de banner">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={mode === "escoger"}
+              className={mode === "escoger" ? "is-active" : ""}
+              onClick={() => setMode("escoger")}
+            >
+              Escoger tienda, producto o servicio
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={mode === "personalizado"}
+              className={mode === "personalizado" ? "is-active" : ""}
+              onClick={() => setMode("personalizado")}
+            >
+              Personalizado (Service Pub)
+            </button>
+          </div>
+          {mode === "escoger" ? (
+            <PromoPicker
+              onPick={c =>
+                setDraft(d =>
+                  d
+                    ? {
+                        ...d,
+                        title: c.title.slice(0, 80),
+                        subtitle: c.kind === "tienda" ? "Tienda destacada" : c.subtitle.slice(0, 160),
+                        linkUrl: c.linkUrl,
+                        imageUrl: c.imageUrl?.startsWith("/media/catalog/") ? c.imageUrl : undefined,
+                      }
+                    : d
+                )
+              }
+            />
+          ) : (
+            <p className="re-muted re-small ap2-mode-note">
+              Banner hecho a la medida: tú subes el diseño. Es el servicio
+              Service Pub de US$10 al mes que el vendedor pide desde «Mi plan».
+            </p>
+          )}
+          {draft.imageUrl && !file && (
+            <div className="ap2-picked">
+              <img src={draft.imageUrl} alt="" />
+              <span>Se usará esta foto. Puedes subir otra abajo si prefieres.</span>
+            </div>
+          )}
           <label>
             Título
             <input

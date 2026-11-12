@@ -214,6 +214,7 @@ export async function adminSaveBanner(input: SaveBannerInput) {
     sortOrder: input.sortOrder,
     startsAt: input.startsOn ? panamaDayRange(input.startsOn).start : null,
     endsAt: input.endsOn ? panamaDayRange(input.endsOn).end : null,
+    ...(input.imageUrl ? { imageUrl: input.imageUrl } : {}),
   };
   if (input.id === undefined) {
     const result = await db.insert(czBanners).values(values);

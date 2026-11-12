@@ -1904,3 +1904,20 @@
 /* Videos del producto en la ficha */
 .live-videos { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 12px; }
 .live-videos video { width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; background: #0B1F3B; }
+
+/* Service Pub: publicidad personalizada aparte del plan */
+.service-pub-card { display: flex; gap: 16px; margin: 22px 0; padding: 22px; border-radius: 16px; border: 1px solid #e3d3a8; background: linear-gradient(135deg, #fffaf0, #fff); }
+.service-pub-icon { width: 48px; height: 48px; flex-shrink: 0; border-radius: 12px; display: grid; place-items: center; background: #b58c3c; color: #fff; }
+.service-pub-body { display: flex; flex-direction: column; gap: 10px; min-width: 0; flex: 1; }
+.service-pub-body h2 { margin: 0; font-size: 22px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.service-pub-body h2 span { font-size: 14px; font-weight: 700; color: #8a6420; }
+.service-pub-body p { margin: 0; line-height: 1.6; }
+.service-pub-status { padding: 8px 12px; border-radius: 8px; background: #f4efe4; font-size: 14px; }
+.service-pub-status--active { background: #e8f3ea; color: #1f5a2c; }
+.service-pub-status--expired, .service-pub-status--cancelled { background: #f6ecea; color: #7a2a1d; }
+.service-pub-form { display: flex; flex-direction: column; gap: 10px; }
+.service-pub-form label { display: flex; flex-direction: column; gap: 6px; font-weight: 600; }
+.service-pub-form textarea { border: 1px solid #ccc4b5; border-radius: 8px; padding: 10px; font: inherit; resize: vertical; }
+.service-pub-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.service-pub-muted { color: #6c6253; font-size: 13px; }
+@media (max-width: 640px) { .service-pub-card { flex-direction: column; padding: 18px; } }

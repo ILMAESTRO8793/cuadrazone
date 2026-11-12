@@ -12,6 +12,7 @@ import {
 } from "@shared/showcase";
 import { trpc } from "@/lib/trpc";
 import { StoreLogo } from "@/components/marketplace/StoreLogo";
+import { PromoPicker } from "./PromoPicker";
 import "./adminShowcase.css";
 
 const errorText = (e: unknown) =>
@@ -85,8 +86,15 @@ export function AdminShowcase({ enabled }: { enabled: boolean }) {
     e.preventDefault();
     if (!draft) return;
     try {
-      const { mediaUrl: _m, mediaType: _t, ...input } = draft;
-      const saved = await save.mutateAsync(input);
+      const { mediaUrl, mediaType: _t, ...input } = draft;
+      const saved = await save.mutateAsync({
+        ...input,
+        // Solo una foto escogida de una tienda o producto; lo subido ya está guardado.
+        mediaUrl:
+          mediaUrl?.startsWith("/media/catalog/") && !mediaUrl.startsWith("/media/catalog/showcase/")
+            ? mediaUrl
+            : undefined,
+      });
       setDraft(d => (d ? { ...d, id: saved.id } : d));
       await refresh();
       toast.success(
@@ -174,6 +182,28 @@ export function AdminShowcase({ enabled }: { enabled: boolean }) {
               ? "Editar bloque"
               : `Nuevo: ${showcaseZoneLabels[draft.zone].toLowerCase()}`}
           </h3>
+          {draft.zone !== "reel" && (
+            <PromoPicker
+              key={draft.zone}
+              initial={draft.zone === "tienda" ? "tiendas" : "items"}
+              onPick={c =>
+                setDraft(d =>
+                  d
+                    ? {
+                        ...d,
+                        storeId: c.storeId,
+                        title: c.title.slice(0, 80),
+                        subtitle: c.kind === "tienda" ? d.subtitle : c.subtitle.slice(0, 160),
+                        linkUrl: c.kind === "tienda" ? "" : c.linkUrl,
+                        ...(c.kind !== "tienda" && c.imageUrl
+                          ? { mediaUrl: c.imageUrl, mediaType: "image" as const }
+                          : {}),
+                      }
+                    : d
+                )
+              }
+            />
+          )}
           <div className="as-grid">
             <label>
               Tipo

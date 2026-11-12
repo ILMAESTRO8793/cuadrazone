@@ -22,6 +22,7 @@ import {
   users,
 } from "../../drizzle/schema";
 import { czExpenses, czFinanceSettings } from "../../drizzle/finance-schema";
+import { czServicePubPayments } from "../../drizzle/servicepub-schema";
 import {
   DEFAULT_FINANCE_SETTINGS,
   ITBMS_THRESHOLD_CENTS,
@@ -142,6 +143,7 @@ export async function dashboardOverview(year: number, now = new Date()) {
     sellerUsers,
     sales,
     recentSubs,
+    pubs,
   ] = await Promise.all([
     db
       .select({
@@ -247,12 +249,20 @@ export async function dashboardOverview(year: number, now = new Date()) {
         desc(czSubscriptionPayments.id)
       )
       .limit(8),
+    db
+      .select({
+        paidOn: czServicePubPayments.paidOn,
+        amountCents: czServicePubPayments.amountCents,
+      })
+      .from(czServicePubPayments)
+      .where(gte(czServicePubPayments.paidOn, from)),
   ]);
 
   const payments: Payment[] = [
     ...subs.map(p => ({ ...p, source: "suscripciones" as const })),
     ...commissions.map(p => ({ ...p, source: "comisiones" as const })),
     ...ads.map(p => ({ ...p, source: "anuncios" as const })),
+    ...pubs.map(p => ({ ...p, source: "anuncios" as const })),
   ].map(p => ({
     paidOn: String(p.paidOn),
     amountCents: num(p.amountCents),

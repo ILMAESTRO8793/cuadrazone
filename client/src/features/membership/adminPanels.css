@@ -340,3 +340,11 @@
     grid-column: 1 / -1;
   }
 }
+
+/* Tipo de banner: escoger de CuadraZone o personalizado (Service Pub) */
+.ap2-mode { display: inline-flex; flex-wrap: wrap; gap: 4px; background: #f4efe4; border-radius: 10px; padding: 3px; align-self: flex-start; }
+.ap2-mode button { border: 0; background: none; padding: 8px 12px; border-radius: 8px; font-weight: 700; color: #6c6253; cursor: pointer; }
+.ap2-mode button.is-active { background: #fff; color: #1d2733; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); }
+.ap2-mode-note { margin: 0; }
+.ap2-picked { display: flex; gap: 12px; align-items: center; font-size: 13px; color: #625b50; }
+.ap2-picked img { width: 120px; height: 64px; object-fit: cover; border-radius: 8px; border: 1px solid #e6dfd2; }

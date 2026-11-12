@@ -39,6 +39,13 @@ export const saveBannerInput = z
     linkUrl: z.string().trim().max(300).default("").refine(isSafeBannerLink, {
       message: "El enlace debe empezar con / (página de CuadraZone) o https://",
     }),
+    /** Foto ya existente en CuadraZone (al escoger una tienda o producto). */
+    imageUrl: z
+      .string()
+      .max(500)
+      .regex(/^\/media\/catalog\/[A-Za-z0-9][A-Za-z0-9._\/-]*$/, "Foto inválida")
+      .refine(v => !v.includes(".."), "Foto inválida")
+      .optional(),
     active: z.boolean(),
     sortOrder: z.number().int().min(0).max(9999).default(0),
     startsOn: optionalDay,

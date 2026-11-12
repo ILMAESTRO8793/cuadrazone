@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { AuthGate } from "./AuthGate";
 import { SellerPlanCards, PlanConditions } from "./SellerPlanCards";
+import { ServicePubCard } from "./ServicePubCard";
 import {
   Dialog,
   DialogContent,
@@ -150,6 +151,7 @@ function PlanContent() {
             Revisar y guardar preferencia
           </button>
         </section>
+        <ServicePubCard />
         <PlanConditions />
         <Link className="btn btn-outline" href="/solicitud-vendedor">
           {membership.data?.application

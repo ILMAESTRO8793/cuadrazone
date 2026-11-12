@@ -191,5 +191,5 @@ export type RevenueSource = (typeof revenueSources)[number];
 export const revenueSourceLabels: Record<RevenueSource, string> = {
   suscripciones: "Suscripciones",
   comisiones: "Comisiones",
-  anuncios: "Planes de anunciante",
+  anuncios: "Publicidad (Service Pub y anuncios)",
 };
