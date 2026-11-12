@@ -1,16 +1,30 @@
-/* Estrellas de verificación: el público ve cuáles tiene una tienda; solo un administrador las otorga. */
+/*
+ * Estrellas de verificación: se ganan por logros (achievements.ts) y un
+ * administrador también puede otorgarlas a mano a una tienda. Con el plan
+ * vencido no se muestra ninguna.
+ */
 import { TRPCError } from "@trpc/server";
-import { and, asc, eq, inArray } from "drizzle-orm";
-import { czStores } from "../../drizzle/catalog-schema";
+import { and, eq, inArray } from "drizzle-orm";
+import {
+  czJobs,
+  czProperties,
+  czServices,
+  czStores,
+  czVehicles,
+} from "../../drizzle/catalog-schema";
 import { czStoreStars } from "../../drizzle/verification-schema";
-import { czApplications } from "../../drizzle/schema";
-import { sortStars, verificationStars, type VerificationStar } from "@shared/stars";
+import { earnedStars, sortStars, type VerificationStar } from "@shared/stars";
+import type { ReviewKind } from "@shared/listingReviews";
 import { getDb } from "../db";
+import { starsForUsers } from "./achievements";
 
 async function requireDb() {
   const db = await getDb();
   if (!db)
-    throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "La base de datos no está disponible" });
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "La base de datos no está disponible",
+    });
   return db;
 }
 
@@ -21,82 +35,101 @@ export async function starsForSlugs(slugs: string[]) {
   if (!unique.length) return out;
   const db = await getDb();
   if (!db) return out;
-  const rows = await db
-    .select({ slug: czStores.slug, star: czStoreStars.star })
-    .from(czStoreStars)
-    .innerJoin(czStores, eq(czStores.id, czStoreStars.storeId))
-    .innerJoin(czApplications, eq(czApplications.userId, czStores.userId))
-    // Con el plan vencido no se muestran estrellas.
-    .where(and(inArray(czStores.slug, unique), eq(czApplications.subscriptionStatus, "active")));
-  const grouped = new Map<string, string[]>();
-  for (const r of rows) grouped.set(r.slug, [...(grouped.get(r.slug) ?? []), r.star]);
-  for (const [slug, stars] of grouped) out[slug] = sortStars(stars);
-  // Mayor Visibilidad pagado y vigente: la tienda lleva las cinco estrellas.
-  const featured = await db
-    .select({ slug: czStores.slug })
+  const stores = await db
+    .select({ slug: czStores.slug, userId: czStores.userId })
     .from(czStores)
-    .innerJoin(czApplications, eq(czApplications.userId, czStores.userId))
-    .where(
-      and(
-        inArray(czStores.slug, unique),
-        eq(czApplications.status, "approved"),
-        eq(czApplications.subscriptionStatus, "active"),
-        eq(czApplications.subscriptionPlanId, "mayor_visibilidad")
-      )
-    );
-  for (const f of featured) out[f.slug] = [...verificationStars];
+    .where(inArray(czStores.slug, unique));
+  const { stars } = await starsForUsers(
+    db,
+    stores.map(s => s.userId)
+  );
+  for (const s of stores) {
+    const list = stars.get(s.userId);
+    if (list) out[s.slug] = list;
+  }
   return out;
 }
 
-/** ¿Tiene Mayor Visibilidad pagado y vigente? Entonces sus cinco estrellas son automáticas. */
-async function hasMayorVisibilidad(storeId: number) {
-  const db = await requireDb();
-  const rows = await db
-    .select({ id: czStores.id })
-    .from(czStores)
-    .innerJoin(czApplications, eq(czApplications.userId, czStores.userId))
-    .where(
-      and(
-        eq(czStores.id, storeId),
-        eq(czApplications.status, "approved"),
-        eq(czApplications.subscriptionStatus, "active"),
-        eq(czApplications.subscriptionPlanId, "mayor_visibilidad")
-      )
-    )
+const listingTables = {
+  servicio: czServices,
+  inmueble: czProperties,
+  auto: czVehicles,
+  empleo: czJobs,
+} as const;
+
+/** Estrellas del dueño de un anuncio (bienes raíces, autos, empleos o servicios). */
+export async function starsForListing(
+  kind: ReviewKind,
+  listingId: number
+): Promise<VerificationStar[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const t = listingTables[kind] as typeof czJobs;
+  const [row] = await db
+    .select({ userId: t.userId })
+    .from(t)
+    .where(eq(t.id, listingId))
     .limit(1);
-  return rows.length > 0;
+  if (!row) return [];
+  const { stars } = await starsForUsers(db, [row.userId]);
+  return stars.get(row.userId) ?? [];
 }
 
-/** Para el administrador: estrellas de una tienda con su nota y fecha. */
+/** Para el administrador: qué logros cumple la tienda y qué estrellas le dio a mano. */
 export async function adminStoreStars(storeId: number) {
   const db = await requireDb();
-  const rows = await db
-    .select({ star: czStoreStars.star, note: czStoreStars.note, createdAt: czStoreStars.createdAt })
+  const [store] = await db
+    .select({ userId: czStores.userId })
+    .from(czStores)
+    .where(eq(czStores.id, storeId))
+    .limit(1);
+  if (!store)
+    throw new TRPCError({ code: "NOT_FOUND", message: "La tienda no existe" });
+  const manual = await db
+    .select({ star: czStoreStars.star })
     .from(czStoreStars)
-    .where(eq(czStoreStars.storeId, storeId))
-    .orderBy(asc(czStoreStars.id));
+    .where(eq(czStoreStars.storeId, storeId));
+  const { metrics } = await starsForUsers(db, [store.userId]);
+  const m = metrics.get(store.userId)!;
   return {
-    automatic: await hasMayorVisibilidad(storeId),
-    stars: rows.map(r => ({ star: r.star as VerificationStar, note: r.note, createdAt: new Date(r.createdAt).toISOString() })),
+    active: m.active,
+    earned: earnedStars(m),
+    manual: sortStars(manual.map(r => r.star)),
+    metrics: m,
   };
 }
 
+/** Otorga o quita a mano una estrella a una tienda. */
 export async function setStoreStar(
   adminId: number,
-  input: { storeId: number; star: VerificationStar; awarded: boolean; note: string }
+  input: { storeId: number; star: VerificationStar; awarded: boolean }
 ) {
   const db = await requireDb();
-  const store = await db.select({ id: czStores.id }).from(czStores).where(eq(czStores.id, input.storeId)).limit(1);
-  if (!store[0]) throw new TRPCError({ code: "NOT_FOUND", message: "La tienda no existe" });
-  if (input.awarded) {
+  const [store] = await db
+    .select({ id: czStores.id })
+    .from(czStores)
+    .where(eq(czStores.id, input.storeId))
+    .limit(1);
+  if (!store)
+    throw new TRPCError({ code: "NOT_FOUND", message: "La tienda no existe" });
+  if (input.awarded)
     await db
       .insert(czStoreStars)
-      .values({ storeId: input.storeId, star: input.star, note: input.note.trim(), awardedBy: adminId })
-      .onDuplicateKeyUpdate({ set: { note: input.note.trim(), awardedBy: adminId } });
-  } else {
+      .values({
+        storeId: input.storeId,
+        star: input.star,
+        note: "",
+        awardedBy: adminId,
+      })
+      .onDuplicateKeyUpdate({ set: { awardedBy: adminId } });
+  else
     await db
       .delete(czStoreStars)
-      .where(and(eq(czStoreStars.storeId, input.storeId), eq(czStoreStars.star, input.star)));
-  }
+      .where(
+        and(
+          eq(czStoreStars.storeId, input.storeId),
+          eq(czStoreStars.star, input.star)
+        )
+      );
   return adminStoreStars(input.storeId);
 }

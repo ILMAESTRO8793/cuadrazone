@@ -25,7 +25,7 @@ export const SELLER_PLANS = {
       "Todos los beneficios del plan Normal",
       "Espacios superiores destacados por categoría, con rotación",
       "Ubicación identificada como Destacado — ubicación de pago",
-      "Cinco estrellas de verificación (roja, amarilla, morada, azul y verde): los compradores ven tu tienda con mayor credibilidad",
+      "La estrella roja «Tienda Destacada»: los compradores ven tu tienda con mayor credibilidad",
       "Tu marca: insignia «Tienda Destacada», foto de portada, lema y color propio en tu tienda",
     ],
   },

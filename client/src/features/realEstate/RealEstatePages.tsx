@@ -1,3 +1,4 @@
+import { ListingStars } from "@/components/marketplace/VerificationStars";
 import { ListingReviews, useRecordContact } from "@/components/marketplace/ListingReviews";
 import { SectionShowcase } from "@/components/marketplace/SectionShowcase";
 import { useEffect, useMemo, useState } from "react";
@@ -49,6 +50,7 @@ function PropertyCard({ p }: { p: PropertyDTO }) {
         <strong className="re-price">{priceLabel(p)}</strong>
         <h3>{p.title}</h3>
         <p className="re-where"><MapPin size={14} /> {propertyTypeLabels[p.propertyType]} · {[p.neighborhood, p.district, p.province].filter(Boolean).join(", ")}</p>
+        <ListingStars kind="inmueble" listingId={p.id} size={14} />
         <div className="re-specs">
           {p.bedrooms != null && <span><BedDouble size={14} /> {p.bedrooms} hab.</span>}
           {p.bathrooms != null && <span><Bath size={14} /> {p.bathrooms} baños</span>}
@@ -246,6 +248,7 @@ export function RealEstateDetailPage({ slug }: { slug: string }) {
           <h1>{p.title}</h1>
           <strong className="re-price re-price--big">{priceLabel(p)}</strong>
           <p className="re-where"><MapPin size={15} /> {[p.neighborhood, p.district, p.province].filter(Boolean).join(", ")}</p>
+          <ListingStars kind="inmueble" listingId={p.id} size={20} labeled />
           <dl className="re-table">{rows.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
           {phone ? (
             <div className="re-contact">

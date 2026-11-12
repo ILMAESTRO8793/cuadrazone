@@ -1,3 +1,4 @@
+import { ListingStars } from "@/components/marketplace/VerificationStars";
 import { ListingReviews, useRecordContact } from "@/components/marketplace/ListingReviews";
 import { SectionShowcase } from "@/components/marketplace/SectionShowcase";
 import { useEffect, useMemo, useState } from "react";
@@ -99,6 +100,7 @@ function VehicleCard({ v }: { v: VehicleDTO }) {
           <MapPin size={14} /> {vehicleTypeLabels[v.vehicleType]} · {v.district}
           , {v.province}
         </p>
+        <ListingStars kind="auto" listingId={v.id} size={14} />
         <div className="re-specs">
           <span>
             <Calendar size={14} /> {v.year}
@@ -543,6 +545,7 @@ export function VehicleDetailPage({ slug }: { slug: string }) {
           <p className="re-where">
             <MapPin size={15} /> {v.district}, {v.province}
           </p>
+          <ListingStars kind="auto" listingId={v.id} size={20} labeled />
           <dl className="re-table">
             {rows.map(([k, val]) => (
               <div key={k}>

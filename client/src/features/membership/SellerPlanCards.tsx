@@ -89,17 +89,18 @@ export function SellerPlanCards({
             {id === "mayor_visibilidad" && (
               <>
                 <div className="plan-stars">
-                  <VerificationStars size={22} />
-                  <span>Estrellas de verificación</span>
+                  <span>Las cinco estrellas de verificación</span>
                 </div>
+                <VerificationStars size={22} labeled />
                 <p className="plan-stars-why">
                   Las estrellas le dicen al comprador que tu tienda es de
                   confianza: más credibilidad, más ganas de comprarte.
                 </p>
                 <p className="plan-pending-note">
-                  Tu tienda muestra las cinco estrellas mientras tu plan Mayor
-                  Visibilidad esté pagado y vigente. No garantiza ventas ni
-                  primer puesto permanente.
+                  Con Mayor Visibilidad ganas la roja. Las otras cuatro se ganan
+                  por logros: ser de los primeros, vender, tener buenas reseñas y
+                  seguir con tu plan al día. No garantiza ventas ni primer puesto
+                  permanente.
                 </p>
               </>
             )}
@@ -147,11 +148,13 @@ export function PlanConditions() {
         cobrada.
       </p>
       <p>
-        La verificación de identidad es obligatoria para ambos. Con Mayor
-        Visibilidad pagado, tu tienda muestra las cinco estrellas de
-        verificación (roja, amarilla, morada, azul y verde) en su página, en el
-        directorio y en tus productos. Si el plan vence, las estrellas se
-        quitan solas.
+        La verificación de identidad es obligatoria para ambos. Las cinco
+        estrellas de verificación se ganan por logros: roja «Tienda Destacada»
+        (Mayor Visibilidad), amarilla «Fundador» (empezaste en el primer año de
+        CuadraZone), morada «Vendedor Comprobado» (20 ventas o más), azul
+        «Clientes Felices» (4.5 o más en al menos 10 reseñas) y verde «Socio
+        Fiel» (12 meses de plan pagado). Se ven en tu tienda y en todos tus
+        anuncios; si el plan vence, no se muestran.
       </p>
       <p>
         Con Mayor Visibilidad, tus publicaciones aparecen en la franja{" "}

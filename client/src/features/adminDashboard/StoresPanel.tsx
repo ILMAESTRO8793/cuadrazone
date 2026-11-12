@@ -426,75 +426,58 @@ function StoreDetail({ id }: { id: number }) {
   );
 }
 
-/** El administrador otorga o retira cada estrella, con la acreditación que la respalda. */
+/** Cada estrella con su logro: si la tienda ya lo cumple, o si el administrador se la otorga a mano. */
 function StarsEditor({ storeId, slug }: { storeId: number; slug: string }) {
   const utils = trpc.useUtils();
   const q = trpc.stars.adminForStore.useQuery({ storeId });
   const set = trpc.stars.set.useMutation();
-  const [notes, setNotes] = useState<Partial<Record<VerificationStar, string>>>({});
-  const awarded = new Map((q.data?.stars ?? []).map(s => [s.star, s]));
 
-  async function toggle(star: VerificationStar) {
-    const has = awarded.has(star);
-    const note = (notes[star] ?? "").trim();
-    if (!has && note.length < 3)
-      return toast.error("Escribe qué acreditación respalda esta estrella");
-    if (has && !confirm(`¿Quitar la ${verificationStarInfo[star].label.toLowerCase()}?`)) return;
+  async function toggle(star: VerificationStar, awarded: boolean) {
     try {
-      await set.mutateAsync({ storeId, star, awarded: !has, note });
+      await set.mutateAsync({ storeId, star, awarded });
       await Promise.all([
         utils.stars.adminForStore.invalidate({ storeId }),
         utils.stars.forStores.invalidate({ slugs: [slug] }),
       ]);
-      toast.success(has ? "Estrella retirada" : "Estrella otorgada");
+      toast.success(awarded ? "Estrella otorgada" : "Estrella quitada");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Ocurrió un error");
     }
   }
 
+  const d = q.data;
   return (
     <section className="czd-stars">
       <h3>Estrellas de verificación</h3>
       <p className="czd-muted">
-        Las tiendas con Mayor Visibilidad pagado tienen las cinco estrellas
-        automáticamente. A las demás puedes dárselas aquí una por una. Se ven
-        en la tienda, en el directorio y en sus productos.
+        Se ganan solas al cumplir cada logro. También puedes otorgar una a mano.
+        {d && !d.active ? " Con el plan vencido la tienda no muestra ninguna." : ""}
       </p>
-      {q.data?.automatic && (
-        <p className="czd-stars-auto">
-          Esta tienda tiene Mayor Visibilidad pagado: ya muestra las cinco
-          estrellas.
-        </p>
-      )}
       <ul>
         {verificationStars.map(star => {
           const info = verificationStarInfo[star];
-          const has = awarded.get(star);
+          const earned = d?.earned.includes(star) ?? false;
+          const manual = d?.manual.includes(star) ?? false;
           return (
-            <li key={star} className={has ? "is-on" : ""}>
+            <li key={star} className={earned || manual ? "is-on" : ""}>
               <VerificationStars size={22} stars={[star]} />
               <div>
-                <strong>{info.label}</strong>
-                {has ? (
-                  <small>{has.note || "Sin nota"}</small>
-                ) : (
-                  <input
-                    value={notes[star] ?? ""}
-                    maxLength={300}
-                    placeholder="Acreditación que la respalda"
-                    aria-label={`Acreditación de la ${info.label.toLowerCase()}`}
-                    onChange={e => setNotes(n => ({ ...n, [star]: e.target.value }))}
-                  />
-                )}
+                <strong>{info.achievement}</strong>
+                <small>{info.rule}</small>
+                <small className="czd-stars-state">
+                  {earned ? "Ganada por logro" : manual ? "Otorgada a mano" : "Todavía no la cumple"}
+                </small>
               </div>
-              <button
-                type="button"
-                className={has ? "czd-danger" : "czd-primary czd-primary--sm"}
-                disabled={set.isPending || q.isLoading}
-                onClick={() => void toggle(star)}
-              >
-                {has ? "Quitar" : "Otorgar"}
-              </button>
+              {!earned && (
+                <button
+                  type="button"
+                  className={manual ? "czd-danger" : "czd-primary czd-primary--sm"}
+                  disabled={set.isPending || q.isLoading}
+                  onClick={() => void toggle(star, !manual)}
+                >
+                  {manual ? "Quitar" : "Otorgar"}
+                </button>
+              )}
             </li>
           );
         })}

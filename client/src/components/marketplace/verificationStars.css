@@ -1,0 +1,4 @@
+.vstars { display: inline-flex; align-items: center; vertical-align: middle; }
+.vstars--labeled { list-style: none; padding: 0; margin: 8px 0; display: flex; flex-wrap: wrap; gap: 10px 16px; }
+.vstars--labeled li { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 64px; text-align: center; }
+.vstars--labeled span { font-size: 11.5px; font-weight: 700; line-height: 1.2; color: inherit; max-width: 90px; }

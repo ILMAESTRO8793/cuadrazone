@@ -340,7 +340,7 @@ export function RealDetailPage({ slug }: { slug: string }) {
             {p.store.name} · Vendedor verificado
             <BadgeCheck size={20} />
           </Link>
-          <StoreStars slug={p.store.slug} size={18} />
+          <StoreStars slug={p.store.slug} size={18} labeled />
           <StoreBrandBadge slug={p.store.slug} />
           <p>
             <Star size={16} />{" "}

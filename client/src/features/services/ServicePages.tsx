@@ -374,7 +374,7 @@ export function ServiceDetailPage({ slug }: { slug: string }) {
             {s.store.city}, {s.store.province}
           </p>
           <p className="svc-store-trust">
-            <StoreStars slug={s.store.slug} size={20} />
+            <StoreStars slug={s.store.slug} size={20} labeled />
             <StoreBrandBadge slug={s.store.slug} />
           </p>
           <dl className="re-table">

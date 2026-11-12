@@ -1,3 +1,4 @@
+import { ListingStars } from "@/components/marketplace/VerificationStars";
 import { ListingReviews } from "@/components/marketplace/ListingReviews";
 import { SectionShowcase } from "@/components/marketplace/SectionShowcase";
 import { useEffect, useMemo, useState } from "react";
@@ -85,6 +86,7 @@ function JobCard({ j }: { j: JobDTO }) {
       <div className="job-card-bottom">
         <strong>{salaryLabel(j)}</strong>
         <span className="re-where"><MapPin size={14} /> {j.district}, {j.province}</span>
+        <ListingStars kind="empleo" listingId={j.id} size={14} />
         <span className="re-muted re-small"><CalendarClock size={13} /> Cierra el {dateEs(j.closesOn)}</span>
       </div>
     </Link>
@@ -189,6 +191,7 @@ export function JobDetailPage({ slug }: { slug: string }) {
         <aside className="re-aside">
           <strong className="re-price">{salaryLabel(j)}</strong>
           <p className="re-where"><MapPin size={15} /> {j.district}, {j.province}</p>
+          <ListingStars kind="empleo" listingId={j.id} size={20} labeled />
           <p className="re-muted"><CalendarClock size={14} /> Recibe postulaciones hasta el {dateEs(j.closesOn)}</p>
           {isOwner ? (
             <Link href="/empleos/mis-vacantes" className="btn btn-outline">Es tu vacante: ver candidatos</Link>

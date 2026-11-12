@@ -298,3 +298,7 @@
 .czd-store-cell .verification-stars { margin: 2px 0; }
 
 .czd-stars-auto { margin: 8px 0 0; padding: 8px 12px; border-radius: 10px; background: #eef2e1; color: #3f5317; font-weight: 700; font-size: 13px; }
+
+.czd-stars-one { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 10px; padding: 10px 12px; border: 1px solid #e2e6d4; border-radius: 12px; min-height: 52px; }
+
+.czd-stars-state { font-weight: 700; color: #3f5317 !important; }

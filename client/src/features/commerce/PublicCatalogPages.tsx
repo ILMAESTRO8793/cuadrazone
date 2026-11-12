@@ -406,7 +406,7 @@ function StorePageView({
           <StoreBrandBadge slug={store.slug} />
           <h1>{store.name}</h1>
           {branding?.tagline && <p className="store-brand-tagline">{branding.tagline}</p>}
-          <StoreStars slug={store.slug} size={22} />
+          <StoreStars slug={store.slug} size={22} labeled />
           <p>{store.description}</p>
           <p>
             {store.province} · {store.city} · {store.churchName}
