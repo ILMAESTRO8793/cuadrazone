@@ -44,3 +44,6 @@
 .svc-tabs + .svc-requests { margin-top: 0; }
 .svc-delete { color: #A12C2C; border-color: #E8C4C4; }
 .svc-delete:hover { background: #FBEDED; }
+
+.svc-store-trust { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 2px 0; }
+.svc-store-trust:empty { display: none; }

@@ -1,3 +1,5 @@
+import { StoreStars } from "@/components/marketplace/VerificationStars";
+import { StoreBrandBadge } from "@/components/marketplace/StoreBrand";
 import { SectionShowcase } from "@/components/marketplace/SectionShowcase";
 import { useMemo, useState } from "react";
 import { Link } from "wouter";
@@ -43,6 +45,10 @@ function ServiceCard({ s }: { s: ServiceDTO }) {
         <strong className="re-price">{servicePriceLabel(s)}</strong>
         <span className="svc-store">
           <Store size={13} /> {s.categoryLabel} · por {s.store.name}
+        </span>
+        <span className="svc-store-trust">
+          <StoreStars slug={s.store.slug} size={15} />
+          <StoreBrandBadge slug={s.store.slug} />
         </span>
         <div className="svc-tags">
           {s.modalities.map(m => (
@@ -365,6 +371,10 @@ export function ServiceDetailPage({ slug }: { slug: string }) {
           <p className="svc-store">
             <Store size={14} /> {s.store.name} · <MapPin size={14} />{" "}
             {s.store.city}, {s.store.province}
+          </p>
+          <p className="svc-store-trust">
+            <StoreStars slug={s.store.slug} size={20} />
+            <StoreBrandBadge slug={s.store.slug} />
           </p>
           <dl className="re-table">
             {rows.map(([k, v]) => (
