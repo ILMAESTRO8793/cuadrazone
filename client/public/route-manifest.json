@@ -190,6 +190,12 @@
     },
     {
       "path": "/empleos/:slug"
+    },
+    {
+      "path": "/despachador"
+    },
+    {
+      "path": "/admin/despachadores"
     }
   ]
 }

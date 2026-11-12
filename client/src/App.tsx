@@ -1,3 +1,4 @@
+import { DispatcherPage } from "./features/dispatch/DispatcherPage";
 import { StoreDirectoryPage } from "./features/commerce/StoreDirectoryPage";
 import {
   PublicCatalogProvider,
@@ -125,6 +126,7 @@ function Router() {
         <Route path="/mi-lista" component={RealWishlistPage} />
         <Route path="/comprar" component={RealCheckoutPage} />
         <Route path="/pedidos">{() => <OrdersPage />}</Route>
+        <Route path="/despachador" component={DispatcherPage} />
         <Route path="/pedidos/:id">
           {p => <OrderDetailPage key={p.id} id={Number(p.id)} />}
         </Route>
@@ -209,6 +211,9 @@ function Router() {
         </Route>
         <Route path="/admin/portada">
           {() => <AdminVerificationPage key="portada" initialTab="portada" />}
+        </Route>
+        <Route path="/admin/despachadores">
+          {() => <AdminVerificationPage key="despachadores" initialTab="despachadores" />}
         </Route>
         <Route path="/admin/solicitudes">
           {() => <AdminVerificationPage key="solicitudes" initialTab="solicitudes" />}

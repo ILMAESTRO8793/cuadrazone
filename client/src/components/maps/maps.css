@@ -10,3 +10,7 @@
 .cz-map-pin span { display: block; width: 26px; height: 26px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); background: #c0583a; border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35); }
 .cz-map .leaflet-control-attribution { font-size: 10px; }
 .cz-map:focus-visible, .cz-map-actions a:focus-visible, .cz-map-actions button:focus-visible { outline: 3px solid #d9a400; outline-offset: 2px; }
+.cz-rider { margin: 0 0 8px; color: #344054; }
+.cz-rider-photo { margin: 12px 0 0; }
+.cz-rider-photo img { max-width: 320px; width: 100%; border-radius: 12px; border: 1px solid #d9dde3; }
+.cz-rider-photo figcaption { color: #667085; font-size: 13px; margin-top: 4px; }

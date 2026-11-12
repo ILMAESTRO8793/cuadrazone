@@ -296,16 +296,43 @@ function Directions({ to, label }: { to: Point; label: string }) {
 /** En un pedido: el comprador y la tienda ven el punto exacto del otro. */
 export function OrderPlacesMap({ orderId }: { orderId: number }) {
   const q = trpc.places.order.useQuery({ id: orderId });
+  // El despachador (si hay): nombre, vehículo y su punto en vivo cada 15 s.
+  const rider = trpc.dispatch.forOrder.useQuery(
+    { orderId },
+    {
+      refetchInterval: query =>
+        query.state.data && !query.state.data.delivered ? 15_000 : false,
+    }
+  );
   const d = q.data;
-  if (!d || (!d.buyer && !d.store)) return null;
+  const r = rider.data;
+  if (!d || (!d.buyer && !d.store && !r)) return null;
   const markers: CanvasMarker[] = [];
   if (d.store) markers.push({ ...d.store, label: "Tienda", color: "#0b2a4a" });
   if (d.buyer) markers.push({ ...d.buyer, label: "Entrega", color: "#c0583a" });
+  if (r?.live) markers.push({ ...r.live, label: `${r.name} (en camino)`, color: "#d9a400" });
   const other = d.viewer === "seller" ? d.buyer : d.store;
   return (
     <section className="cz-public-map">
       <h2>Mapa de la entrega</h2>
+      {r && (
+        <p className="cz-rider">
+          <strong>{r.name}</strong> lleva tu pedido · {riderVehicle[r.vehicle] ?? r.vehicle}
+          {r.plate ? ` · placa ${r.plate}` : ""}
+          {r.delivered
+            ? " · Entregado"
+            : r.live
+              ? " · En camino, se actualiza cada 15 segundos"
+              : ""}
+        </p>
+      )}
       <Canvas label="Mapa de la entrega" markers={markers} height={280} />
+      {r?.photoUrl && (
+        <figure className="cz-rider-photo">
+          <img src={r.photoUrl} alt="Foto de la entrega" />
+          <figcaption>Foto que tomó el despachador al entregar.</figcaption>
+        </figure>
+      )}
       {other && (
         <Directions
           to={other}
@@ -320,4 +347,28 @@ export function OrderPlacesMap({ orderId }: { orderId: number }) {
       )}
     </section>
   );
+}
+
+const riderVehicle: Record<string, string> = {
+  moto: "Moto",
+  carro: "Carro",
+  bicicleta: "Bicicleta",
+  otro: "Vehículo",
+};
+
+/** Ruta del despachador: dónde recoger (tienda) y dónde entregar (comprador). */
+export function DeliveryMap({
+  pickup,
+  drop,
+  label,
+}: {
+  pickup: Point | null;
+  drop: Point | null;
+  label: string;
+}) {
+  const markers: CanvasMarker[] = [];
+  if (pickup) markers.push({ ...pickup, label: "1. Recoger", color: "#0b2a4a" });
+  if (drop) markers.push({ ...drop, label: "2. Entregar", color: "#c0583a" });
+  if (!markers.length) return null;
+  return <Canvas label={label} markers={markers} height={240} />;
 }

@@ -1,0 +1,15 @@
+/* Botón «Despachador» del menú: visible también en el teléfono y en la app. */
+.dispatch-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #ead18d;
+  white-space: nowrap;
+  border: 1px solid rgba(234, 209, 141, 0.55);
+  border-radius: 999px;
+  padding: 5px 10px;
+}
+.dispatch-nav:hover { background: rgba(234, 209, 141, 0.12); }
+.dispatch-nav:focus-visible { outline: 3px solid #d9a400; outline-offset: 2px; }

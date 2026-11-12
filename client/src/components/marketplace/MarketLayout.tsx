@@ -1,3 +1,4 @@
+import "@/features/dispatch/dispatchNav.css";
 import { businessCategories } from "@shared/businessCategories";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -5,6 +6,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useLocation, useSearch } from "wouter";
 import {
   ArrowRight,
+  Bike,
   ChevronDown,
   Heart,
   MapPin,
@@ -446,6 +448,9 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
                 <ShieldCheck size={15} /> Administración
               </Link>
             )}
+            <Link className="dispatch-nav" href="/despachador">
+              <Bike size={15} aria-hidden="true" /> Despachador
+            </Link>
             <Link className="sell-nav" href="/vender">
               Vende en CuadraZone <ArrowRight size={15} />
             </Link>

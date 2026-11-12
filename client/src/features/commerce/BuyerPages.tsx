@@ -745,7 +745,7 @@ function OrderContent({ id }: { id: number }) {
               disabled={transition.isPending}
               onClick={() => change("shipped")}
             >
-              Marcar enviado
+              Producto enviado
             </button>
           )}
           {(seller || buyer) && o.status === "shipped" && (

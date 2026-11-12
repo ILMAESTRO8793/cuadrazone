@@ -32,6 +32,7 @@ export function getPageMeta(url: string, snapshot: PublicSnapshot = {}) {
     "/suscripciones": "Planes Normal US$19.99 y Mayor Visibilidad US$39.99",
     "/vendedor/plan": "Mi selección de plan",
     "/vender": "Vende en CuadraZone",
+    "/despachador": "Despachador",
     "/carrito": "Carrito de demostración",
     "/deseos": "Tus favoritos",
     "/favoritos": "Tus favoritos",
