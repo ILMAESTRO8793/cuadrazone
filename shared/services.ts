@@ -88,7 +88,7 @@ export type ServiceDTO = Omit<SaveServiceInput, "id" | "expectedRevision"> & {
   status: ServiceStatus;
   categoryLabel: string;
   specialtyLabel: string | null;
-  store: { name: string; slug: string; province: string; city: string; phone: string | null };
+  store: { name: string; slug: string; province: string; city: string; phone: string | null; logoUrl: string | null };
   /** El cliente puede reservar cita en el horario del proveedor. */
   bookable: boolean;
   publishedAt: string | null;

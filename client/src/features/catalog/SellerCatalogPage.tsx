@@ -2,6 +2,7 @@ import { ServicesPanel } from "@/features/services/ServicesPanel";
 import { DeleteStoreSection } from "./DeleteStoreSection";
 import { StoreLogoUploader } from "./StoreLogoUploader";
 import { StoreBrandingEditor } from "./StoreBrandingEditor";
+import { StoreLinkEditor } from "./StoreLinkEditor";
 import { AuthGate } from "@/features/membership/AuthGate";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { authFetch } from "@/lib/authFetch";
@@ -852,6 +853,7 @@ function SellerCatalogContent({
                 name={storeSnapshot.store.name}
                 logoUrl={storeSnapshot.store.logoUrl ?? null}
               />
+              <StoreLinkEditor />
               <StoreBrandingEditor storeName={storeSnapshot.store.name} />
             </>
           ) : (

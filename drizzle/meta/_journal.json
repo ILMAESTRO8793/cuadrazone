@@ -232,6 +232,13 @@
       "when": 1794493647331,
       "tag": "0032_resenas_secciones",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "5",
+      "when": 1794498961444,
+      "tag": "0033_enlace_tienda",
+      "breakpoints": true
     }
   ]
 }

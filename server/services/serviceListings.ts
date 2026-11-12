@@ -120,6 +120,7 @@ function dto(row: any, store: any, phone: string | null): ServiceDTO {
       province: store.province,
       city: store.city,
       phone,
+      logoUrl: store.logoUrl ?? null,
     },
     publishedAt: row.publishedAt
       ? new Date(row.publishedAt).toISOString()

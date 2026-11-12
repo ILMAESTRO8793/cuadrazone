@@ -47,3 +47,7 @@
 
 .svc-store-trust { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 2px 0; }
 .svc-store-trust:empty { display: none; }
+.store-name-link { display: inline-flex; align-items: center; gap: 8px; color: #1d2733; font-weight: 700; text-decoration: underline; text-decoration-color: rgba(29, 39, 51, 0.35); text-underline-offset: 3px; }
+.store-name-link:hover { text-decoration-color: currentColor; }
+.store-name-link:focus-visible { outline: 3px solid #ae832f; outline-offset: 2px; border-radius: 6px; }
+.store-name-link .store-logo { flex: 0 0 auto; }

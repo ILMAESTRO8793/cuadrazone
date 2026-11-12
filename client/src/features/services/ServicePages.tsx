@@ -2,6 +2,7 @@ import { ListingReviews } from "@/components/marketplace/ListingReviews";
 import { StoreStars } from "@/components/marketplace/VerificationStars";
 import { StoreBrandBadge } from "@/components/marketplace/StoreBrand";
 import { SectionShowcase } from "@/components/marketplace/SectionShowcase";
+import { StoreNameLink } from "@/components/marketplace/StoreNameLink";
 import { useMemo, useState } from "react";
 import { Link } from "wouter";
 import { Clock, MapPin, Phone, Store } from "lucide-react";
@@ -370,8 +371,12 @@ export function ServiceDetailPage({ slug }: { slug: string }) {
             {servicePriceLabel(s)}
           </strong>
           <p className="svc-store">
-            <Store size={14} /> {s.store.name} · <MapPin size={14} />{" "}
-            {s.store.city}, {s.store.province}
+            <StoreNameLink
+              slug={s.store.slug}
+              name={s.store.name}
+              logoUrl={s.store.logoUrl}
+            />{" "}
+            · <MapPin size={14} /> {s.store.city}, {s.store.province}
           </p>
           <p className="svc-store-trust">
             <StoreStars slug={s.store.slug} size={20} labeled />
