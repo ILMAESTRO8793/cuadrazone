@@ -89,6 +89,8 @@ export function registerOAuthRoutes(app: Express) {
     try {
       const profile = await exchangeGoogleCode(code, `${publicOrigin(req)}${GOOGLE_CALLBACK_PATH}`);
       if (!profile.emailVerified) return loginError(res, "correo_no_verificado");
+      // Los administradores entran solo con el código que llega a su correo.
+      if (roleForProfile(profile) === "admin") return loginError(res, "admin_con_codigo");
 
       // Si esa persona ya entró antes con su correo (código), usa la misma cuenta.
       let openId = googleOpenId(profile.sub);

@@ -1,3 +1,4 @@
+import { ListingReviews } from "@/components/marketplace/ListingReviews";
 import { StoreStars } from "@/components/marketplace/VerificationStars";
 import { StoreBrandBadge } from "@/components/marketplace/StoreBrand";
 import { SectionShowcase } from "@/components/marketplace/SectionShowcase";
@@ -491,6 +492,7 @@ export function ServiceDetailPage({ slug }: { slug: string }) {
           )}
         </aside>
       </div>
+      <ListingReviews kind="servicio" listingId={s.id} />
     </div>
   );
 }

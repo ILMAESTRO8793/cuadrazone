@@ -1,3 +1,4 @@
+import { ListingReviews, useRecordContact } from "@/components/marketplace/ListingReviews";
 import { SectionShowcase } from "@/components/marketplace/SectionShowcase";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useSearch } from "wouter";
@@ -405,6 +406,7 @@ export function VehicleListPage() {
 
 export function VehicleDetailPage({ slug }: { slug: string }) {
   const detail = trpc.vehicles.detail.useQuery({ slug }, { retry: false });
+  const recordContact = useRecordContact("auto", detail.data?.id ?? 0);
   const [photo, setPhoto] = useState(0);
   if (detail.isLoading)
     return (
@@ -555,10 +557,11 @@ export function VehicleDetailPage({ slug }: { slug: string }) {
               href={`https://wa.me/${digits}?text=${encodeURIComponent(`Hola, vi su anuncio en CuadraZone: ${v.title}`)}`}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={recordContact}
             >
               WhatsApp
             </a>
-            <a className="btn btn-outline" href={`tel:${v.contactPhone}`}>
+            <a className="btn btn-outline" href={`tel:${v.contactPhone}`} onClick={recordContact}>
               <Phone size={16} /> Llamar
             </a>
           </div>
@@ -568,6 +571,7 @@ export function VehicleDetailPage({ slug }: { slug: string }) {
           </p>
         </aside>
       </div>
+      <ListingReviews kind="auto" listingId={v.id} />
     </div>
   );
 }

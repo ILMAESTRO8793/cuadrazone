@@ -228,6 +228,8 @@ const LOGIN_ERRORS: Record<string, string> = {
   estado: "La sesión de inicio expiró. Vuelve a intentarlo.",
   correo_no_verificado: "Tu cuenta de Google no tiene el correo verificado.",
   fallo: "No pudimos completar el inicio de sesión. Inténtalo de nuevo.",
+  admin_con_codigo:
+    "Las cuentas de administrador entran con «Entrar con correo»: te llega un código cada vez.",
 };
 
 /** Muestra el motivo cuando Google devuelve al usuario con ?login_error=. */

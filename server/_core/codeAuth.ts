@@ -1,7 +1,7 @@
 import { czApplications } from "../../drizzle/schema";
 import { czStores } from "../../drizzle/catalog-schema";
 // Entrada con código por correo o celular, y verificación de contactos del perfil.
-import { COOKIE_NAME, ONE_YEAR_MS, safeReturnPath } from "@shared/const";
+import { ADMIN_SESSION_MS, COOKIE_NAME, ONE_YEAR_MS, safeReturnPath } from "@shared/const";
 import { createHash } from "node:crypto";
 import { and, eq, inArray, ne } from "drizzle-orm";
 import express, { type Express, type Request, type Response } from "express";
@@ -133,8 +133,10 @@ export function registerCodeAuthRoutes(app: Express) {
     if (!channel || !destination) throw new AuthCodeError(400, "Datos incompletos.");
     await verifyCode({ channel, destination, purpose: "login", code: String(req.body?.code ?? "").trim() });
     const account = await signInWithContact(channel, destination);
-    const token = await sdk.createSessionToken(account.openId, { name: account.name ?? "", expiresInMs: ONE_YEAR_MS });
-    res.cookie(COOKIE_NAME, token, { ...getSessionCookieOptions(req), maxAge: ONE_YEAR_MS });
+    // Un administrador vuelve a pedir código cada 12 horas.
+    const sessionMs = channel === "email" && ENV.adminEmails.includes(destination) ? ADMIN_SESSION_MS : ONE_YEAR_MS;
+    const token = await sdk.createSessionToken(account.openId, { name: account.name ?? "", expiresInMs: sessionMs });
+    res.cookie(COOKIE_NAME, token, { ...getSessionCookieOptions(req), maxAge: sessionMs });
     return { ok: true, returnTo: await landingForAccount(safeReturnPath(req.body?.returnTo), account.openId) };
   }));
 

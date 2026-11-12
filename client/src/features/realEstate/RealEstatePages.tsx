@@ -1,3 +1,4 @@
+import { ListingReviews, useRecordContact } from "@/components/marketplace/ListingReviews";
 import { SectionShowcase } from "@/components/marketplace/SectionShowcase";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useSearch } from "wouter";
@@ -181,6 +182,7 @@ export function RealEstateListPage() {
 
 export function RealEstateDetailPage({ slug }: { slug: string }) {
   const detail = trpc.realEstate.detail.useQuery({ slug }, { retry: false });
+  const recordContact = useRecordContact("inmueble", detail.data?.id ?? 0);
   const [photo, setPhoto] = useState(0);
   if (detail.isLoading) return <div className="re-page container"><p role="status">Cargando…</p></div>;
   if (detail.error || !detail.data)
@@ -247,8 +249,8 @@ export function RealEstateDetailPage({ slug }: { slug: string }) {
           <dl className="re-table">{rows.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
           {phone ? (
             <div className="re-contact">
-              <a className="btn btn-gold" href={`https://wa.me/${digits}?text=${encodeURIComponent(`Hola, vi su anuncio en CuadraZone: ${p.title}`)}`} target="_blank" rel="noopener noreferrer">WhatsApp</a>
-              <a className="btn btn-outline" href={`tel:${phone}`}><Phone size={16} /> Llamar</a>
+              <a className="btn btn-gold" href={`https://wa.me/${digits}?text=${encodeURIComponent(`Hola, vi su anuncio en CuadraZone: ${p.title}`)}`} target="_blank" rel="noopener noreferrer" onClick={recordContact}>WhatsApp</a>
+              <a className="btn btn-outline" href={`tel:${phone}`} onClick={recordContact}><Phone size={16} /> Llamar</a>
             </div>
           ) : (
             <p className="re-muted">El anunciante no publicó su teléfono.</p>
@@ -256,6 +258,7 @@ export function RealEstateDetailPage({ slug }: { slug: string }) {
           <p className="re-muted re-small">Nunca pagues ni transfieras dinero antes de ver la propiedad y verificar los documentos.</p>
         </aside>
       </div>
+      <ListingReviews kind="inmueble" listingId={p.id} />
     </div>
   );
 }

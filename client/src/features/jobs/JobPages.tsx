@@ -1,3 +1,4 @@
+import { ListingReviews } from "@/components/marketplace/ListingReviews";
 import { SectionShowcase } from "@/components/marketplace/SectionShowcase";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "wouter";
@@ -208,6 +209,7 @@ export function JobDetailPage({ slug }: { slug: string }) {
           )}
         </aside>
       </div>
+      <ListingReviews kind="empleo" listingId={j.id} />
     </div>
   );
 }
