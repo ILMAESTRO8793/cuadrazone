@@ -1,3 +1,4 @@
+import { PublicPlaceMap } from "@/components/maps/Maps";
 import { StoreBrandBadge } from "@/components/marketplace/StoreBrand";
 import { StoreStars } from "@/components/marketplace/VerificationStars";
 import { StoreLogo } from "@/components/marketplace/StoreLogo";
@@ -438,6 +439,7 @@ export function RealDetailPage({ slug }: { slug: string }) {
           <div className="live-notice">
             <strong>Entrega desde {p.store.province}</strong>
             <ShippingNote store={p.store} modes={p.deliveryModes} />
+            <PublicPlaceMap kind="tienda" slug={p.store.slug} title="Dónde está la tienda" />
             <p>
               {p.deliveryModes
                 .map(mode =>

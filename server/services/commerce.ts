@@ -4,6 +4,8 @@ import { getDb } from "../db";
 import { czApplications } from "../../drizzle/schema";
 import { commissionBpsFor, commissionCents } from "@shared/pricing";
 import { MIN_ORDER_LABEL, meetsMinimum } from "@shared/shippingRules";
+import type { Point } from "@shared/location";
+import { saveOrderPlace } from "./places";
 import { czProducts, czStores, czVariants } from "../../drizzle/catalog-schema";
 import {
   czCarts, czCartItems, czFavorites, czOrders, czOrderItems, czReviews,
@@ -246,7 +248,7 @@ async function orderDto(tx: Db | Tx, orderId: number, viewerId: number): Promise
     sellerCardLink: row.order.paymentMethod === "card_link" && row.store?.cardPaymentUrl && isAllowedCardLink(row.store.cardPaymentUrl) ? row.store.cardPaymentUrl : null };
 }
 
-export async function checkout(userId: number, input: { checkoutKey: string; expectedTotalCents: number; recipientName: string; phone: string; province: string; city: string; address: string; deliveries: Array<{ storeId: number; mode: DeliveryMode }>; paymentMethod: PaymentMethod }): Promise<{ orders: OrderDTO[] }> {
+export async function checkout(userId: number, input: { checkoutKey: string; expectedTotalCents: number; recipientName: string; phone: string; province: string; city: string; address: string; deliveries: Array<{ storeId: number; mode: DeliveryMode }>; paymentMethod: PaymentMethod; point?: Point }): Promise<{ orders: OrderDTO[] }> {
   const db = await database();
   return db.transaction(async tx => {
     if (new Set(input.deliveries.map(delivery => delivery.storeId)).size !== input.deliveries.length) fail("BAD_REQUEST", "Entrega repetida para una tienda");
@@ -331,6 +333,8 @@ export async function checkout(userId: number, input: { checkoutKey: string; exp
       if (!meetsMinimum(subtotal))
         fail("PRECONDITION_FAILED", `La compra mínima en ${group.lines[0]!.store.name} es de ${MIN_ORDER_LABEL}. Agrega más artículos de esa tienda.`);
     }
+    if (!input.point && [...modes.values()].some(mode => mode !== "pickup"))
+      fail("BAD_REQUEST", "Marca en el mapa el punto exacto de entrega.");
     assertServiceCheckoutTotal(input.expectedTotalCents, quotedTotal);
     const created: number[] = [];
     for (const [storeId, group] of groups) {
@@ -349,6 +353,7 @@ export async function checkout(userId: number, input: { checkoutKey: string; exp
         status: "pending", paymentMethod: input.paymentMethod, paymentStatus: paymentStatusFor(input.paymentMethod), subtotalCents, deliveryFeeCents: group.deliveryFeeCents, totalCents, deliveryMode: mode, commissionBps: commissionBpsFor(sellerApp?.planId ?? null, sellerApp?.trialEndsAt ?? null),
         recipientName: input.recipientName, phone: input.phone, province: input.province, city: input.city, address: input.address, stockRestored: 0 });
       const orderId = listInsertId(result); created.push(orderId);
+      if (input.point && mode !== "pickup") await saveOrderPlace(tx, orderId, input.point);
       for (const line of lines) {
         await tx.insert(czOrderItems).values({ orderId, productId: line.product.id, variantId: line.variant.id, title: line.product.title, quantity: line.item.quantity, unitPriceCents: line.variant.priceCents, size: line.variant.size, color: line.variant.color });
         const changed = await tx.update(czVariants).set({ stock: sql`${czVariants.stock} - ${line.item.quantity}` }).where(and(eq(czVariants.id, line.variant.id), sql`${czVariants.stock} >= ${line.item.quantity}`));

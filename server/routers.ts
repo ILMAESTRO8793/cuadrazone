@@ -19,6 +19,7 @@ import { showcaseRouter } from "./routers/showcase";
 import { servicePubRouter } from "./routers/servicePub";
 import { brandingRouter } from "./routers/branding";
 import { storeLinkRouter } from "./routers/storeLink";
+import { placesRouter } from "./routers/places";
 import { listingReviewsRouter } from "./routers/listingReviews";
 import { profileDisplayName } from "./db";
 
@@ -43,6 +44,7 @@ export const appRouter = router({
   servicePub: servicePubRouter,
   branding: brandingRouter,
   storeLink: storeLinkRouter,
+  places: placesRouter,
   listingReviews: listingReviewsRouter,
   auth: router({
     // El nombre que la persona escribe en su perfil manda sobre el de la cuenta

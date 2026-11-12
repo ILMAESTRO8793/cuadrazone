@@ -1,0 +1,12 @@
+.cz-map { width: 100%; border-radius: 12px; overflow: hidden; border: 1px solid #d9dde3; background: #eef1f4; z-index: 0; }
+.cz-map--loading { display: grid; place-items: center; color: #667085; font-size: 14px; }
+.cz-map-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin: 10px 0 0; }
+.cz-map-actions .btn { display: inline-flex; align-items: center; gap: 6px; }
+.cz-map-hint { color: #667085; font-size: 13px; margin: 6px 0 0; }
+.cz-place-editor { margin: 18px 0; padding: 18px; border: 1px solid #e3d3a8; border-radius: 14px; background: #fffdf7; }
+.cz-place-editor h3 { margin: 0; font-size: 18px; display: inline-flex; align-items: center; gap: 8px; }
+.cz-public-map { margin: 18px 0; }
+.cz-public-map h2 { font-size: 20px; margin: 0 0 8px; }
+.cz-map-pin span { display: block; width: 26px; height: 26px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); background: #c0583a; border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35); }
+.cz-map .leaflet-control-attribution { font-size: 10px; }
+.cz-map:focus-visible, .cz-map-actions a:focus-visible, .cz-map-actions button:focus-visible { outline: 3px solid #d9a400; outline-offset: 2px; }

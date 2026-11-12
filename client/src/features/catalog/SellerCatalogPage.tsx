@@ -1,3 +1,4 @@
+import { StorePlaceEditor } from "@/components/maps/Maps";
 import { ServicesPanel } from "@/features/services/ServicesPanel";
 import { DeleteStoreSection } from "./DeleteStoreSection";
 import { StoreLogoUploader } from "./StoreLogoUploader";
@@ -854,6 +855,7 @@ function SellerCatalogContent({
                 logoUrl={storeSnapshot.store.logoUrl ?? null}
               />
               <StoreLinkEditor />
+              <StorePlaceEditor />
               <StoreBrandingEditor storeName={storeSnapshot.store.name} />
             </>
           ) : (

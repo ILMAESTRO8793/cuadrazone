@@ -1,3 +1,4 @@
+import { ListingPlaceEditor, PublicPlaceMap } from "@/components/maps/Maps";
 import { ListingStars } from "@/components/marketplace/VerificationStars";
 import { ListingReviews, useRecordContact } from "@/components/marketplace/ListingReviews";
 import { SectionShowcase } from "@/components/marketplace/SectionShowcase";
@@ -249,6 +250,7 @@ export function RealEstateDetailPage({ slug }: { slug: string }) {
           <strong className="re-price re-price--big">{priceLabel(p)}</strong>
           <p className="re-where"><MapPin size={15} /> {[p.neighborhood, p.district, p.province].filter(Boolean).join(", ")}</p>
           <ListingStars kind="inmueble" listingId={p.id} size={20} labeled />
+          <PublicPlaceMap kind="inmueble" id={p.id} />
           <dl className="re-table">{rows.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
           {phone ? (
             <div className="re-contact">
@@ -441,6 +443,7 @@ function MineContent() {
             </fieldset>
           )}
         </form>
+        <ListingPlaceEditor kind="inmueble" id={form.id} />
       </div>
     );
   }

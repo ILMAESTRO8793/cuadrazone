@@ -1,3 +1,4 @@
+import { ListingPlaceEditor, PublicPlaceMap } from "@/components/maps/Maps";
 import { ListingStars } from "@/components/marketplace/VerificationStars";
 import { ListingReviews, useRecordContact } from "@/components/marketplace/ListingReviews";
 import { SectionShowcase } from "@/components/marketplace/SectionShowcase";
@@ -546,6 +547,7 @@ export function VehicleDetailPage({ slug }: { slug: string }) {
             <MapPin size={15} /> {v.district}, {v.province}
           </p>
           <ListingStars kind="auto" listingId={v.id} size={20} labeled />
+          <PublicPlaceMap kind="auto" id={v.id} />
           <dl className="re-table">
             {rows.map(([k, val]) => (
               <div key={k}>
@@ -1386,6 +1388,7 @@ function MineContent() {
             </button>
           </div>
         </form>
+        <ListingPlaceEditor kind="auto" id={form.id} />
       </div>
     );
   }

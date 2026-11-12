@@ -1,3 +1,4 @@
+import { ListingPlaceEditor, PublicPlaceMap } from "@/components/maps/Maps";
 import { ListingStars } from "@/components/marketplace/VerificationStars";
 import { ListingReviews } from "@/components/marketplace/ListingReviews";
 import { SectionShowcase } from "@/components/marketplace/SectionShowcase";
@@ -192,6 +193,7 @@ export function JobDetailPage({ slug }: { slug: string }) {
           <strong className="re-price">{salaryLabel(j)}</strong>
           <p className="re-where"><MapPin size={15} /> {j.district}, {j.province}</p>
           <ListingStars kind="empleo" listingId={j.id} size={20} labeled />
+          <PublicPlaceMap kind="empleo" id={j.id} />
           <p className="re-muted"><CalendarClock size={14} /> Recibe postulaciones hasta el {dateEs(j.closesOn)}</p>
           {isOwner ? (
             <Link href="/empleos/mis-vacantes" className="btn btn-outline">Es tu vacante: ver candidatos</Link>
@@ -498,6 +500,7 @@ function MyJobsContent() {
           </fieldset>
           <div className="re-form-actions"><button className="btn btn-gold" type="submit" disabled={save.isPending}>{save.isPending ? "Guardando…" : "Guardar vacante"}</button></div>
         </form>
+        <ListingPlaceEditor kind="empleo" id={form.id} />
       </div>
     );
 

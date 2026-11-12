@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { pointInput } from "./location";
 import { bookInput, deliveryModes as catalogDeliveryModes, productKinds, provinceOptions } from "./marketplace";
 
 export const deliveryModes = ["shipping", "pickup", "home"] as const;
@@ -106,6 +107,8 @@ export const checkoutInput = z.object({
   address: z.string().trim().min(1).max(500),
   deliveries: z.array(deliveryChoice).min(1).max(100),
   paymentMethod: z.enum(paymentMethods),
+  /** Punto de entrega en el mapa: obligatorio si alguna tienda envía o entrega a domicilio. */
+  point: pointInput.optional(),
 }).strict().superRefine((input, context) => {
   const seen = new Set<number>();
   for (const [index, delivery] of input.deliveries.entries()) {

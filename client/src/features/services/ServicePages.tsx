@@ -1,3 +1,4 @@
+import { PublicPlaceMap } from "@/components/maps/Maps";
 import { ListingReviews } from "@/components/marketplace/ListingReviews";
 import { StoreStars } from "@/components/marketplace/VerificationStars";
 import { StoreBrandBadge } from "@/components/marketplace/StoreBrand";
@@ -382,6 +383,7 @@ export function ServiceDetailPage({ slug }: { slug: string }) {
             <StoreStars slug={s.store.slug} size={20} labeled />
             <StoreBrandBadge slug={s.store.slug} />
           </p>
+          <PublicPlaceMap kind="servicio" id={s.id} />
           <dl className="re-table">
             {rows.map(([k, v]) => (
               <div key={k}>

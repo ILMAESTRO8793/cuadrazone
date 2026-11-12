@@ -7,7 +7,7 @@ if (!connectionString) {
 }
 
 export default defineConfig({
-  schema: ["./drizzle/schema.ts", "./drizzle/catalog-schema.ts", "./drizzle/commerce-schema.ts", "./drizzle/finance-schema.ts", "./drizzle/verification-schema.ts", "./drizzle/showcase-schema.ts", "./drizzle/servicepub-schema.ts", "./drizzle/branding-schema.ts", "./drizzle/reviews-schema.ts", "./drizzle/storelink-schema.ts"],
+  schema: ["./drizzle/schema.ts", "./drizzle/catalog-schema.ts", "./drizzle/commerce-schema.ts", "./drizzle/finance-schema.ts", "./drizzle/verification-schema.ts", "./drizzle/showcase-schema.ts", "./drizzle/servicepub-schema.ts", "./drizzle/branding-schema.ts", "./drizzle/reviews-schema.ts", "./drizzle/storelink-schema.ts", "./drizzle/location-schema.ts"],
   out: "./drizzle",
   dialect: "mysql",
   dbCredentials: {

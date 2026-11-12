@@ -1,3 +1,5 @@
+import { OrderPlacesMap, PlacePicker } from "@/components/maps/Maps";
+import type { Point } from "@shared/location";
 import type { CartItemDTO, DeliveryMode } from "@shared/commerce";
 import { ClaimBox } from "./ClaimBox";
 import { paymentMethodLabels } from "@shared/commerce";
@@ -240,9 +242,18 @@ function CheckoutContent() {
   const estimate = cart.data?.subtotalCents ?? 0;
   const missingMode = groups.some(g => !chosen(g));
   const belowMinimum = groups.filter(g => !meetsMinimum(storeSubtotal(g)));
+  const [point, setPoint] = useState<Point | null>(null);
+  const needsPoint = groups.some(g => {
+    const mode = chosen(g);
+    return mode !== undefined && mode !== "pickup";
+  });
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const values = new FormData(e.currentTarget);
+    if (needsPoint && !point) {
+      toast.error("Marca en el mapa el punto exacto de entrega.");
+      return;
+    }
     if (belowMinimum.length) {
       toast.error(
         `La compra mínima es de ${MIN_ORDER_LABEL} por tienda: ${belowMinimum.map(g => g.storeName).join(", ")}.`
@@ -271,6 +282,7 @@ function CheckoutContent() {
         | "cod"
         | "card_link"
         | "card_on_delivery",
+      ...(needsPoint && point ? { point } : {}),
     };
     const fingerprint = JSON.stringify({
       ...payload,
@@ -388,6 +400,20 @@ function CheckoutContent() {
                 autoComplete="street-address"
               />
             </label>
+            {needsPoint && (
+              <>
+                <h2>Punto exacto de entrega</h2>
+                <PlacePicker
+                  value={point}
+                  onChange={setPoint}
+                  label="Punto exacto de entrega"
+                />
+                <p className="live-muted">
+                  Solo la tienda de tu pedido ve este punto, para llevarte la
+                  compra.
+                </p>
+              </>
+            )}
             <h2>Entrega por tienda</h2>
             {groups.map(g => (
               <label key={g.storeId}>
@@ -497,6 +523,7 @@ function CheckoutContent() {
                 create.isPending ||
                 missingMode ||
                 belowMinimum.length > 0 ||
+                (needsPoint && !point) ||
                 cart.data.items.some(i => !i.available || i.quantity > i.stock)
               }
             >
@@ -693,6 +720,7 @@ function OrderContent({ id }: { id: number }) {
         <p>
           {o.province}, {o.city} · {o.address}
         </p>
+        <OrderPlacesMap orderId={o.id} />
         <p>
           Modalidad:{" "}
           {o.deliveryMode === "pickup"

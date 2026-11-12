@@ -1,3 +1,4 @@
+import { PublicPlaceMap } from "@/components/maps/Maps";
 import { StoreBrandBadge, useStoreBranding } from "@/components/marketplace/StoreBrand";
 import { SectionShowcase } from "@/components/marketplace/SectionShowcase";
 import { StoreStars } from "@/components/marketplace/VerificationStars";
@@ -414,6 +415,7 @@ function StorePageView({
         </div>
         <BadgeCheck size={32} />
       </section>
+      <PublicPlaceMap kind="tienda" slug={store.slug} title="Dónde está" />
       <section className="live-panel">
         <h2>Categorías de este negocio</h2>
         <BusinessClassification selections={classification} />
