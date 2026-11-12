@@ -11,7 +11,6 @@ import {
   czJobs,
   czProducts,
   czProperties,
-  czServices,
   czStores,
   czTicketOrders,
   czVehicles,
@@ -20,9 +19,10 @@ import { czClaims, czOrders, czReviews } from "../../drizzle/commerce-schema";
 import { czApplications, czSubscriptionPayments } from "../../drizzle/schema";
 import { czListingReviews } from "../../drizzle/reviews-schema";
 import { czStoreStars } from "../../drizzle/verification-schema";
-import { panamaDateKey } from "@shared/finance";
+import { czStoreLinks } from "../../drizzle/storelink-schema";
 import { TRIAL_PLAN_ID } from "@shared/pricing";
 import {
+  MIN_DESCRIPTION,
   earnedStars,
   sortStars,
   type AchievementMetrics,
@@ -32,13 +32,11 @@ import { getDb } from "../db";
 
 type Db = NonNullable<Awaited<ReturnType<typeof getDb>>>;
 const num = (v: unknown) => Number(v ?? 0) || 0;
-const day = (d: unknown) => (d ? panamaDateKey(new Date(d as string)) : "");
-const earliest = (a: string, b: string) => (!a ? b : !b ? a : a < b ? a : b);
 
 function blank(): AchievementMetrics & { active: boolean } {
   return {
     featured: false,
-    startedOn: "",
+    profileComplete: false,
     sales: 0,
     closedListings: 0,
     reviewCount: 0,
@@ -65,7 +63,7 @@ export async function metricsForUsers(
     apps,
     ads,
     stores,
-    firstListings,
+    links,
     orders,
     appointments,
     tickets,
@@ -81,6 +79,7 @@ export async function metricsForUsers(
         userId: czApplications.userId,
         status: czApplications.subscriptionStatus,
         planId: czApplications.subscriptionPlanId,
+        phone: czApplications.contactPhone,
       })
       .from(czApplications)
       .where(
@@ -104,23 +103,16 @@ export async function metricsForUsers(
     db
       .select({
         userId: czStores.userId,
-        id: czStores.id,
-        createdAt: czStores.createdAt,
+        logoUrl: czStores.logoUrl,
+        description: czStores.description,
       })
       .from(czStores)
       .where(inArray(czStores.userId, ids)),
-    Promise.all(
-      [czProperties, czVehicles, czJobs, czServices].map(t =>
-        db
-          .select({
-            userId: (t as typeof czJobs).userId,
-            first: sql<string>`min(${(t as typeof czJobs).createdAt})`,
-          })
-          .from(t as typeof czJobs)
-          .where(inArray((t as typeof czJobs).userId, ids))
-          .groupBy((t as typeof czJobs).userId)
-      )
-    ),
+    db
+      .select({ userId: czStores.userId, url: czStoreLinks.url })
+      .from(czStoreLinks)
+      .innerJoin(czStores, eq(czStores.id, czStoreLinks.storeId))
+      .where(inArray(czStores.userId, ids)),
     db
       .select({ userId: czStores.userId, n: sql<number>`count(*)` })
       .from(czOrders)
@@ -234,15 +226,14 @@ export async function metricsForUsers(
     m.upToDate = true;
     if (a.planId === "mayor_visibilidad") m.featured = true;
   }
-  for (const s of stores) {
-    const m = out.get(s.userId)!;
-    m.startedOn = earliest(m.startedOn, day(s.createdAt));
-  }
-  for (const group of firstListings)
-    for (const r of group) {
-      const m = out.get(r.userId);
-      if (m) m.startedOn = earliest(m.startedOn, day(r.first));
-    }
+  const phones = new Map(apps.map(a => [a.userId, (a.phone ?? "").trim()]));
+  const linked = new Set(links.filter(l => l.url).map(l => l.userId));
+  for (const s of stores)
+    out.get(s.userId)!.profileComplete =
+      Boolean(s.logoUrl) &&
+      (s.description ?? "").trim().length >= MIN_DESCRIPTION &&
+      Boolean(phones.get(s.userId)) &&
+      linked.has(s.userId);
   for (const list of [orders, appointments, tickets])
     for (const r of list) out.get(r.userId)!.sales += num(r.n);
   for (const group of closed)

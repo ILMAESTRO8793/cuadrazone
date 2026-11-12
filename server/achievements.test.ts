@@ -3,7 +3,7 @@ import { earnedStars, type AchievementMetrics } from "@shared/stars";
 
 const base: AchievementMetrics = {
   featured: false,
-  startedOn: "",
+  profileComplete: false,
   sales: 0,
   closedListings: 0,
   reviewCount: 0,
@@ -20,9 +20,8 @@ describe("estrellas por logros", () => {
   it("roja con Mayor Visibilidad", () => {
     expect(earnedStars({ ...base, featured: true })).toEqual(["roja"]);
   });
-  it("amarilla si empezó antes del 17 de octubre de 2027", () => {
-    expect(earnedStars({ ...base, startedOn: "2026-11-01" })).toEqual(["amarilla"]);
-    expect(earnedStars({ ...base, startedOn: "2027-10-17" })).toEqual([]);
+  it("amarilla con el perfil completo", () => {
+    expect(earnedStars({ ...base, profileComplete: true })).toEqual(["amarilla"]);
   });
   it("morada con 20 ventas o 10 anuncios cerrados", () => {
     expect(earnedStars({ ...base, sales: 20 })).toEqual(["morada"]);

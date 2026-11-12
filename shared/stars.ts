@@ -25,8 +25,8 @@ export const verificationStarInfo: Record<
   amarilla: {
     label: "Estrella amarilla",
     color: "#f2b705",
-    achievement: "Fundador",
-    rule: "Empezó a vender o anunciar en el primer año de CuadraZone.",
+    achievement: "Perfil Completo",
+    rule: "Su tienda tiene logo, descripción, teléfono y su web o Instagram.",
   },
   morada: {
     label: "Estrella morada",
@@ -48,8 +48,8 @@ export const verificationStarInfo: Record<
   },
 };
 
-/** Fin del primer año de CuadraZone (abrió el 17 de octubre de 2026). */
-export const FOUNDER_UNTIL = "2027-10-17";
+/** Descripción mínima de la tienda para «Perfil Completo». */
+export const MIN_DESCRIPTION = 30;
 export const MIN_SALES = 20;
 export const MIN_CLOSED_LISTINGS = 10;
 export const MIN_REVIEWS = 10;
@@ -60,8 +60,8 @@ export const MIN_PAID_MONTHS = 12;
 export type AchievementMetrics = {
   /** Mayor Visibilidad pagado y vigente (de tienda o de anunciante). */
   featured: boolean;
-  /** Primera vez que vendió o anunció, «2026-11-02». Vacío si nunca. */
-  startedOn: string;
+  /** La tienda tiene logo, descripción, teléfono y su web o Instagram. */
+  profileComplete: boolean;
   sales: number;
   closedListings: number;
   reviewCount: number;
@@ -76,7 +76,7 @@ export type AchievementMetrics = {
 export function earnedStars(m: AchievementMetrics): VerificationStar[] {
   const out: VerificationStar[] = [];
   if (m.featured) out.push("roja");
-  if (m.startedOn && m.startedOn < FOUNDER_UNTIL) out.push("amarilla");
+  if (m.profileComplete) out.push("amarilla");
   if (m.sales >= MIN_SALES || m.closedListings >= MIN_CLOSED_LISTINGS)
     out.push("morada");
   if (

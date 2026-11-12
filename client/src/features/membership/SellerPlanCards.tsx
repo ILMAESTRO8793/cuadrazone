@@ -150,8 +150,8 @@ export function PlanConditions() {
       <p>
         La verificación de identidad es obligatoria para ambos. Las cinco
         estrellas de verificación se ganan por logros: roja «Tienda Destacada»
-        (Mayor Visibilidad), amarilla «Fundador» (empezaste en el primer año de
-        CuadraZone), morada «Vendedor Comprobado» (20 ventas o más), azul
+        (Mayor Visibilidad), amarilla «Perfil Completo» (logo, descripción,
+        teléfono y tu web o Instagram), morada «Vendedor Comprobado» (20 ventas o más), azul
         «Clientes Felices» (4.5 o más en al menos 10 reseñas) y verde «Socio
         Fiel» (12 meses de plan pagado). Se ven en tu tienda y en todos tus
         anuncios; si el plan vence, no se muestran.
