@@ -1,14 +1,14 @@
-import { useEffect, useRef } from "react";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
+import { useEffect, useRef, useState } from "react";
+import type * as Leaflet from "leaflet";
 import { PANAMA_CENTER, type ApproxPlace, type Point } from "@shared/location";
 
 export type CanvasMarker = Point & { label: string; color: string };
 
 /**
- * Mapa de OpenStreetMap. Se carga aparte (React.lazy) para no pesar en las
- * páginas que no lo usan. Los marcadores son círculos, así no dependen de
- * imágenes de Leaflet.
+ * Mapa de OpenStreetMap. Leaflet y su CSS se cargan solo en el navegador
+ * (import dinámico dentro de useEffect): el servidor también arma estas
+ * páginas (SSR) y en Node no existen `window` ni los archivos .css. Los
+ * marcadores son círculos, así no dependen de imágenes de Leaflet.
  */
 export default function LeafletCanvas({
   markers = [],
@@ -28,14 +28,34 @@ export default function LeafletCanvas({
   label: string;
 }) {
   const box = useRef<HTMLDivElement>(null);
-  const map = useRef<L.Map | null>(null);
-  const layer = useRef<L.LayerGroup | null>(null);
+  const lib = useRef<typeof Leaflet | null>(null);
+  const map = useRef<Leaflet.Map | null>(null);
+  const layer = useRef<Leaflet.LayerGroup | null>(null);
+  const [ready, setReady] = useState(false);
   const pickRef = useRef(onPick);
   pickRef.current = onPick;
 
   useEffect(() => {
-    if (!box.current) return;
-    const m = L.map(box.current, {
+    let cancelled = false;
+    let created: Leaflet.Map | null = null;
+    Promise.all([import("leaflet"), import("leaflet/dist/leaflet.css")]).then(
+      ([mod]) => {
+        if (cancelled || !box.current) return;
+        const L = (mod as { default?: typeof Leaflet }).default ?? (mod as typeof Leaflet);
+        lib.current = L;
+        created = build(L, box.current);
+        setReady(true);
+      }
+    );
+    return () => {
+      cancelled = true;
+      created?.remove();
+      map.current = null;
+    };
+  }, []);
+
+  function build(L: typeof Leaflet, el: HTMLDivElement) {
+    const m = L.map(el, {
       center: [PANAMA_CENTER.lat, PANAMA_CENTER.lng],
       zoom: 8,
       scrollWheelZoom: false,
@@ -49,18 +69,16 @@ export default function LeafletCanvas({
       pickRef.current?.({ lat: e.latlng.lat, lng: e.latlng.lng })
     );
     map.current = m;
-    return () => {
-      m.remove();
-      map.current = null;
-    };
-  }, []);
+    return m;
+  }
 
   useEffect(() => {
+    const L = lib.current;
     const m = map.current;
     const g = layer.current;
-    if (!m || !g) return;
+    if (!L || !m || !g) return;
     g.clearLayers();
-    const bounds: L.LatLngExpression[] = [];
+    const bounds: Leaflet.LatLngExpression[] = [];
     if (area) {
       L.circle([area.lat, area.lng], {
         radius: area.radiusM,
@@ -109,7 +127,7 @@ export default function LeafletCanvas({
       m.fitBounds(L.latLngBounds(bounds), { padding: [36, 36] });
     // Se compara por contenido: un arreglo nuevo con los mismos puntos no mueve el mapa.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(markers), JSON.stringify(area), JSON.stringify(pick)]);
+  }, [ready, JSON.stringify(markers), JSON.stringify(area), JSON.stringify(pick)]);
 
   return (
     <div
