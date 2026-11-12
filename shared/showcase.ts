@@ -75,7 +75,10 @@ export type ShowcaseTile = {
   mediaUrl: string | null;
   mediaType: "image" | "video";
   linkUrl: string;
-  store: { name: string; slug: string; logoUrl: string | null } | null;
+  /** `featured` = la tienda tiene Mayor Visibilidad vigente (solo en la vitrina pública). */
+  store: { name: string; slug: string; logoUrl: string | null; featured?: boolean } | null;
+  /** Precio actual del servicio o producto enlazado, p. ej. «US$15.00 por hora». */
+  priceLabel?: string | null;
 };
 export type AdminShowcaseItem = ShowcaseTile & {
   section: ShowcaseSection;

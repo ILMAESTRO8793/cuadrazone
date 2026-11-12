@@ -6,7 +6,8 @@ import { randomUUID } from "node:crypto";
 import { TRPCError } from "@trpc/server";
 import { and, asc, eq, inArray } from "drizzle-orm";
 import express, { type Express, type Request, type Response } from "express";
-import { czStores } from "../../drizzle/catalog-schema";
+import { czProducts, czServices, czStores } from "../../drizzle/catalog-schema";
+import { servicePriceLabel } from "@shared/services";
 import { czApplications } from "../../drizzle/schema";
 import { czShowcaseItems } from "../../drizzle/showcase-schema";
 import {
@@ -42,6 +43,22 @@ type Row = typeof czShowcaseItems.$inferSelect & {
   storeSlug: string | null;
   storeLogo: string | null;
 };
+
+/**
+ * ¿De qué lado es lo que enlaza un tile? Servicio, comercio o ninguno (p. ej.
+ * un banner propio). Comercios y servicios nunca se mezclan en la vitrina.
+ */
+export function showcaseItemKind(
+  linkUrl: string,
+  storeKind: string | null
+): "servicios" | "comercios" | null {
+  if (linkUrl.startsWith("/servicio")) return "servicios";
+  if (linkUrl.startsWith("/articulo/") || linkUrl.startsWith("/producto/"))
+    return "comercios";
+  if (storeKind === "servicios") return "servicios";
+  if (storeKind) return "comercios";
+  return null;
+}
 
 function toAdmin(r: Row): AdminShowcaseItem {
   const store = r.storeSlug
@@ -106,18 +123,32 @@ export async function publicShowcase(
   );
   // Una tienda con el plan vencido no sale en la vitrina.
   const storeIds = Array.from(new Set(items.map(i => i.storeId).filter((id): id is number => id !== null)));
-  const activeIds = new Set(
-    storeIds.length
-      ? (
-          await db
-            .select({ id: czStores.id })
-            .from(czStores)
-            .innerJoin(czApplications, eq(czApplications.userId, czStores.userId))
-            .where(and(inArray(czStores.id, storeIds), eq(czApplications.subscriptionStatus, "active")))
-        ).map(r => r.id)
-      : []
+  const activeRows = storeIds.length
+    ? await db
+        .select({
+          id: czStores.id,
+          planId: czApplications.subscriptionPlanId,
+          kind: czStores.storeKind,
+        })
+        .from(czStores)
+        .innerJoin(czApplications, eq(czApplications.userId, czStores.userId))
+        .where(and(inArray(czStores.id, storeIds), eq(czApplications.subscriptionStatus, "active")))
+    : [];
+  const activeIds = new Set(activeRows.map(r => r.id));
+  const featuredIds = new Set(
+    activeRows.filter(r => r.planId === "mayor_visibilidad").map(r => r.id)
   );
-  const live = items.filter(i => i.storeId === null || activeIds.has(i.storeId));
+  const kindOf = new Map(activeRows.map(r => [r.id, r.kind]));
+  const live = items.filter(i => {
+    if (i.storeId !== null && !activeIds.has(i.storeId)) return false;
+    const kind = showcaseItemKind(
+      i.linkUrl,
+      i.storeId !== null ? (kindOf.get(i.storeId) ?? null) : null
+    );
+    // Algo de comercio o de servicios solo sale en su propia sección.
+    return kind === null || kind === section;
+  });
+  const prices = await linkedPrices(db, live.map(i => i.linkUrl));
   const tile = (i: AdminShowcaseItem): ShowcaseTile => ({
     id: i.id,
     zone: i.zone,
@@ -126,7 +157,10 @@ export async function publicShowcase(
     mediaUrl: i.mediaUrl,
     mediaType: i.mediaType,
     linkUrl: i.linkUrl,
-    store: i.store,
+    store: i.store
+      ? { ...i.store, featured: i.storeId !== null && featuredIds.has(i.storeId) }
+      : null,
+    priceLabel: prices.get(i.linkUrl) ?? null,
   });
   // Lo propio de la sección va antes que lo general.
   const ordered = [
@@ -145,6 +179,55 @@ export async function publicShowcase(
       .slice(0, MAX_SHOWCASE_TILES)
       .map(tile),
   };
+}
+
+/** Precio actual de lo que enlaza cada tile (/servicio/… o /articulo/…). */
+async function linkedPrices(
+  db: NonNullable<Awaited<ReturnType<typeof getDb>>>,
+  links: string[]
+) {
+  const out = new Map<string, string>();
+  const slugsOf = (prefix: string) =>
+    Array.from(
+      new Set(
+        links
+          .filter(l => l.startsWith(prefix))
+          .map(l => l.slice(prefix.length))
+          .filter(s => /^[a-z0-9-]{1,220}$/.test(s))
+      )
+    );
+  const services = slugsOf("/servicio/");
+  const products = slugsOf("/articulo/");
+  const [svc, prod] = await Promise.all([
+    services.length
+      ? db
+          .select({
+            slug: czServices.slug,
+            priceType: czServices.priceType,
+            priceCents: czServices.priceCents,
+          })
+          .from(czServices)
+          .where(inArray(czServices.slug, services))
+      : [],
+    products.length
+      ? db
+          .select({ slug: czProducts.slug, priceCents: czProducts.priceCents })
+          .from(czProducts)
+          .where(inArray(czProducts.slug, products))
+      : [],
+  ]);
+  for (const s of svc)
+    out.set(
+      `/servicio/${s.slug}`,
+      servicePriceLabel({
+        priceType: s.priceType,
+        priceCents: s.priceCents ?? null,
+      } as Parameters<typeof servicePriceLabel>[0])
+    );
+  for (const p of prod)
+    if (p.priceCents)
+      out.set(`/articulo/${p.slug}`, `US${(p.priceCents / 100).toFixed(2)}`);
+  return out;
 }
 
 export const adminListShowcase = () => selectItems();

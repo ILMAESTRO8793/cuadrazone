@@ -51,6 +51,8 @@ function categoryContains(selection: BusinessSelection): SQL {
 }
 export function directoryConditions(input: StoreDirectoryInput): SQL[] {
   const conditions = activeDirectoryConditions();
+  // Comercios y servicios no se mezclan: los negocios de servicios salen en Servicios.
+  conditions.push(eq(czStores.storeKind, "comercio"));
   if (input.category || input.specialty) {
     const categoryId =
       input.category ??

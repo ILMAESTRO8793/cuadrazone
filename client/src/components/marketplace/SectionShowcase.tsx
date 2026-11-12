@@ -11,6 +11,7 @@ import {
 import type { ShowcaseSection, ShowcaseTile } from "@shared/showcase";
 import { trpc } from "@/lib/trpc";
 import { StoreLogo } from "./StoreLogo";
+import { StoreStars } from "./VerificationStars";
 import "./sectionShowcase.css";
 
 /**
@@ -215,7 +216,9 @@ function StoreTile({ tile, index }: { tile: ShowcaseTile; index: number }) {
     <TileLink
       href={tile.linkUrl}
       className="showcase-store"
-      label={`${tile.title}${tile.store ? ` · ${tile.store.name}` : ""}`}
+      label={[tile.title, tile.store?.name, tile.priceLabel]
+        .filter(Boolean)
+        .join(" · ")}
     >
       <span
         className="showcase-store-media"
@@ -244,10 +247,24 @@ function StoreTile({ tile, index }: { tile: ShowcaseTile; index: number }) {
         )}
       </span>
       <span className="showcase-store-text">
-        {tile.subtitle && <small>{tile.subtitle}</small>}
         <strong>{tile.title}</strong>
-        {tile.store && tile.store.name !== tile.title && (
-          <em>{tile.store.name}</em>
+        {tile.store && (
+          <span className="showcase-store-by">
+            <StoreLogo
+              name={tile.store.name}
+              logoUrl={tile.store.logoUrl}
+              size={26}
+            />
+            <span>{tile.store.name}</span>
+          </span>
+        )}
+        {tile.store?.featured && (
+          <StoreStars slug={tile.store.slug} size={15} />
+        )}
+        {tile.priceLabel ? (
+          <b className="showcase-store-price">{tile.priceLabel}</b>
+        ) : (
+          tile.subtitle && <small>{tile.subtitle}</small>
         )}
       </span>
     </TileLink>
