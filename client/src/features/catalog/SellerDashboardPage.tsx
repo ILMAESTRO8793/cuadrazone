@@ -17,7 +17,7 @@ import {
   Gavel,
 } from "lucide-react";
 import type { ReactNode } from "react";
-import { commissionPercentLabel, subscriptionPlanName } from "@shared/pricing";
+import { commissionBpsFor, commissionPercentLabel, subscriptionPlanName } from "@shared/pricing";
 import {
   LOW_STOCK_THRESHOLD,
   TOP_PRODUCTS_DAYS,
@@ -378,7 +378,7 @@ export function SellerDashboardPage() {
               )}
               <div>
                 <dt>Comisión actual</dt>
-                <dd>{commissionPercentLabel(d.plan.inTrial ? 800 : 500)}</dd>
+                <dd>{commissionPercentLabel(commissionBpsFor(d.plan.planId, d.plan.trialEndsAt))}</dd>
               </div>
               <div>
                 <dt>Comisión por pagar</dt>
