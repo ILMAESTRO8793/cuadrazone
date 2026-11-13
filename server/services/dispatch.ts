@@ -24,7 +24,12 @@ import {
   czOrders,
 } from "../../drizzle/commerce-schema";
 import { czApplications } from "../../drizzle/schema";
-import { czDispatchers, czDispatchJobs } from "../../drizzle/dispatch-schema";
+import {
+  czDispatcherDocuments,
+  czDispatchers,
+  czDispatchJobs,
+} from "../../drizzle/dispatch-schema";
+import { validateDocumentBytes } from "./membership";
 import { czOrderPlaces, czPlaces } from "../../drizzle/location-schema";
 import {
   DISPATCH_STALE_MS,
@@ -79,6 +84,12 @@ export async function applyDispatcher(
   input: ApplyDispatcherInput
 ) {
   const db = await requireDb();
+  const docs = await myDispatcherDocuments(userId);
+  if (!docs.licencia || !docs.record)
+    fail(
+      "PRECONDITION_FAILED",
+      "Sube tu licencia de conducir y tu récord policivo para poder aplicar."
+    );
   const current = await myDispatcher(userId);
   if (current?.status === "suspended")
     fail(
@@ -533,8 +544,26 @@ export async function dispatchForOrder(
 
 // ── Administración ──
 
+/** ¿Qué documentos ya subió? (sin enviar los archivos). */
+export async function myDispatcherDocuments(userId: number) {
+  const db = await requireDb();
+  const rows = await db
+    .select({ kind: czDispatcherDocuments.kind, fileName: czDispatcherDocuments.fileName })
+    .from(czDispatcherDocuments)
+    .where(eq(czDispatcherDocuments.userId, userId));
+  const by = new Map(rows.map(r => [r.kind, r.fileName]));
+  return { licencia: by.get("licencia") ?? null, record: by.get("record") ?? null };
+}
+
 export async function adminDispatchers() {
   const db = await requireDb();
+  const docRows = await db
+    .select({ userId: czDispatcherDocuments.userId, kind: czDispatcherDocuments.kind })
+    .from(czDispatcherDocuments);
+  const docsOf = (userId: number) => ({
+    licencia: docRows.some(r => r.userId === userId && r.kind === "licencia"),
+    record: docRows.some(r => r.userId === userId && r.kind === "record"),
+  });
   const people = await db
     .select()
     .from(czDispatchers)
@@ -557,6 +586,7 @@ export async function adminDispatchers() {
     plate: p.plate,
     status: p.status,
     createdAt: new Date(p.createdAt).toISOString(),
+    documents: docsOf(p.userId),
     delivered: Number(byUser.get(p.userId)?.delivered ?? 0),
     unpaidCents: Number(byUser.get(p.userId)?.unpaid ?? 0),
   }));
@@ -674,7 +704,82 @@ async function uploadPhoto(req: Request, res: Response) {
   }
 }
 
+const DOC_KINDS = new Set(["licencia", "record"]);
+const DOC_TYPES = new Set(["application/pdf", "image/png", "image/jpeg", "image/webp"]);
+const MAX_DOC_BYTES = 5 * 1024 * 1024;
+
+async function uploadDocument(req: Request, res: Response) {
+  try {
+    if (req.headers["x-cz-request"] !== "1")
+      return res.status(412).json({ error: "Falta la cabecera x-cz-request: 1" });
+    const user = await sdk.authenticateRequest(req).catch(() => null);
+    if (!user) return res.status(401).json({ error: "Inicia sesión" });
+    const kind = String(req.params.kind);
+    if (!DOC_KINDS.has(kind)) return res.status(400).json({ error: "Documento no válido" });
+    const mimeType = String(req.headers["content-type"] ?? "").split(";", 1)[0]!.toLowerCase();
+    if (!DOC_TYPES.has(mimeType))
+      return res.status(400).json({ error: "Sube un PDF o una foto (PNG, JPEG o WEBP)" });
+    try {
+      validateDocumentBytes(req.body, mimeType, MAX_DOC_BYTES);
+    } catch (error) {
+      return res.status(400).json({ error: error instanceof Error ? error.message : "Archivo no válido" });
+    }
+    const fileName = String(req.headers["x-file-name"] ?? "documento")
+      .replace(/[^\w.\- ]+/g, "")
+      .slice(0, 180) || "documento";
+    const db = await requireDb();
+    const values = { fileName, mimeType, size: req.body.length, bytes: req.body as Buffer };
+    await db
+      .insert(czDispatcherDocuments)
+      .values({ userId: user.id, kind: kind as "licencia" | "record", ...values })
+      .onDuplicateKeyUpdate({ set: values });
+    return res.status(201).json({ ok: true, kind, fileName });
+  } catch (error) {
+    console.error("[Despacho] documento", error);
+    return res.status(500).json({ error: "No se pudo guardar el documento" });
+  }
+}
+
+/** Solo el propio despachador o un administrador. Se descarga, nunca se muestra en la página. */
+async function downloadDocument(req: Request, res: Response) {
+  try {
+    const user = await sdk.authenticateRequest(req).catch(() => null);
+    if (!user) return res.status(401).json({ error: "Inicia sesión" });
+    const ownerId = Number(req.params.userId);
+    const kind = String(req.params.kind);
+    if (!Number.isSafeInteger(ownerId) || ownerId <= 0 || !DOC_KINDS.has(kind))
+      return res.status(404).json({ error: "Documento no disponible" });
+    if (user.role !== "admin" && user.id !== ownerId)
+      return res.status(403).json({ error: "Documento no disponible" });
+    const db = await requireDb();
+    const [row] = await db
+      .select()
+      .from(czDispatcherDocuments)
+      .where(and(eq(czDispatcherDocuments.userId, ownerId), eq(czDispatcherDocuments.kind, kind as "licencia" | "record")))
+      .limit(1);
+    if (!row) return res.status(404).json({ error: "Documento no disponible" });
+    res.set({
+      "Cache-Control": "no-store, no-cache, must-revalidate",
+      Pragma: "no-cache",
+      "X-Content-Type-Options": "nosniff",
+      "Content-Security-Policy": "sandbox",
+      "Content-Disposition": `attachment; filename="documento"; filename*=UTF-8''${encodeURIComponent(row.fileName)}`,
+    });
+    res.type(row.mimeType);
+    return res.status(200).send(row.bytes);
+  } catch (error) {
+    console.error("[Despacho] descarga", error);
+    return res.status(500).json({ error: "No se pudo abrir el documento" });
+  }
+}
+
 export function registerDispatchRoutes(app: Express) {
+  const rawDoc = (req: Request, res: Response, next: () => void) =>
+    express.raw({ type: () => true, limit: MAX_DOC_BYTES })(req, res, error =>
+      error ? res.status(413).json({ error: "El documento supera 5 MiB" }) : next()
+    );
+  app.post("/api/dispatch/documents/:kind", rawDoc, uploadDocument);
+  app.get("/api/dispatch/documents/:userId/:kind", downloadDocument);
   const raw = (req: Request, res: Response, next: () => void) =>
     express.raw({ type: () => true, limit: MAX_PHOTO_BYTES })(
       req,

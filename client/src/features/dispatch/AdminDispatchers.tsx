@@ -47,6 +47,7 @@ export function AdminDispatchers({ enabled }: { enabled: boolean }) {
                 <th>Celular</th>
                 <th>Provincia</th>
                 <th>Vehículo</th>
+                <th>Documentos</th>
                 <th>Estado</th>
                 <th>Entregas</th>
                 <th>Por pagar</th>
@@ -65,11 +66,23 @@ export function AdminDispatchers({ enabled }: { enabled: boolean }) {
                     {dispatchVehicleLabels[d.vehicle]}
                     {d.plate ? ` · ${d.plate}` : ""}
                   </td>
+                  <td className="dz-actions">
+                    {d.documents.licencia ? (
+                      <a className="btn btn-outline" href={`/api/dispatch/documents/${d.userId}/licencia`}>Licencia</a>
+                    ) : (
+                      <em className="dz-doc-missing">Sin licencia</em>
+                    )}
+                    {d.documents.record ? (
+                      <a className="btn btn-outline" href={`/api/dispatch/documents/${d.userId}/record`}>Récord</a>
+                    ) : (
+                      <em className="dz-doc-missing">Sin récord</em>
+                    )}
+                  </td>
                   <td>{dispatcherStatusLabels[d.status]}</td>
                   <td>{d.delivered}</td>
                   <td>{usd(d.unpaidCents)}</td>
                   <td className="dz-actions">
-                    {d.status !== "approved" && (
+                    {d.status !== "approved" && d.documents.licencia && d.documents.record && (
                       <button
                         className="btn btn-gold"
                         disabled={busy}

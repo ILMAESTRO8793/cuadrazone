@@ -9,8 +9,18 @@ import {
   timestamp,
   varchar,
   index,
+  uniqueIndex,
+  customType,
 } from "drizzle-orm/mysql-core";
 import { users } from "./schema";
+
+/** Archivo binario (igual que los documentos de vendedores en schema.ts). */
+const mediumBlob = customType<{ data: Buffer; driverData: Buffer }>({
+  dataType: () => "mediumblob",
+  toDriver: value => value,
+  fromDriver: value =>
+    Buffer.isBuffer(value) ? value : Buffer.from(value as Uint8Array),
+});
 import { czOrders } from "./commerce-schema";
 
 export const czDispatchers = mysqlTable("cz_dispatchers", {
@@ -58,4 +68,26 @@ export const czDispatchJobs = mysqlTable(
     lastAt: timestamp("lastAt"),
   },
   table => [index("cz_dispatch_jobs_dispatcher_ix").on(table.dispatcherUserId)]
+);
+
+/**
+ * Licencia de conducir y récord policivo del despachador. Se guardan dentro de
+ * la base de datos (nunca en una carpeta pública); solo el despachador y los
+ * administradores pueden abrirlos.
+ */
+export const czDispatcherDocuments = mysqlTable(
+  "cz_dispatcher_documents",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    kind: mysqlEnum("kind", ["licencia", "record"]).notNull(),
+    fileName: varchar("fileName", { length: 200 }).notNull(),
+    mimeType: varchar("mimeType", { length: 80 }).notNull(),
+    size: int("size").notNull(),
+    bytes: mediumBlob("bytes").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => [uniqueIndex("cz_dispatcher_documents_uq").on(table.userId, table.kind)]
 );

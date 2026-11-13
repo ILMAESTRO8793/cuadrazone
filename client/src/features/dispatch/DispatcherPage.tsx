@@ -125,6 +125,32 @@ function ApplyForm({
 }) {
   const utils = trpc.useUtils();
   const apply = trpc.dispatch.register.useMutation();
+  const docs = trpc.dispatch.myDocuments.useQuery();
+  const [uploading, setUploading] = useState<"licencia" | "record" | null>(null);
+  const hasDocs = Boolean(docs.data?.licencia && docs.data?.record);
+  async function uploadDoc(kind: "licencia" | "record", file: File) {
+    setUploading(kind);
+    try {
+      const r = await fetch(`/api/dispatch/documents/${kind}`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": file.type || "application/octet-stream",
+          "x-cz-request": "1",
+          "x-file-name": file.name.replace(/[^\w.\- ]+/g, "").slice(0, 180),
+        },
+        body: file,
+      });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(data.error || "No se pudo subir el documento");
+      await utils.dispatch.myDocuments.invalidate();
+      toast.success(kind === "licencia" ? "Licencia guardada" : "Récord policivo guardado");
+    } catch (error) {
+      toast.error(errorText(error));
+    } finally {
+      setUploading(null);
+    }
+  }
   const [f, setF] = useState({
     fullName: current?.fullName ?? "",
     phone: current?.phone ?? "+507",
@@ -134,6 +160,10 @@ function ApplyForm({
   });
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (!hasDocs) {
+      toast.error("Sube tu licencia de conducir y tu récord policivo para poder aplicar.");
+      return;
+    }
     try {
       await apply.mutateAsync(f);
       await utils.dispatch.me.invalidate();
@@ -213,10 +243,48 @@ function ApplyForm({
             maxLength={20}
           />
         </label>
+        <fieldset className="dz-docs">
+          <legend>Documentos obligatorios</legend>
+          <p className="cz-map-hint">
+            Sin estos dos documentos no puedes aplicar. Son privados: solo los
+            ve el equipo de CuadraZone para aprobarte. PDF o foto, máximo 5 MiB.
+          </p>
+          {(
+            [
+              ["licencia", "Licencia de conducir"],
+              ["record", "Récord policivo"],
+            ] as const
+          ).map(([kind, label]) => (
+            <div key={kind} className="dz-doc-row">
+              <span>
+                <strong>{label}</strong>{" "}
+                {docs.data?.[kind] ? (
+                  <em className="dz-doc-ok">✓ Subido</em>
+                ) : (
+                  <em className="dz-doc-missing">Falta</em>
+                )}
+              </span>
+              <label className="btn btn-outline dz-photo-btn">
+                {uploading === kind ? "Subiendo…" : docs.data?.[kind] ? "Cambiar" : "Subir"}
+                <input
+                  type="file"
+                  accept="application/pdf,image/png,image/jpeg,image/webp"
+                  hidden
+                  disabled={uploading !== null}
+                  onChange={e => {
+                    const file = e.target.files?.[0];
+                    e.target.value = "";
+                    if (file) uploadDoc(kind, file);
+                  }}
+                />
+              </label>
+            </div>
+          ))}
+        </fieldset>
         <button
           className="btn btn-gold"
           type="submit"
-          disabled={apply.isPending}
+          disabled={apply.isPending || !hasDocs}
         >
           {apply.isPending
             ? "Enviando…"

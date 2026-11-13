@@ -31,3 +31,9 @@
 .dz-delete { margin-top: 24px; border-color: #f1c8bd; }
 .dz-danger { color: #b42318; border-color: #f1c8bd; }
 .dz-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.dz-docs { grid-column: 1 / -1; border: 1px solid #e3d3a8; border-radius: 12px; padding: 12px; margin: 0; display: flex; flex-direction: column; gap: 8px; background: #fffdf7; }
+.dz-docs legend { font-weight: 800; padding: 0 4px; }
+.dz-doc-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.dz-doc-ok { color: #3b5c12; font-style: normal; font-weight: 700; }
+.dz-doc-missing { color: #b42318; font-style: normal; font-weight: 700; font-size: 13px; }

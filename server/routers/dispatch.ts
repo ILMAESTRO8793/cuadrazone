@@ -14,6 +14,7 @@ import {
   deliverJob,
   dispatchForOrder,
   myDispatcher,
+  myDispatcherDocuments,
   myEarnings,
   myJobs,
   pingPosition,
@@ -34,6 +35,7 @@ function requireHeader(ctx: { req: { headers: Record<string, unknown> } }) {
 /** Despachadores: pedidos disponibles, ruta en vivo, foto y ganancias. */
 export const dispatchRouter = router({
   me: protectedProcedure.query(({ ctx }) => myDispatcher(ctx.user.id)),
+  myDocuments: protectedProcedure.query(({ ctx }) => myDispatcherDocuments(ctx.user.id)),
   register: protectedProcedure
     .input(applyDispatcherInput)
     .mutation(({ ctx, input }) => {
