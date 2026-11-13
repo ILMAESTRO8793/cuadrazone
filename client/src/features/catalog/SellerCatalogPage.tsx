@@ -545,19 +545,24 @@ function SellerCatalogContent({
 
   const saveProductDraft = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    await persistProduct();
+  };
+
+  /** Guarda el borrador; devuelve el producto guardado o null si no se pudo. */
+  const persistProduct = async (): Promise<OwnerProduct | null> => {
     setConflict(null);
     const priceCents = decimalToCents(productForm.price);
     if (priceCents === null) {
       toast.error("Precio no válido", {
         description: "Usa un importe como 19.99, con máximo dos decimales.",
       });
-      return;
+      return null;
     }
     if (productForm.kind === "book" && !productForm.book.author.trim()) {
       toast.error("Completa los metadatos del libro", {
         description: "El autor es obligatorio.",
       });
-      return;
+      return null;
     }
     if (
       !productForm.title.trim() ||
@@ -568,7 +573,7 @@ function SellerCatalogContent({
         description:
           "Título, categoría y una modalidad de entrega son obligatorios.",
       });
-      return;
+      return null;
     }
     const normalizedVariants = productForm.variants.map(variant => ({
       ...variant,
@@ -589,13 +594,13 @@ function SellerCatalogContent({
         description:
           "Cada stock debe ser un número entero igual o mayor que cero.",
       });
-      return;
+      return null;
     }
     if (normalizedVariants.some(variant => variant.priceValue === null)) {
       toast.error("Precio de variante no válido", {
         description: "Usa un importe como 19.99, con máximo dos decimales.",
       });
-      return;
+      return null;
     }
     try {
       const saved = await saveProduct.mutateAsync({
@@ -646,6 +651,7 @@ function SellerCatalogContent({
           ? "Publicación actualizada"
           : "Borrador de publicación guardado"
       );
+      return saved as OwnerProduct;
     } catch (error) {
       const message = errorText(error, "No se pudo guardar la publicación.");
       if (/conflict|revision|cambió|actualiz/i.test(message))
@@ -653,6 +659,7 @@ function SellerCatalogContent({
       toast.error("No se pudo guardar la publicación", {
         description: message,
       });
+      return null;
     }
   };
 
@@ -690,23 +697,25 @@ function SellerCatalogContent({
     }
   };
 
-  const uploadImages = async (files: FileList | null) => {
+  const uploadImages = async (files: File[] | null) => {
     if (!files?.length) return;
-    if (!productForm.id || productDirty) {
-      toast.error("Guarda el borrador antes de cargar fotos", {
-        description:
-          "Así cada foto se vincula a tu producto y su revisión actual.",
-      });
-      return;
+    // Copia la lista: el input se vacía justo después de elegir.
+    const picked = Array.from(files);
+    let productId = productForm.id;
+    if (!productId || productDirty) {
+      // Se guarda el borrador solo y después se suben las fotos.
+      const saved = await persistProduct();
+      if (!saved) return;
+      productId = saved.id;
     }
-    if (productForm.images.length + files.length > 12) {
+    if (productForm.images.length + picked.length > 12) {
       toast.error("La galería admite hasta 12 fotos");
       return;
     }
     setUploadError(null);
     setUploading(true);
     try {
-      for (const file of Array.from(files)) {
+      for (const file of picked) {
         if (!IMAGE_TYPES.has(file.type))
           throw new Error("Solo se aceptan imágenes PNG, JPEG o WEBP.");
         if (file.size === 0 || file.size > MAX_IMAGE_BYTES)
@@ -716,7 +725,7 @@ function SellerCatalogContent({
             "Puedes cargar hasta 12 fotos públicas por publicación."
           );
         const response = await authFetch(
-          `/api/catalog/products/${productForm.id}/images`,
+          `/api/catalog/products/${productId}/images`,
           { method: "POST", body: file, headers: { "Content-Type": file.type } }
         );
         if (!response.ok) {
@@ -1658,7 +1667,7 @@ function SellerCatalogContent({
                 <fieldset className="seller-catalog-subsection">
                   <legend>Galería pública</legend>
                   <p className="seller-catalog-help">
-                    Guarda primero el borrador antes de cargar fotos. PNG, JPEG
+                    Al cargar fotos, el borrador se guarda solo. PNG, JPEG
                     o WEBP · máximo 5 MiB por foto · hasta 12 fotos. No subas
                     cédulas, cartas pastorales ni imágenes con identidad
                     personal.
@@ -1700,13 +1709,13 @@ function SellerCatalogContent({
                         multiple
                         hidden
                         disabled={
-                          !productForm.id ||
-                          productDirty ||
+                          saveProduct.isPending ||
                           uploading ||
                           productForm.images.length >= 12
                         }
                         onChange={event => {
-                          void uploadImages(event.target.files);
+                          const files = event.target.files;
+                          void uploadImages(files ? Array.from(files) : null);
                           event.currentTarget.value = "";
                         }}
                       />
