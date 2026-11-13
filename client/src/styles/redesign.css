@@ -2137,3 +2137,51 @@ html.cz-app .site-footer .footer-top,
 html.cz-app .site-footer .footer-bottom {
   display: none;
 }
+
+/* App: el menú de secciones vuelve como una fila deslizable debajo de la búsqueda
+ * (Comercios, Servicios, Bienes raíces, Autos, Buscar trabajo, Despachador…). */
+html.cz-app .nav-border {
+  display: block !important;
+}
+html.cz-app .main-nav {
+  display: flex !important;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
+  min-height: 0;
+  padding: 6px 12px 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+html.cz-app .main-nav::-webkit-scrollbar {
+  display: none;
+}
+html.cz-app .main-nav .category-menu,
+html.cz-app .main-nav .sell-nav,
+html.cz-app .category-popover {
+  display: none !important;
+}
+html.cz-app .main-nav nav {
+  display: flex !important;
+  flex-wrap: nowrap;
+  gap: 6px;
+}
+html.cz-app .main-nav nav > a,
+html.cz-app .main-nav > div > a,
+html.cz-app .main-nav a.dispatch-nav,
+html.cz-app .main-nav a.admin-nav {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
+  white-space: nowrap;
+  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(234, 209, 141, 0.45);
+  box-shadow: none;
+}
+html.cz-app .main-nav nav > a.active {
+  background: #ead18d;
+  color: #071e38;
+}
