@@ -1,0 +1,1 @@
+ALTER TABLE `cz_dispatchers` MODIFY COLUMN `status` enum('pending','approved','suspended','rejected') NOT NULL DEFAULT 'pending';

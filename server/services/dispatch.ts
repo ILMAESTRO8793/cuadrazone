@@ -95,8 +95,37 @@ export async function applyDispatcher(
   await db
     .insert(czDispatchers)
     .values({ userId, ...values, status: "pending" })
-    .onDuplicateKeyUpdate({ set: values });
+    .onDuplicateKeyUpdate({
+      set: current?.status === "rejected" ? { ...values, status: "pending" } : values,
+    });
   return myDispatcher(userId);
+}
+
+/** Pedidos que el despachador tiene sin entregar (por recoger o en camino). */
+async function activeJobs(db: Db, userId: number) {
+  return db
+    .select({ orderId: czDispatchJobs.orderId, status: czOrders.status })
+    .from(czDispatchJobs)
+    .innerJoin(czOrders, eq(czOrders.id, czDispatchJobs.orderId))
+    .where(
+      and(
+        eq(czDispatchJobs.dispatcherUserId, userId),
+        isNull(czDispatchJobs.deliveredAt),
+        inArray(czOrders.status, ["confirmed", "shipped"])
+      )
+    );
+}
+
+/** El despachador borra su cuenta. Antes debe cancelar o entregar sus pedidos. */
+export async function deleteMyDispatcher(userId: number) {
+  const db = await requireDb();
+  if ((await activeJobs(db, userId)).length)
+    fail(
+      "PRECONDITION_FAILED",
+      "Tienes pedidos sin entregar. Cancélalos o entrégalos antes de eliminar tu cuenta."
+    );
+  await db.delete(czDispatchers).where(eq(czDispatchers.userId, userId));
+  return { ok: true };
 }
 
 async function requireApproved(db: Db, userId: number) {
@@ -230,7 +259,21 @@ export async function releaseJob(userId: number, orderId: number) {
       "Ya recogiste este pedido: entrégalo o escribe a soporte."
     );
   await db.delete(czDispatchJobs).where(eq(czDispatchJobs.orderId, orderId));
+  await notifyCancel(db, orderId);
   return { ok: true };
+}
+
+async function notifyCancel(db: Db, orderId: number) {
+  const [o] = await db
+    .select({ number: czOrders.number, buyerId: czOrders.userId, sellerId: czStores.userId })
+    .from(czOrders)
+    .innerJoin(czStores, eq(czStores.id, czOrders.storeId))
+    .where(eq(czOrders.id, orderId))
+    .limit(1);
+  if (!o) return;
+  const msg = `El despachador canceló el pedido ${o.number}. Otro despachador podrá tomarlo.`;
+  await notify(db, o.sellerId, msg, orderId);
+  await notify(db, o.buyerId, msg, orderId);
 }
 
 /** Mis pedidos en curso: dónde recoger, dónde entregar y con quién hablar. */
@@ -522,7 +565,7 @@ export async function adminDispatchers() {
 export async function adminSetDispatcherStatus(
   adminId: number,
   userId: number,
-  status: "approved" | "suspended" | "pending"
+  status: "approved" | "suspended" | "pending" | "rejected"
 ) {
   const db = await requireDb();
   await db
@@ -534,6 +577,24 @@ export async function adminSetDispatcherStatus(
         : {}),
     })
     .where(eq(czDispatchers.userId, userId));
+  return adminDispatchers();
+}
+
+/**
+ * El administrador elimina a un despachador. Sus pedidos por recoger vuelven a
+ * Disponibles; si lleva uno en camino, primero debe entregarlo. El historial de
+ * entregas se conserva.
+ */
+export async function adminDeleteDispatcher(userId: number) {
+  const db = await requireDb();
+  const jobs = await activeJobs(db, userId);
+  if (jobs.some(j => j.status === "shipped"))
+    fail("PRECONDITION_FAILED", "Lleva un pedido en camino. Espera a que lo entregue.");
+  for (const j of jobs) {
+    await db.delete(czDispatchJobs).where(eq(czDispatchJobs.orderId, j.orderId));
+    await notifyCancel(db, j.orderId);
+  }
+  await db.delete(czDispatchers).where(eq(czDispatchers.userId, userId));
   return adminDispatchers();
 }
 

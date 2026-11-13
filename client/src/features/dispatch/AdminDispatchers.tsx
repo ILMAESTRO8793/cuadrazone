@@ -14,6 +14,8 @@ export function AdminDispatchers({ enabled }: { enabled: boolean }) {
   const list = trpc.dispatch.adminList.useQuery(undefined, { enabled });
   const setStatus = trpc.dispatch.adminSetStatus.useMutation();
   const markPaid = trpc.dispatch.adminMarkPaid.useMutation();
+  const remove = trpc.dispatch.adminDelete.useMutation();
+  const busy = setStatus.isPending || remove.isPending;
   async function run(p: Promise<unknown>, ok: string) {
     try {
       await p;
@@ -70,7 +72,7 @@ export function AdminDispatchers({ enabled }: { enabled: boolean }) {
                     {d.status !== "approved" && (
                       <button
                         className="btn btn-gold"
-                        disabled={setStatus.isPending}
+                        disabled={busy}
                         onClick={() =>
                           run(
                             setStatus.mutateAsync({
@@ -84,10 +86,25 @@ export function AdminDispatchers({ enabled }: { enabled: boolean }) {
                         Aprobar
                       </button>
                     )}
+                    {d.status === "pending" && (
+                      <button
+                        className="btn btn-outline"
+                        disabled={busy}
+                        onClick={() =>
+                          window.confirm(`¿Rechazar la solicitud de ${d.fullName}?`) &&
+                          run(
+                            setStatus.mutateAsync({ userId: d.userId, status: "rejected" }),
+                            "Solicitud rechazada"
+                          )
+                        }
+                      >
+                        Rechazar
+                      </button>
+                    )}
                     {d.status === "approved" && (
                       <button
                         className="btn btn-outline"
-                        disabled={setStatus.isPending}
+                        disabled={busy}
                         onClick={() =>
                           window.confirm(`¿Suspender a ${d.fullName}?`) &&
                           run(
@@ -119,6 +136,22 @@ export function AdminDispatchers({ enabled }: { enabled: boolean }) {
                         Marcar pagado
                       </button>
                     )}
+                    <button
+                      className="btn btn-outline dz-danger"
+                      disabled={busy}
+                      onClick={() =>
+                        window.confirm(
+                          `¿Eliminar a ${d.fullName} como despachador? No se puede deshacer.${
+                            d.unpaidCents > 0
+                              ? ` Todavía le debes ${usd(d.unpaidCents)}: págale antes.`
+                              : ""
+                          } Sus pedidos por recoger volverán a Disponibles.`
+                        ) &&
+                        run(remove.mutateAsync({ userId: d.userId }), "Despachador eliminado")
+                      }
+                    >
+                      Eliminar
+                    </button>
                   </td>
                 </tr>
               ))}

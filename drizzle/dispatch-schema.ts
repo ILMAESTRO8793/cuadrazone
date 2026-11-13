@@ -27,7 +27,7 @@ export const czDispatchers = mysqlTable("cz_dispatchers", {
     "otro",
   ]).notNull(),
   plate: varchar("plate", { length: 20 }).notNull().default(""),
-  status: mysqlEnum("status", ["pending", "approved", "suspended"])
+  status: mysqlEnum("status", ["pending", "approved", "suspended", "rejected"])
     .notNull()
     .default("pending"),
   approvedBy: int("approvedBy"),

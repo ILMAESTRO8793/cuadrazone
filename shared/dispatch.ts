@@ -29,6 +29,7 @@ export const dispatcherStatusLabels = {
   pending: "En revisión",
   approved: "Aprobado",
   suspended: "Suspendido",
+  rejected: "Rechazado",
 } as const;
 
 export const applyDispatcherInput = z

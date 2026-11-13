@@ -253,6 +253,13 @@
       "when": 1794526617913,
       "tag": "0035_despachadores",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "5",
+      "when": 1794528123916,
+      "tag": "0036_despachador_rechazado",
+      "breakpoints": true
     }
   ]
 }

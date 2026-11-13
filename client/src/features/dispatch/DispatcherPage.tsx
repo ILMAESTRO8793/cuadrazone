@@ -60,7 +60,7 @@ function DispatcherContent() {
           </p>
         </div>
       </header>
-      {!d || d.status === "pending" ? (
+      {!d || d.status === "pending" || d.status === "rejected" ? (
         <ApplyForm current={d ?? null} />
       ) : d.status === "suspended" ? (
         <p className="member-notice">
@@ -70,7 +70,44 @@ function DispatcherContent() {
       ) : (
         <Approved province={d.province} />
       )}
+      {d && <DeleteAccount />}
     </div>
+  );
+}
+
+/** El despachador borra su cuenta (antes debe cancelar o entregar sus pedidos). */
+function DeleteAccount() {
+  const utils = trpc.useUtils();
+  const remove = trpc.dispatch.deleteMe.useMutation();
+  return (
+    <section className="dz-card dz-delete">
+      <h2>Eliminar mi cuenta de despachador</h2>
+      <p>
+        Dejarás de ver pedidos. Tu historial de entregas se conserva para tus
+        pagos pendientes. Tu cuenta de CuadraZone sigue activa.
+      </p>
+      <button
+        className="btn btn-outline dz-danger"
+        disabled={remove.isPending}
+        onClick={async () => {
+          if (
+            !window.confirm(
+              "¿Eliminar tu cuenta de despachador? No se puede deshacer."
+            )
+          )
+            return;
+          try {
+            await remove.mutateAsync();
+            await utils.dispatch.me.invalidate();
+            toast.success("Tu cuenta de despachador fue eliminada");
+          } catch (error) {
+            toast.error(errorText(error));
+          }
+        }}
+      >
+        {remove.isPending ? "Eliminando…" : "Eliminar mi cuenta"}
+      </button>
+    </section>
   );
 }
 
@@ -109,8 +146,10 @@ function ApplyForm({
     <section className="dz-card">
       {current && (
         <p className="member-notice">
-          Estado: <strong>{dispatcherStatusLabels[current.status]}</strong>. Un
-          administrador revisa tu solicitud.
+          Estado: <strong>{dispatcherStatusLabels[current.status]}</strong>.{" "}
+          {current.status === "rejected"
+            ? "Tu solicitud no fue aprobada. Puedes corregir tus datos y enviarla de nuevo."
+            : "Un administrador revisa tu solicitud."}
         </p>
       )}
       <h2>{current ? "Tus datos" : "Quiero ser despachador"}</h2>
@@ -457,7 +496,7 @@ function MyJobs() {
                 onClick={async () => {
                   if (
                     !window.confirm(
-                      "¿Soltar este pedido? Otro despachador podrá tomarlo."
+                      "¿Cancelar este pedido? Volverá a Disponibles para que otro despachador lo tome."
                     )
                   )
                     return;
@@ -469,7 +508,7 @@ function MyJobs() {
                   }
                 }}
               >
-                Soltar pedido
+                Cancelar pedido
               </button>
             </div>
           ) : (

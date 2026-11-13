@@ -21,6 +21,8 @@ import { StoresPanel } from "./StoresPanel";
 import { CustomersPanel } from "./CustomersPanel";
 import { ExpensesPanel } from "./ExpensesPanel";
 import { FinancePanel } from "./FinancePanel";
+import { AdminDispatchers } from "../dispatch/AdminDispatchers";
+import "../dispatch/dispatch.css";
 import {
   SERIES,
   dayLabel,
@@ -33,11 +35,12 @@ import {
 } from "./format";
 import "./dashboard.css";
 
-type Section = "resumen" | "tiendas" | "clientes" | "gastos" | "finanzas";
+export type Section = "resumen" | "tiendas" | "clientes" | "despachadores" | "gastos" | "finanzas";
 const sections: Array<[Section, string]> = [
   ["resumen", "Resumen"],
   ["tiendas", "Tiendas"],
   ["clientes", "Clientes"],
+  ["despachadores", "Despachadores"],
   ["gastos", "Gastos"],
   ["finanzas", "Impuestos y socios"],
 ];
@@ -49,7 +52,13 @@ const reducedMotion =
 export type Overview =
   inferRouterOutputs<AppRouter>["adminDashboard"]["overview"];
 
-export function AdminDashboard({ enabled }: { enabled: boolean }) {
+export function AdminDashboard({
+  enabled,
+  initialSection = "resumen",
+}: {
+  enabled: boolean;
+  initialSection?: Section;
+}) {
   const currentYear = Number(
     new Intl.DateTimeFormat("en-CA", {
       timeZone: "America/Panama",
@@ -57,7 +66,7 @@ export function AdminDashboard({ enabled }: { enabled: boolean }) {
     }).format(new Date())
   );
   const [year, setYear] = useState(currentYear);
-  const [section, setSection] = useState<Section>("resumen");
+  const [section, setSection] = useState<Section>(initialSection);
   const overview = trpc.adminDashboard.overview.useQuery({ year }, { enabled });
   const years = Array.from(
     { length: currentYear - 2025 + 1 },
@@ -94,6 +103,7 @@ export function AdminDashboard({ enabled }: { enabled: boolean }) {
       )}
       {section === "tiendas" && <StoresPanel enabled={enabled} />}
       {section === "clientes" && <CustomersPanel enabled={enabled} />}
+      {section === "despachadores" && <AdminDispatchers enabled={enabled} />}
       {section === "gastos" && <ExpensesPanel enabled={enabled} year={year} />}
       {section === "finanzas" && overview.data && (
         <FinancePanel data={overview.data} />

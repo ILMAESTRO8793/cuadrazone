@@ -4,10 +4,12 @@ import { adminProcedure, protectedProcedure, router } from "../_core/trpc";
 import { applyDispatcherInput } from "@shared/dispatch";
 import { pointInput } from "@shared/location";
 import {
+  adminDeleteDispatcher,
   adminDispatchers,
   adminMarkDispatcherPaid,
   adminSetDispatcherStatus,
   applyDispatcher,
+  deleteMyDispatcher,
   availableJobs,
   deliverJob,
   dispatchForOrder,
@@ -72,7 +74,7 @@ export const dispatchRouter = router({
       z
         .object({
           userId: z.number().int().positive(),
-          status: z.enum(["approved", "suspended", "pending"]),
+          status: z.enum(["approved", "suspended", "pending", "rejected"]),
         })
         .strict()
     )
@@ -80,6 +82,16 @@ export const dispatchRouter = router({
       requireHeader(ctx);
       return adminSetDispatcherStatus(ctx.user.id, input.userId, input.status);
     }),
+  adminDelete: adminProcedure
+    .input(z.object({ userId: z.number().int().positive() }).strict())
+    .mutation(({ ctx, input }) => {
+      requireHeader(ctx);
+      return adminDeleteDispatcher(input.userId);
+    }),
+  deleteMe: protectedProcedure.mutation(({ ctx }) => {
+    requireHeader(ctx);
+    return deleteMyDispatcher(ctx.user.id);
+  }),
   adminMarkPaid: adminProcedure
     .input(z.object({ userId: z.number().int().positive() }).strict())
     .mutation(({ ctx, input }) => {

@@ -28,3 +28,6 @@
 .dz-table th, .dz-table td { text-align: left; padding: 10px; border-bottom: 1px solid #eef1f4; font-size: 14px; }
 .dz-page a:focus-visible, .dz-page button:focus-visible, .dz-page input:focus-visible, .dz-page select:focus-visible, .dz-page label:focus-within { outline: 3px solid #d9a400; outline-offset: 2px; }
 @media (max-width: 640px) { .dz-table { display: block; overflow-x: auto; } }
+.dz-delete { margin-top: 24px; border-color: #f1c8bd; }
+.dz-danger { color: #b42318; border-color: #f1c8bd; }
+.dz-actions { display: flex; flex-wrap: wrap; gap: 6px; }
