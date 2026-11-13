@@ -100,15 +100,9 @@ export function ServiceListPage() {
   return (
     <div className="re-page container">
       <SectionShowcase section="servicios" />
-      <div className="re-hero">
-        <div>
-          <p className="eyebrow">SERVICIOS</p>
-          <h1>Servicios cerca de ti</h1>
-          <p className="re-muted">
-            Clases, reparaciones, consultas, eventos y más. Solicita el servicio
-            y el proveedor te contacta para coordinar.
-          </p>
-        </div>
+      {/* Sin título: se ven primero la búsqueda y los filtros. */}
+      <h1 className="sr-only">Servicios</h1>
+      <div className="svc-offer-row">
         <Link href="/vender" className="btn btn-gold">
           Ofrece tus servicios
         </Link>

@@ -51,3 +51,4 @@
 .store-name-link:hover { text-decoration-color: currentColor; }
 .store-name-link:focus-visible { outline: 3px solid #ae832f; outline-offset: 2px; border-radius: 6px; }
 .store-name-link .store-logo { flex: 0 0 auto; }
+.svc-offer-row { display: flex; justify-content: flex-end; margin: 4px 0 10px; }
