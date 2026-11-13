@@ -267,6 +267,13 @@
       "when": 1794532418625,
       "tag": "0037_menu_restaurantes",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "5",
+      "when": 1794537680565,
+      "tag": "0038_pedidos_restaurante",
+      "breakpoints": true
     }
   ]
 }

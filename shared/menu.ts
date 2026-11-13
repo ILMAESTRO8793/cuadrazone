@@ -246,3 +246,53 @@ export function priceFor(
   });
   return { cents, ok: errors.length === 0, errors };
 }
+
+// ── Pedido de restaurante (parte 2) ──
+
+export const restaurantOrderLine = z
+  .object({
+    itemId: z.number().int().positive(),
+    size: z.number().int().min(0).max(4).optional(),
+    groups: z.array(z.array(z.number().int().min(0).max(19)).max(10)).max(8),
+    qty: z.number().int().min(1).max(20),
+    note: z.string().trim().max(140).default(""),
+  })
+  .strict();
+export type RestaurantOrderLine = z.infer<typeof restaurantOrderLine>;
+
+export const restaurantPaymentMethods = ["cod", "yappy", "card_link", "transfer"] as const;
+
+export const placeRestaurantOrderInput = z
+  .object({
+    slug: z.string().min(1).max(180).regex(/^[a-z0-9-]+$/),
+    lines: z.array(restaurantOrderLine).min(1, "Tu pedido está vacío").max(30),
+    recipientName: z.string().trim().min(1).max(160),
+    phone: z.string().trim().min(7).max(30),
+    /** Provincia del comprador: debe ser la del restaurante. */
+    province: z.string().trim().min(1).max(60),
+    city: z.string().trim().min(1).max(120),
+    address: z.string().trim().min(1).max(500),
+    point: z
+      .object({ lat: z.number().finite(), lng: z.number().finite() })
+      .strict(),
+    paymentMethod: z.enum(restaurantPaymentMethods),
+  })
+  .strict();
+export type PlaceRestaurantOrderInput = z.infer<typeof placeRestaurantOrderInput>;
+
+/** Texto de una línea del pedido: «Hamburguesa (Grande) — Papas, Sin cebolla, Queso · Nota: sin sal». */
+export function describeLine(
+  item: Pick<PublicMenuItem, "name" | "sizes" | "optionGroups">,
+  line: Pick<RestaurantOrderLine, "size" | "groups" | "note">
+) {
+  const size = item.sizes.length ? item.sizes[line.size ?? -1]?.name : undefined;
+  const picked = item.optionGroups.flatMap((g, gi) =>
+    Array.from(new Set(line.groups[gi] ?? []))
+      .filter(i => i >= 0 && i < g.options.length)
+      .map(i => g.options[i]!.name)
+  );
+  let text = item.name + (size ? ` (${size})` : "");
+  if (picked.length) text += ` — ${picked.join(", ")}`;
+  if (line.note) text += ` · Nota: ${line.note}`;
+  return { text: text.slice(0, 240), size: size ?? null };
+}

@@ -13,6 +13,7 @@ import {
   varchar,
 } from "drizzle-orm/mysql-core";
 import { czStores } from "./catalog-schema";
+import { czOrders } from "./commerce-schema";
 import type { MenuOptionGroup, MenuSize, WeekHours } from "../shared/menu";
 
 export const czRestaurants = mysqlTable("cz_restaurants", {
@@ -64,3 +65,12 @@ export const czMenuItems = mysqlTable(
   },
   table => [index("cz_menu_items_store_ix").on(table.storeId)]
 );
+
+/** Marca un pedido (cz_orders) como pedido de restaurante. */
+export const czRestaurantOrders = mysqlTable("cz_restaurant_orders", {
+  orderId: int("orderId")
+    .primaryKey()
+    .references(() => czOrders.id, { onDelete: "cascade" }),
+  prepMinutes: int("prepMinutes").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});

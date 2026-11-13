@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   defaultWeekHours,
+  describeLine,
   menuOptionGroup,
+  placeRestaurantOrderInput,
   openStatus,
   priceFor,
   type WeekHours,
@@ -108,5 +110,21 @@ describe("menú de restaurante", () => {
       open: true,
       closesAt: "02:00",
     });
+  });
+
+  it("describe cada línea del pedido para el restaurante", () => {
+    const d = describeLine(
+      { name: "Hamburguesa", ...combo },
+      { size: 1, groups: [[1], [0], [0]], note: "sin sal" }
+    );
+    expect(d.text).toBe("Hamburguesa (Grande) — Yuca frita, Sin cebolla, Queso · Nota: sin sal");
+    expect(d.size).toBe("Grande");
+  });
+
+  it("el pedido exige platos y punto de entrega", () => {
+    const base = { slug: "mi-restaurante", recipientName: "Ana", phone: "+50761234567", province: "Panamá", city: "Bella Vista", address: "Calle 50", point: { lat: 8.98, lng: -79.52 }, paymentMethod: "cod" };
+    expect(placeRestaurantOrderInput.safeParse({ ...base, lines: [] }).success).toBe(false);
+    expect(placeRestaurantOrderInput.safeParse({ ...base, lines: [{ itemId: 1, groups: [], qty: 2 }] }).success).toBe(true);
+    expect(placeRestaurantOrderInput.safeParse({ ...base, paymentMethod: "card_on_delivery", lines: [{ itemId: 1, groups: [], qty: 1 }] }).success).toBe(false);
   });
 });

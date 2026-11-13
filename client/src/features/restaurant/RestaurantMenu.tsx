@@ -1,26 +1,104 @@
-import { useMemo, useState } from "react";
-import { Clock, Truck, UtensilsCrossed, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useLocation } from "wouter";
 import {
+  Clock,
+  ShoppingBag,
+  Trash2,
+  Truck,
+  UtensilsCrossed,
+  X,
+} from "lucide-react";
+import { toast } from "sonner";
+import {
+  describeLine,
   priceFor,
+  restaurantPaymentMethods,
   weekDayLabels,
   weekDays,
   type MenuSelection,
   type PublicMenuItem,
+  type RestaurantOrderLine,
 } from "@shared/menu";
+import { paymentMethodLabels } from "@shared/commerce";
+import { shippingDeal } from "@shared/shippingRules";
+import type { Point } from "@shared/location";
 import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { startLogin } from "@/const";
+import { useMarket } from "@/contexts/MarketContext";
+import { PlacePicker } from "@/components/maps/Maps";
 import "./restaurant.css";
 
 const usd = (c: number) => `US$${(c / 100).toFixed(2)}`;
+const errorText = (e: unknown) =>
+  e instanceof Error ? e.message : "Ocurrió un error";
+
+type CartLine = RestaurantOrderLine & { key: string };
+
+/** El carrito de cada restaurante se guarda en este navegador. */
+function useRestaurantCart(slug: string) {
+  const storageKey = `cz-rest-cart:${slug}`;
+  const [lines, setLines] = useState<CartLine[]>([]);
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(storageKey);
+      if (raw) setLines(JSON.parse(raw) as CartLine[]);
+    } catch {
+      /* sin almacenamiento: carrito solo en memoria */
+    }
+  }, [storageKey]);
+  function save(next: CartLine[]) {
+    setLines(next);
+    try {
+      window.localStorage.setItem(storageKey, JSON.stringify(next));
+    } catch {
+      /* ignorar */
+    }
+  }
+  return { lines, save };
+}
 
 /** Menú público de un restaurante; no muestra nada si la tienda no es restaurante. */
 export function RestaurantMenu({ slug }: { slug: string }) {
   const q = trpc.menu.forStore.useQuery({ slug }, { staleTime: 60_000 });
   const [tab, setTab] = useState<number | null>(null);
   const [open, setOpen] = useState<PublicMenuItem | null>(null);
+  const [checkout, setCheckout] = useState(false);
+  const cart = useRestaurantCart(slug);
   const m = q.data;
+  const byId = useMemo(
+    () => new Map((m?.items ?? []).map(i => [i.id, i])),
+    [m]
+  );
   if (!m || !m.sections.length) return null;
   const active = tab ?? m.sections[0]!.id;
   const items = m.items.filter(i => i.sectionId === active);
+  // Líneas válidas con el menú actual (si un plato cambió o se agotó, se avisa).
+  const priced = cart.lines.map(l => {
+    const item = byId.get(l.itemId);
+    if (!item)
+      return {
+        line: l,
+        item: null,
+        unit: 0,
+        ok: false,
+        text: "Plato que ya no está en el menú",
+      };
+    const p = priceFor(item, l);
+    return {
+      line: l,
+      item,
+      unit: p.cents,
+      ok: p.ok && item.available,
+      text: describeLine(item, l).text,
+    };
+  });
+  const total = priced.reduce(
+    (s, p) => s + (p.ok ? p.unit * p.line.qty : 0),
+    0
+  );
+  const count = priced.reduce((s, p) => s + (p.ok ? p.line.qty : 0), 0);
+
   return (
     <section className="rm-menu" aria-labelledby="rm-menu-title">
       <header className="rm-menu-head">
@@ -101,7 +179,42 @@ export function RestaurantMenu({ slug }: { slug: string }) {
           ))}
         </ul>
       </details>
-      {open && <DishDialog item={open} onClose={() => setOpen(null)} />}
+
+      {count > 0 && !checkout && (
+        <button
+          type="button"
+          className="rm-cart-bar"
+          onClick={() => setCheckout(true)}
+        >
+          <ShoppingBag size={18} aria-hidden="true" /> Ver mi pedido ({count}) ·{" "}
+          {usd(total)}
+        </button>
+      )}
+
+      {open && (
+        <DishDialog
+          item={open}
+          canOrder={m.status.open}
+          onClose={() => setOpen(null)}
+          onAdd={line => {
+            cart.save([...cart.lines, { ...line, key: crypto.randomUUID() }]);
+            setOpen(null);
+            toast.success("Agregado a tu pedido");
+          }}
+        />
+      )}
+      {checkout && (
+        <CheckoutDialog
+          slug={slug}
+          province={m.province}
+          open={m.status.open}
+          priced={priced}
+          total={total}
+          onRemove={key => cart.save(cart.lines.filter(l => l.key !== key))}
+          onClose={() => setCheckout(false)}
+          onPlaced={() => cart.save([])}
+        />
+      )}
     </section>
   );
 }
@@ -109,10 +222,14 @@ export function RestaurantMenu({ slug }: { slug: string }) {
 /** Elegir tamaño, combo, quitar y extras; el precio se actualiza en vivo. */
 function DishDialog({
   item,
+  canOrder,
   onClose,
+  onAdd,
 }: {
   item: PublicMenuItem;
+  canOrder: boolean;
   onClose: () => void;
+  onAdd: (line: RestaurantOrderLine) => void;
 }) {
   const [sel, setSel] = useState<MenuSelection>({
     size: item.sizes.length ? 0 : undefined,
@@ -230,21 +347,247 @@ function DishDialog({
           <button
             type="button"
             className="btn btn-gold"
-            disabled
-            title="Los pedidos en línea de restaurantes llegan muy pronto"
+            disabled={!price.ok || !canOrder}
+            onClick={() =>
+              onAdd({
+                itemId: item.id,
+                size: sel.size,
+                groups: sel.groups,
+                qty,
+                note: note.trim(),
+              })
+            }
           >
             Agregar · {usd(price.cents * qty)}
           </button>
         </div>
-        {!price.ok && (
+        {!canOrder && (
+          <p className="rm-hint" role="status">
+            El restaurante está cerrado ahora.
+          </p>
+        )}
+        {canOrder && !price.ok && (
           <p className="rm-hint" role="status">
             {price.errors[0]}
           </p>
         )}
-        <p className="rm-hint">
-          Los pedidos en línea de restaurantes llegan muy pronto.
-        </p>
       </div>
+    </div>
+  );
+}
+
+function CheckoutDialog({
+  slug,
+  province,
+  open,
+  priced,
+  total,
+  onRemove,
+  onClose,
+  onPlaced,
+}: {
+  slug: string;
+  province: string;
+  open: boolean;
+  priced: Array<{ line: CartLine; unit: number; ok: boolean; text: string }>;
+  total: number;
+  onRemove: (key: string) => void;
+  onClose: () => void;
+  onPlaced: () => void;
+}) {
+  const auth = useAuth();
+  const market = useMarket();
+  const [, navigate] = useLocation();
+  const place = trpc.menu.placeOrder.useMutation();
+  const [point, setPoint] = useState<Point | null>(null);
+  const [f, setF] = useState({
+    recipientName: "",
+    phone: "",
+    city: "",
+    address: "",
+    paymentMethod: "cod" as (typeof restaurantPaymentMethods)[number],
+  });
+  const sameProvince =
+    shippingDeal(province, market.province || province) === "free";
+  const valid = priced.filter(p => p.ok);
+  const broken = priced.some(p => !p.ok);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!auth.user) {
+      startLogin();
+      return;
+    }
+    if (!point) {
+      toast.error("Marca en el mapa el punto exacto de entrega.");
+      return;
+    }
+    try {
+      const r = await place.mutateAsync({
+        slug,
+        lines: valid.map(({ line }) => ({
+          itemId: line.itemId,
+          size: line.size,
+          groups: line.groups,
+          qty: line.qty,
+          note: line.note,
+        })),
+        ...f,
+        province,
+        point,
+      });
+      onPlaced();
+      toast.success("¡Pedido enviado! El restaurante lo va a aceptar.");
+      navigate(`/pedidos/${r.orderId}`);
+    } catch (error) {
+      toast.error(errorText(error));
+    }
+  }
+
+  return (
+    <div className="rm-dialog-backdrop" onClick={onClose}>
+      <form
+        className="rm-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="rm-checkout-title"
+        onClick={e => e.stopPropagation()}
+        onSubmit={submit}
+      >
+        <button
+          type="button"
+          className="rm-close"
+          onClick={onClose}
+          aria-label="Cerrar"
+        >
+          <X size={20} />
+        </button>
+        <h3 id="rm-checkout-title">Mi pedido</h3>
+        <ul className="rm-cart">
+          {priced.map(p => (
+            <li key={p.line.key} className={p.ok ? "" : "is-off"}>
+              <span>
+                {p.line.qty} × {p.text}
+                {!p.ok && <em> · ya no disponible</em>}
+              </span>
+              <b>{p.ok ? usd(p.unit * p.line.qty) : "—"}</b>
+              <button
+                type="button"
+                className="rm-icon"
+                aria-label="Quitar"
+                onClick={() => onRemove(p.line.key)}
+              >
+                <Trash2 size={16} />
+              </button>
+            </li>
+          ))}
+        </ul>
+        {broken && (
+          <p className="rm-hint">
+            Lo que ya no está disponible no se va a pedir.
+          </p>
+        )}
+        <p className="rm-total">
+          Total <b>{usd(total)}</b>{" "}
+          <small>· Delivery gratis en {province}</small>
+        </p>
+        {!sameProvince && (
+          <p className="member-notice">
+            Este restaurante entrega solo en {province}. Cambia «Explorar en» a{" "}
+            {province} si tu dirección es ahí.
+          </p>
+        )}
+        <div className="rm-grid">
+          <label className="rm-field">
+            <span>Nombre de quien recibe</span>
+            <input
+              value={f.recipientName}
+              onChange={e => setF({ ...f, recipientName: e.target.value })}
+              required
+              maxLength={160}
+              autoComplete="name"
+            />
+          </label>
+          <label className="rm-field">
+            <span>Celular</span>
+            <input
+              value={f.phone}
+              onChange={e => setF({ ...f, phone: e.target.value })}
+              required
+              maxLength={30}
+              inputMode="tel"
+              autoComplete="tel"
+            />
+          </label>
+          <label className="rm-field">
+            <span>Ciudad o corregimiento</span>
+            <input
+              value={f.city}
+              onChange={e => setF({ ...f, city: e.target.value })}
+              required
+              maxLength={120}
+            />
+          </label>
+        </div>
+        <label className="rm-field">
+          <span>Dirección y referencias</span>
+          <input
+            value={f.address}
+            onChange={e => setF({ ...f, address: e.target.value })}
+            required
+            maxLength={500}
+            autoComplete="street-address"
+          />
+        </label>
+        <div className="rm-field">
+          <span>Punto exacto de entrega</span>
+          <PlacePicker
+            value={point}
+            onChange={setPoint}
+            label="Punto exacto de entrega"
+          />
+        </div>
+        <label className="rm-field">
+          <span>Pago directo al restaurante</span>
+          <select
+            value={f.paymentMethod}
+            onChange={e =>
+              setF({
+                ...f,
+                paymentMethod: e.target.value as typeof f.paymentMethod,
+              })
+            }
+          >
+            {restaurantPaymentMethods.map(pm => (
+              <option key={pm} value={pm}>
+                {paymentMethodLabels[pm]}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button
+          className="btn btn-gold"
+          type="submit"
+          disabled={
+            place.isPending ||
+            !valid.length ||
+            !open ||
+            !sameProvince ||
+            (auth.user ? !point : false)
+          }
+        >
+          {!auth.user
+            ? "Entrar para pedir"
+            : place.isPending
+              ? "Enviando…"
+              : `Pedir · ${usd(total)}`}
+        </button>
+        {!open && (
+          <p className="rm-hint" role="status">
+            El restaurante está cerrado ahora.
+          </p>
+        )}
+      </form>
     </div>
   );
 }

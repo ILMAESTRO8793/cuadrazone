@@ -88,3 +88,12 @@
 .rm-qty button { border: 0; background: none; font-size: 20px; width: 28px; cursor: pointer; }
 .rm-page a:focus-visible, .rm-page button:focus-visible, .rm-page input:focus-visible, .rm-page select:focus-visible, .rm-page textarea:focus-visible,
 .rm-menu button:focus-visible, .rm-dialog button:focus-visible, .rm-dialog input:focus-visible { outline: 3px solid #d9a400; outline-offset: 2px; }
+.rm-cart-bar { position: sticky; bottom: 12px; z-index: 30; margin-top: 14px; width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; border: 0; border-radius: 999px; padding: 14px 18px; background: #0b2a4a; color: #fff; font: inherit; font-weight: 800; cursor: pointer; box-shadow: 0 8px 24px rgba(5, 18, 34, 0.3); }
+.rm-cart { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.rm-cart li { display: flex; gap: 10px; align-items: flex-start; border-bottom: 1px solid #eef1f4; padding-bottom: 8px; }
+.rm-cart li span { flex: 1; }
+.rm-cart li.is-off { opacity: 0.55; }
+.rm-cart em { color: #b42318; font-style: normal; }
+.rm-icon { border: 0; background: none; color: #b42318; cursor: pointer; padding: 2px; }
+.rm-total { font-size: 18px; margin: 0; }
+.rm-total small { color: #667085; font-size: 13px; }

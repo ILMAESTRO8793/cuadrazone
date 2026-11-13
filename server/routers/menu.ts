@@ -5,6 +5,7 @@ import {
   saveMenuItemInput,
   saveRestaurantInput,
   saveSectionInput,
+  placeRestaurantOrderInput,
 } from "@shared/menu";
 import {
   deleteMenuItem,
@@ -16,6 +17,7 @@ import {
   saveSection,
   setItemAvailable,
 } from "../services/menu";
+import { placeRestaurantOrder, restaurantOrderInfo } from "../services/restaurantOrders";
 
 const id = z.object({ id: z.number().int().positive() }).strict();
 
@@ -75,6 +77,15 @@ export const menuRouter = router({
       requireHeader(ctx);
       return setItemAvailable(ctx.user.id, input.id, input.available);
     }),
+  placeOrder: protectedProcedure
+    .input(placeRestaurantOrderInput)
+    .mutation(({ ctx, input }) => {
+      requireHeader(ctx);
+      return placeRestaurantOrder(ctx.user.id, input, input.province);
+    }),
+  orderInfo: protectedProcedure
+    .input(z.object({ orderId: z.number().int().positive() }).strict())
+    .query(({ ctx, input }) => restaurantOrderInfo(ctx.user.id, input.orderId)),
   deleteItem: protectedProcedure.input(id).mutation(({ ctx, input }) => {
     requireHeader(ctx);
     return deleteMenuItem(ctx.user.id, input.id);

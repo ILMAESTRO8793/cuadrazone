@@ -619,6 +619,8 @@ export function OrdersPage({ seller = false }: { seller?: boolean }) {
 }
 function OrderContent({ id }: { id: number }) {
   const order = trpc.commerce.order.useQuery({ id });
+  // Pedido de restaurante: el vendedor acepta o rechaza y lo prepara.
+  const restaurant = trpc.menu.orderInfo.useQuery({ orderId: id });
   const utils = trpc.useUtils();
   const transition = trpc.commerce.transitionOrder.useMutation({
     onSuccess: () => {
@@ -730,13 +732,26 @@ function OrderContent({ id }: { id: number }) {
               : "A domicilio"}
         </p>
         <div className="live-actions">
+          {restaurant.data && (
+            <p className="member-notice">
+              {o.status === "pending"
+                ? seller
+                  ? "Pedido de tu restaurante: acéptalo para empezar a prepararlo, o recházalo si no puedes."
+                  : "Esperando que el restaurante acepte tu pedido."
+                : o.status === "confirmed"
+                  ? `En preparación (~${restaurant.data.prepMinutes} min). Un despachador lo recogerá.`
+                  : o.status === "shipped"
+                    ? "Tu comida va en camino."
+                    : null}
+            </p>
+          )}
           {seller && o.status === "pending" && (
             <button
               className="btn btn-gold"
               disabled={transition.isPending}
               onClick={() => change("confirmed")}
             >
-              Confirmar pedido
+              {restaurant.data ? "Aceptar y preparar" : "Confirmar pedido"}
             </button>
           )}
           {seller && o.status === "confirmed" && (
@@ -745,7 +760,7 @@ function OrderContent({ id }: { id: number }) {
               disabled={transition.isPending}
               onClick={() => change("shipped")}
             >
-              Producto enviado
+              {restaurant.data ? "Entregado al despachador" : "Producto enviado"}
             </button>
           )}
           {(seller || buyer) && o.status === "shipped" && (
@@ -763,7 +778,7 @@ function OrderContent({ id }: { id: number }) {
               disabled={transition.isPending}
               onClick={() => change("cancelled")}
             >
-              Cancelar pedido
+              {restaurant.data && seller && o.status === "pending" ? "Rechazar pedido" : "Cancelar pedido"}
             </button>
           )}
           <Link className="btn btn-outline" href={`/mensajes?pedido=${o.id}`}>
