@@ -61,6 +61,11 @@ function useRestaurantCart(slug: string) {
 /** Menú público de un restaurante; no muestra nada si la tienda no es restaurante. */
 export function RestaurantMenu({ slug }: { slug: string }) {
   const q = trpc.menu.forStore.useQuery({ slug }, { staleTime: 60_000 });
+  // Desde la franja de /mercado se llega con #menu: baja directo al menú.
+  useEffect(() => {
+    if (q.data && window.location.hash === "#menu")
+      document.getElementById("menu")?.scrollIntoView({ block: "start" });
+  }, [q.data]);
   const [tab, setTab] = useState<number | null>(null);
   const [open, setOpen] = useState<PublicMenuItem | null>(null);
   const [checkout, setCheckout] = useState(false);
@@ -100,7 +105,7 @@ export function RestaurantMenu({ slug }: { slug: string }) {
   const count = priced.reduce((s, p) => s + (p.ok ? p.line.qty : 0), 0);
 
   return (
-    <section className="rm-menu" aria-labelledby="rm-menu-title">
+    <section id="menu" className="rm-menu" aria-labelledby="rm-menu-title">
       <header className="rm-menu-head">
         <h2 id="rm-menu-title">
           <UtensilsCrossed size={20} aria-hidden="true" /> Menú

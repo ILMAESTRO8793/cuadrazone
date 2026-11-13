@@ -9,6 +9,7 @@ import {
 } from "@shared/menu";
 import {
   deleteMenuItem,
+  featuredDishes,
   deleteSection,
   myMenu,
   publicMenu,
@@ -44,6 +45,7 @@ export const menuRouter = router({
         .strict()
     )
     .query(({ input }) => publicMenu(input.slug)),
+  dishes: publicProcedure.query(() => featuredDishes(12)),
   mine: protectedProcedure.query(({ ctx }) => myMenu(ctx.user.id)),
   saveRestaurant: protectedProcedure
     .input(saveRestaurantInput)

@@ -1,3 +1,4 @@
+import { RestaurantDishesStrip } from "@/features/restaurant/RestaurantDishesStrip";
 import { RestaurantMenu } from "@/features/restaurant/RestaurantMenu";
 import { PublicPlaceMap } from "@/components/maps/Maps";
 import { StoreBrandBadge, useStoreBranding } from "@/components/marketplace/StoreBrand";
@@ -177,6 +178,7 @@ export function LiveCatalogPage() {
           <RealProductCard key={`featured-${product.id}`} product={product} />
         ))}
       </FeaturedStrip>
+      <RestaurantDishesStrip />
       <div className="live-catalog-layout">
         <FilterDrawer
           className="filter-drawer--catalog"

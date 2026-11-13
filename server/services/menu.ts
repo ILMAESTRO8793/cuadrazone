@@ -7,7 +7,8 @@
 import express, { type Express, type Request, type Response } from "express";
 import { randomUUID } from "node:crypto";
 import { TRPCError } from "@trpc/server";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
+import { czApplications } from "../../drizzle/schema";
 import { czStores } from "../../drizzle/catalog-schema";
 import {
   czMenuItems,
@@ -345,4 +346,47 @@ export function registerMenuRoutes(app: Express) {
         error ? res.status(413).json({ error: "La foto supera 5 MiB" }) : next()
     );
   app.post("/api/menu/items/:id/photo", raw, uploadItemPhoto);
+}
+
+/**
+ * Platos para la franja «Comida de restaurantes» de /mercado: disponibles, de
+ * restaurantes con menú activo y tienda con plan al día.
+ */
+export async function featuredDishes(limit = 12) {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db
+    .select({
+      id: czMenuItems.id,
+      name: czMenuItems.name,
+      imageUrl: czMenuItems.imageUrl,
+      priceCents: czMenuItems.priceCents,
+      sizes: czMenuItems.sizes,
+      storeName: czStores.name,
+      storeSlug: czStores.slug,
+      storeLogo: czStores.logoUrl,
+      province: czStores.province,
+    })
+    .from(czMenuItems)
+    .innerJoin(czRestaurants, eq(czRestaurants.storeId, czMenuItems.storeId))
+    .innerJoin(czStores, eq(czStores.id, czMenuItems.storeId))
+    .innerJoin(czApplications, eq(czApplications.userId, czStores.userId))
+    .where(
+      and(
+        eq(czMenuItems.available, 1),
+        eq(czRestaurants.enabled, 1),
+        eq(czApplications.subscriptionStatus, "active")
+      )
+    )
+    .orderBy(desc(czMenuItems.updatedAt))
+    .limit(Math.min(Math.max(limit, 1), 24));
+  return rows.map(r => ({
+    id: r.id,
+    name: r.name,
+    imageUrl: r.imageUrl ?? null,
+    priceCents: r.priceCents,
+    fromPrice: list(r.sizes).length > 0,
+    store: { name: r.storeName, slug: r.storeSlug, logoUrl: r.storeLogo ?? null },
+    province: r.province,
+  }));
 }
