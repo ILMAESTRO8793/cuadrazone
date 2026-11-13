@@ -27,7 +27,7 @@ export const SELLER_PLANS = {
       "Comisión más baja: 5% por venta entregada",
       "Espacios superiores destacados por categoría, con rotación",
       "Ubicación identificada como Destacado — ubicación de pago",
-      "La estrella roja «Tienda Destacada»: los compradores ven tu tienda con mayor credibilidad",
+      "Las cinco estrellas de verificación desde el primer día: los compradores ven tu tienda con mayor credibilidad",
       "Tu marca: insignia «Tienda Destacada», foto de portada, lema y color propio en tu tienda",
     ],
   },

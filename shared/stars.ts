@@ -74,19 +74,9 @@ export type AchievementMetrics = {
 
 /** Qué estrellas ganó por sus logros. */
 export function earnedStars(m: AchievementMetrics): VerificationStar[] {
-  const out: VerificationStar[] = [];
-  if (m.featured) out.push("roja");
-  if (m.profileComplete) out.push("amarilla");
-  if (m.sales >= MIN_SALES || m.closedListings >= MIN_CLOSED_LISTINGS)
-    out.push("morada");
-  if (
-    m.reviewCount >= MIN_REVIEWS &&
-    m.reviewAverage >= MIN_AVERAGE &&
-    m.lostClaims === 0
-  )
-    out.push("azul");
-  if (m.paidMonths >= MIN_PAID_MONTHS && m.upToDate) out.push("verde");
-  return out;
+  // Las estrellas son del plan Mayor Visibilidad (pagado y vigente): las cinco.
+  // El plan Normal y la prueba gratis no llevan estrellas.
+  return m.featured ? [...verificationStars] : [];
 }
 
 /** Ordena y quita repetidas o desconocidas. */

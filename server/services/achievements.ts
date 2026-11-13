@@ -270,9 +270,10 @@ export async function starsForUsers(db: Db, userIds: number[]) {
   const out = new Map<number, VerificationStar[]>();
   for (const [userId, m] of metrics) {
     if (!m.active) continue;
-    const given = manual.filter(r => r.userId === userId).map(r => r.star);
-    const stars = sortStars([...earnedStars(m), ...given]);
+    // Solo Mayor Visibilidad muestra estrellas (las cinco); el plan Normal, ninguna.
+    const stars = sortStars(earnedStars(m));
     if (stars.length) out.set(userId, stars);
   }
+  void manual;
   return { stars: out, metrics };
 }
