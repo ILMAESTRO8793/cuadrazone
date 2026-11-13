@@ -45,3 +45,32 @@ hydrateRoot(
     </QueryClientProvider>
   </trpc.Provider>
 );
+
+/*
+ * Actualización automática: la app de Android/iPhone puede quedar congelada en
+ * segundo plano con una versión vieja. Al volver a la pantalla (y cada 5
+ * minutos) se compara la versión publicada con la cargada y, si cambió, se
+ * recarga la página.
+ */
+(() => {
+  const mine = document.querySelector<HTMLScriptElement>('script[type="module"][src*="/assets/index-"]');
+  const current = mine ? new URL(mine.src, location.href).pathname : "";
+  if (!current) return; // en desarrollo no hay huella
+  let checking = false;
+  async function check() {
+    if (checking || document.visibilityState !== "visible") return;
+    checking = true;
+    try {
+      const r = await fetch("/api/version", { cache: "no-store", credentials: "omit" });
+      const data = (await r.json()) as { version?: string };
+      if (data.version && data.version !== current) location.reload();
+    } catch {
+      /* sin conexión: se intenta la próxima vez */
+    } finally {
+      checking = false;
+    }
+  }
+  document.addEventListener("visibilitychange", () => void check());
+  window.addEventListener("focus", () => void check());
+  window.setInterval(() => void check(), 5 * 60_000);
+})();

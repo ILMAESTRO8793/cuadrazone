@@ -26,7 +26,7 @@ export const securityHeaders: Record<string, string> = {
     "frame-ancestors 'self'; base-uri 'self'; object-src 'none'",
   "Referrer-Policy": "strict-origin-when-cross-origin",
   "Permissions-Policy":
-    "camera=(self), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()",
+    "camera=(self), microphone=(), geolocation=(self), payment=(), usb=(), interest-cohort=()",
   "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
 };
 

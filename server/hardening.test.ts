@@ -26,7 +26,7 @@ describe("cabeceras de seguridad", () => {
   });
   it("solo permite la cámara (escáner de boletos)", () => {
     expect(securityHeaders["Permissions-Policy"]).toContain("camera=(self)");
-    expect(securityHeaders["Permissions-Policy"]).toContain("geolocation=()");
+    expect(securityHeaders["Permissions-Policy"]).toContain("geolocation=(self)");
   });
 });
 

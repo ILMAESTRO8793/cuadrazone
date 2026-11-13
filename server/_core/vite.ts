@@ -133,6 +133,14 @@ export function serveStatic(app: Express) {
       : path.resolve(import.meta.dirname, "public");
   if (!fs.existsSync(distPath))
     throw new Error(`Missing built frontend: ${distPath}`);
+  // La app (y cualquier pestaña abierta) pregunta esto para saber si hay una
+  // versión nueva publicada y recargarse sola.
+  const indexHtml = fs.readFileSync(path.resolve(distPath, "index.html"), "utf8");
+  const version = /\/assets\/index-[\w-]+\.js/.exec(indexHtml)?.[0] ?? "";
+  app.get("/api/version", (_req, res) => {
+    res.setHeader("Cache-Control", "no-store");
+    res.json({ version });
+  });
   app.use(
     express.static(distPath, {
       index: false,
