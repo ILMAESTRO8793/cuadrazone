@@ -1,3 +1,4 @@
+import { RestaurantMenu } from "@/features/restaurant/RestaurantMenu";
 import { PublicPlaceMap } from "@/components/maps/Maps";
 import { StoreBrandBadge, useStoreBranding } from "@/components/marketplace/StoreBrand";
 import { SectionShowcase } from "@/components/marketplace/SectionShowcase";
@@ -415,6 +416,7 @@ function StorePageView({
         </div>
         <BadgeCheck size={32} />
       </section>
+      <RestaurantMenu slug={store.slug} />
       <PublicPlaceMap kind="tienda" slug={store.slug} title="Dónde está" />
       <section className="live-panel">
         <h2>Categorías de este negocio</h2>

@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { registerMenuRoutes } from "../services/menu";
 import { registerDispatchRoutes } from "../services/dispatch";
 import { registerCatalogImageRoutes } from "../services/catalogImages";
 import { registerCatalogVideoRoutes } from "../services/catalogVideos";
@@ -53,6 +54,7 @@ async function startServer() {
   registerShowcaseMediaRoutes(app);
   registerStoreCoverRoutes(app);
   registerDispatchRoutes(app);
+  registerMenuRoutes(app);
   registerPropertyImageRoutes(app);
   registerVehicleImageRoutes(app);
   const server = createServer(app);

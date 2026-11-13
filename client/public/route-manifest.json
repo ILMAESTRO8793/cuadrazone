@@ -196,6 +196,9 @@
     },
     {
       "path": "/admin/despachadores"
+    },
+    {
+      "path": "/vendedor/menu"
     }
   ]
 }

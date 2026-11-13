@@ -1,3 +1,4 @@
+import { MenuEditorPage } from "./features/restaurant/MenuEditorPage";
 import { DispatcherPage } from "./features/dispatch/DispatcherPage";
 import { StoreDirectoryPage } from "./features/commerce/StoreDirectoryPage";
 import {
@@ -135,6 +136,7 @@ function Router() {
         <Route path="/vendedor/plan" component={SellerPlanPage} />
         <Route path="/vendedor/panel">{() => <SellerAccessGate><SellerDashboardPage /></SellerAccessGate>}</Route>
         <Route path="/vendedor/productos">{() => <SellerAccessGate><SellerCatalogPage /></SellerAccessGate>}</Route>
+        <Route path="/vendedor/menu">{() => <SellerAccessGate><MenuEditorPage /></SellerAccessGate>}</Route>
         <Route path="/vendedor/tienda">
           {() => <SellerAccessGate><SellerCatalogPage tab="store" /></SellerAccessGate>}
         </Route>

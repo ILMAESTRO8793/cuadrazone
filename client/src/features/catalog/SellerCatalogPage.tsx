@@ -1,3 +1,4 @@
+import { UtensilsCrossed } from "lucide-react";
 import { StorePlaceEditor } from "@/components/maps/Maps";
 import { ServicesPanel } from "@/features/services/ServicesPanel";
 import { DeleteStoreSection } from "./DeleteStoreSection";
@@ -768,6 +769,12 @@ function SellerCatalogContent({
             href="/vendedor/pedidos"
           >
             <Package size={16} /> Pedidos
+          </Link>
+          <Link
+            className="seller-catalog-button seller-catalog-button--outline"
+            href="/vendedor/menu"
+          >
+            <UtensilsCrossed size={16} /> Mi menú (restaurante)
           </Link>
           <Link
             className="seller-catalog-button seller-catalog-button--outline"
