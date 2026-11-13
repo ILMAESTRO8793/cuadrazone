@@ -942,3 +942,7 @@
   }
   .live-product-grid > * { max-width: none; }
 }
+
+.pd-facts-line { display: flex; flex-wrap: wrap; gap: 4px 10px; margin: 0; font-size: 13px; color: #475467; }
+.pd-facts-line span + span::before { content: "·"; margin-right: 10px; color: #98a2b3; }
+.pd-condition { font-weight: 800; color: #0b1f3b; }

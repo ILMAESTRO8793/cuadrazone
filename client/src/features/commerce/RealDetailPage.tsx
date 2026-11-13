@@ -406,6 +406,23 @@ export function RealDetailPage({ slug }: { slug: string }) {
             <StoreBrandBadge slug={p.store.slug} />
           </div>
           <p className="pd-category">{p.kind === "book" ? "Libro cristiano" : p.category}</p>
+          {/* Condición y datos clave en una sola línea, arriba (sin bloque «Detalles»). */}
+          <p className="pd-facts-line">
+            {(p.book
+              ? [
+                  p.book.condition === "used" ? "Usado" : "Nuevo",
+                  p.book.author && `Autor: ${p.book.author}`,
+                  p.book.publisher && `Editorial: ${p.book.publisher}`,
+                  p.book.format,
+                  p.book.language,
+                ]
+              : specs.map(([label, value]) => (label === "Condición" ? value : `${label}: ${value}`))
+            )
+              .filter(Boolean)
+              .map((text, i) => (
+                <span key={i} className={i === 0 ? "pd-condition" : ""}>{text}</span>
+              ))}
+          </p>
           <hr />
           <div className="pd-price">
             {discountPct > 0 && <span className="pd-off">−{discountPct} %</span>}
@@ -495,33 +512,6 @@ export function RealDetailPage({ slug }: { slug: string }) {
         </aside>
       </div>
 
-      {/* Debajo, a todo el ancho: detalles, libro y ubicación */}
-      {(specs.length > 0 || p.book) && (
-        <section className="live-panel pd-more">
-          <h2>Detalles</h2>
-          {specs.length > 0 && (
-            <dl className="live-book-meta live-specs">
-              {specs.map(([label, value]) => (
-                <div key={label}><dt>{label}</dt><dd>{value}</dd></div>
-              ))}
-            </dl>
-          )}
-          {p.book && (
-            <dl className="live-book-meta">
-              {[
-                ["Autor", p.book.author],
-                ["Editorial", p.book.publisher],
-                ["ISBN", p.book.isbn],
-                ["Idioma", p.book.language],
-                ["Formato", p.book.format],
-                ["Estado", p.book.condition === "used" ? "Usado" : "Nuevo"],
-              ].map(([name, value]) => (
-                <div key={name}><dt>{name}</dt><dd>{value || "No indicado"}</dd></div>
-              ))}
-            </dl>
-          )}
-        </section>
-      )}
       <PublicPlaceMap kind="tienda" slug={p.store.slug} title="Dónde está la tienda" />
       <Feedback key={p.id} product={p} />
       <h2>También en esta categoría</h2>
