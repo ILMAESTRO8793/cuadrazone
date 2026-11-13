@@ -1,3 +1,4 @@
+import { FeaturedServicePicks } from "@/components/marketplace/FeaturedPicks";
 import { PublicPlaceMap } from "@/components/maps/Maps";
 import { ListingReviews } from "@/components/marketplace/ListingReviews";
 import { StoreStars } from "@/components/marketplace/VerificationStars";
@@ -99,7 +100,6 @@ export function ServiceListPage() {
   const list = trpc.services.list.useQuery(query);
   return (
     <div className="re-page container">
-      <SectionShowcase section="servicios" />
       {/* Sin título: se ven primero la búsqueda y los filtros. */}
       <h1 className="sr-only">Servicios</h1>
       <div className="svc-offer-row">
@@ -178,6 +178,7 @@ export function ServiceListPage() {
         </label>
       </form>
       </FilterDrawer>
+      <SectionShowcase section="servicios" />
       {list.isLoading && <p role="status">Buscando servicios…</p>}
       {list.error && (
         <p className="member-error" role="alert">
@@ -186,11 +187,8 @@ export function ServiceListPage() {
       )}
       {list.data && (
         <>
-          <FeaturedStrip count={list.data.featured.length}>
-            {list.data.featured.map((s: ServiceDTO) => (
-              <ServiceCard key={`featured-${s.id}`} s={s} />
-            ))}
-          </FeaturedStrip>
+          {/* Solo servicios activados por el administrador (Service Pub + Mayor Visibilidad). */}
+          <FeaturedServicePicks />
           <p className="re-muted">
             {list.data.total} {list.data.total === 1 ? "servicio" : "servicios"}
           </p>
@@ -324,7 +322,7 @@ export function ServiceDetailPage({ slug }: { slug: string }) {
       <nav className="re-crumbs" aria-label="Ruta">
         <Link href="/servicios">Servicios</Link> / <span>{s.title}</span>
       </nav>
-      <div className="re-detail">
+      <div className="re-detail svc-detail">
         <div>
           <div className="re-gallery">
             {s.images[photo] ? (

@@ -76,3 +76,15 @@ export const czServicePubProducts = mysqlTable("cz_service_pub_products", {
     .references(() => users.id),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
+
+/** Servicios que un administrador activó en «Destacados» de /servicios (mismas reglas que los productos). */
+export const czServicePubServices = mysqlTable("cz_service_pub_services", {
+  serviceId: int("serviceId").primaryKey(),
+  userId: int("userId")
+    .notNull()
+    .references(() => users.id),
+  activatedBy: int("activatedBy")
+    .notNull()
+    .references(() => users.id),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});

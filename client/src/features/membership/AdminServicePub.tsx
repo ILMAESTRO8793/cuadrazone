@@ -245,6 +245,14 @@ export function AdminServicePub({ enabled }: { enabled: boolean }) {
 function PickProducts({ userId, active }: { userId: number; active: boolean }) {
   const utils = trpc.useUtils();
   const list = trpc.servicePub.adminProducts.useQuery({ userId });
+  const services = trpc.servicePub.adminServices.useQuery({ userId });
+  const setService = trpc.servicePub.adminSetServiceFeatured.useMutation({
+    onSuccess: () => {
+      void utils.servicePub.adminServices.invalidate({ userId });
+      void utils.servicePub.featuredServices.invalidate();
+    },
+    onError: e => toast.error(e.message),
+  });
   const set = trpc.servicePub.adminSetFeatured.useMutation({
     onSuccess: () => {
       void utils.servicePub.adminProducts.invalidate({ userId });
@@ -252,9 +260,10 @@ function PickProducts({ userId, active }: { userId: number; active: boolean }) {
     },
     onError: e => toast.error(e.message),
   });
-  if (list.isLoading) return <p className="as-empty">Cargando productos…</p>;
-  if (!list.data?.length)
-    return <p className="as-empty">Esta tienda todavía no tiene productos.</p>;
+  if (list.isLoading || services.isLoading) return <p className="as-empty">Cargando…</p>;
+  const serviceRows = services.data ?? [];
+  if (!list.data?.length && !serviceRows.length)
+    return <p className="as-empty">Esta tienda todavía no tiene productos ni servicios.</p>;
   return (
     <div className="sp-picks">
       {!active && (
@@ -266,7 +275,24 @@ function PickProducts({ userId, active }: { userId: number; active: boolean }) {
         Solo se muestra si la tienda tiene el plan Mayor Visibilidad. Se ve la foto, el nombre de la tienda y las 5 estrellas.
       </p>
       <ul>
-        {list.data.map(p => (
+        {serviceRows.map(sv => (
+          <li key={`s-${sv.id}`}>
+            <label>
+              <input
+                type="checkbox"
+                checked={sv.featured}
+                disabled={setService.isPending || (!sv.published && !sv.featured)}
+                onChange={e => setService.mutate({ serviceId: sv.id, on: e.target.checked })}
+              />
+              {sv.imageUrl ? <img src={sv.imageUrl} alt="" /> : <span className="sp-noimg" />}
+              <span>
+                {sv.title} <small className="sp-kind">· servicio</small>
+                {!sv.published && <small> · no publicado</small>}
+              </span>
+            </label>
+          </li>
+        ))}
+        {(list.data ?? []).map(p => (
           <li key={p.id}>
             <label>
               <input
