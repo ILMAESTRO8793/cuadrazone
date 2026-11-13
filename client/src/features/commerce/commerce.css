@@ -946,3 +946,8 @@
 .pd-facts-line { display: flex; flex-wrap: wrap; gap: 4px 10px; margin: 0; font-size: 13px; color: #475467; }
 .pd-facts-line span + span::before { content: "·"; margin-right: 10px; color: #98a2b3; }
 .pd-condition { font-weight: 800; color: #0b1f3b; }
+
+/* Destacados de /mercado: solo la foto y el nombre de la tienda. */
+.featured-strip--photo .live-product-body { padding: 8px 10px 10px; }
+.featured-strip--photo .live-product-body > :not(.live-store-name) { display: none; }
+.featured-strip--photo .live-store-name { font-size: 13px; font-weight: 700; color: #0b1f3b; }

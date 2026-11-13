@@ -169,7 +169,10 @@ export function LiveCatalogPage() {
           province={input.province}
         />
       )}
-      <FeaturedStrip count={featured.data?.length ?? 0}>
+      <FeaturedStrip
+        className="featured-strip--photo"
+        count={featured.data?.length ?? 0}
+      >
         {featured.data?.map(product => (
           <RealProductCard key={`featured-${product.id}`} product={product} />
         ))}
