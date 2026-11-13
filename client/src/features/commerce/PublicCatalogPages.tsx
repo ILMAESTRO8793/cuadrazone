@@ -160,12 +160,8 @@ export function LiveCatalogPage() {
   return (
     <div className="live-page container">
       <SectionShowcase section="comercios" />
-      <p className="eyebrow">CATÁLOGO PERSISTENTE · PANAMÁ</p>
-      <h1>Descubre tiendas de nuestra comunidad</h1>
-      <p className="live-lead">
-        Productos y libros publicados por vendedores aprobados con una tienda
-        activa. Tu cuenta de comprador es gratuita.
-      </p>
+      {/* Sin título: al entrar se ven primero los destacados. */}
+      <h1 className="sr-only">Catálogo de productos</h1>
       {input.q && (
         <StoreSearchMatches
           key={`${input.q}-${input.province ?? ""}`}
