@@ -633,9 +633,16 @@ function SellerCatalogContent({
             : null,
         warranty: productForm.warranty.trim(),
         deliveryModes: productForm.deliveryModes,
-        variants: normalizedVariants.map(variant => ({
+        variants: normalizedVariants.map((variant, index) => ({
           id: variant.id,
-          sku: variant.sku.trim(),
+          sku:
+            variant.sku.trim() ||
+            [variant.size.trim(), variant.color.trim(), String(index + 1)]
+              .filter(Boolean)
+              .join("-")
+              .toUpperCase()
+              .replace(/[^A-Z0-9-]/g, "")
+              .slice(0, 80),
           size: variant.size.trim() || null,
           color: variant.color.trim() || null,
           stock: variant.stockValue,
@@ -1403,7 +1410,13 @@ function SellerCatalogContent({
                   </div>
                 </fieldset>
                 <fieldset className="seller-catalog-subsection">
-                  <legend>Variantes e inventario</legend>
+                  <legend>Tallas, colores, cantidad y precio</legend>
+                  <p className="seller-catalog-help">
+                    Agrega una fila por cada combinación: por ejemplo «M · Negro
+                    · 4 unidades». Si quedan pocas y quieres liquidarlas, pon en
+                    «Precio de esta fila» un precio menor que el precio base: el
+                    comprador lo verá rebajado con el porcentaje de descuento.
+                  </p>
                   <div className="seller-catalog-variant-list">
                     {productForm.variants.map((variant, index) => (
                       <div
@@ -1411,7 +1424,7 @@ function SellerCatalogContent({
                         key={variant.id ?? `new-${index}`}
                       >
                         <label>
-                          <span>SKU</span>
+                          <span>Código (opcional)</span>
                           <Input
                             value={variant.sku}
                             onChange={event =>
@@ -1424,7 +1437,7 @@ function SellerCatalogContent({
                                 )
                               )
                             }
-                            required
+                            placeholder="Se crea solo"
                           />
                         </label>
                         <label>
@@ -1441,7 +1454,7 @@ function SellerCatalogContent({
                                 )
                               )
                             }
-                            placeholder="Única"
+                            placeholder="S, M, L, 38… o vacío"
                           />
                         </label>
                         <label>
@@ -1458,10 +1471,11 @@ function SellerCatalogContent({
                                 )
                               )
                             }
+                            placeholder="Negro, Azul… o vacío"
                           />
                         </label>
                         <label>
-                          <span>Stock</span>
+                          <span>Cantidad disponible</span>
                           <Input
                             type="number"
                             min="0"
@@ -1481,7 +1495,7 @@ function SellerCatalogContent({
                           />
                         </label>
                         <label>
-                          <span>Precio variante</span>
+                          <span>Precio de esta fila (US$)</span>
                           <Input
                             inputMode="decimal"
                             value={variant.priceCents}
@@ -1498,7 +1512,7 @@ function SellerCatalogContent({
                                 )
                               )
                             }
-                            placeholder="Usa el base"
+                            placeholder="Igual al base"
                           />
                         </label>
                         <button
@@ -1530,7 +1544,7 @@ function SellerCatalogContent({
                       ])
                     }
                   >
-                    <Plus size={15} /> Añadir variante
+                    <Plus size={15} /> Añadir talla o color
                   </button>
                 </fieldset>
                 {productForm.kind === "product" && (

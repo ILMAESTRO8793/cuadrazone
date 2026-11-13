@@ -738,3 +738,5 @@
   text-decoration: underline;
   cursor: pointer;
 }
+
+.seller-catalog-help { margin: 0 0 10px; color: #5c6b66; font-size: 13px; line-height: 1.5; }

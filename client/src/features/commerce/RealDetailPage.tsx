@@ -250,6 +250,8 @@ export function RealDetailPage({ slug }: { slug: string }) {
     onError: e => toast.error(e.message),
   });
   const [variantId, setVariantId] = useState<number>();
+  const [pickSize, setPickSize] = useState<string | null>(null);
+  const [pickColor, setPickColor] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [photo, setPhoto] = useState(0);
   const [showMore, setShowMore] = useState(false);
@@ -260,6 +262,8 @@ export function RealDetailPage({ slug }: { slug: string }) {
   );
   useEffect(() => {
     setVariantId(undefined);
+    setPickSize(null);
+    setPickColor(null);
     setQuantity(1);
     setPhoto(0);
   }, [slug]);
@@ -296,140 +300,210 @@ export function RealDetailPage({ slug }: { slug: string }) {
         </Link>
       </div>
     );
+  // Tallas y colores como botones; la combinación elegida es la variante.
+  const sizes = Array.from(new Set(p.variants.map(v => v.size).filter((x): x is string => Boolean(x))));
+  const colors = Array.from(new Set(p.variants.map(v => v.color).filter((x): x is string => Boolean(x))));
+  const matches = (v: (typeof p.variants)[number], size: string | null, color: string | null) =>
+    (!sizes.length || !size || v.size === size) && (!colors.length || !color || v.color === color);
   const variant =
     p.variants.find(v => v.id === variantId) ??
+    p.variants.find(v => matches(v, pickSize, pickColor) && v.stock > 0) ??
+    p.variants.find(v => matches(v, pickSize, pickColor)) ??
     p.variants.find(v => v.stock > 0) ??
     p.variants[0];
+  const choose = (size: string | null, color: string | null) => {
+    setPickSize(size);
+    setPickColor(color);
+    const next =
+      p.variants.find(v => matches(v, size, color) && v.stock > 0) ??
+      p.variants.find(v => matches(v, size, color));
+    setVariantId(next?.id);
+    setQuantity(1);
+  };
+  const stockFor = (size: string | null, color: string | null) =>
+    p.variants.filter(v => matches(v, size, color)).reduce((n, v) => n + v.stock, 0);
+  const price = variant?.priceCents ?? p.priceCents;
+  // Precio rebajado: la fila cuesta menos que el precio base (liquidación).
+  const listPrice = p.priceCents > price ? p.priceCents : null;
+  const discountPct = listPrice ? Math.round((1 - price / listPrice) * 100) : 0;
+  const stock = variant?.stock ?? 0;
+  const canBuy = Boolean(variant) && stock > 0 && Number.isInteger(quantity) && quantity >= 1 && quantity <= Math.min(20, stock);
+  const buy = async (thenCheckout: boolean) => {
+    if (!auth.user) {
+      navigate("/mi-cuenta");
+      return;
+    }
+    if (!variant) return;
+    try {
+      await add.mutateAsync({ variantId: variant.id, quantity });
+      if (thenCheckout) navigate("/comprar");
+    } catch {
+      /* el aviso lo muestra add.onError */
+    }
+  };
+  const specs = (
+    [
+      ["Condición", productConditionLabels[p.condition ?? "nuevo"]],
+      ["Marca", p.brand],
+      ["Peso", p.weightGrams ? (p.weightGrams >= 1000 ? `${(p.weightGrams / 1000).toLocaleString("es-PA")} kg` : `${p.weightGrams} g`) : ""],
+      ["Medidas", p.lengthCm && p.widthCm && p.heightCm ? `${p.lengthCm} × ${p.widthCm} × ${p.heightCm} cm` : ""],
+      ["Garantía", p.warranty],
+    ] as Array<[string, string]>
+  ).filter(([, value]) => value);
   return (
     <div className="live-page container">
       <Link href="/mercado">← Catálogo real</Link>
-      <div className="live-detail">
-        <section className="live-gallery">
-          <div className="live-detail-photo">
+      <div className="pd">
+        {/* 1. Fotos: miniaturas en columna y la foto grande */}
+        <section className="pd-gallery" aria-label="Fotos del producto">
+          {p.images.length > 1 && (
+            <div className="pd-thumbs">
+              {p.images.map((image, i) => (
+                <button
+                  type="button"
+                  className={photo === i ? "is-active" : ""}
+                  key={image}
+                  aria-label={`Ver foto ${i + 1}`}
+                  aria-pressed={photo === i}
+                  onMouseEnter={() => setPhoto(i)}
+                  onClick={() => setPhoto(i)}
+                >
+                  <img src={image} alt="" />
+                </button>
+              ))}
+            </div>
+          )}
+          <div className="pd-photo">
             {p.images[photo] ? (
               <img src={p.images[photo]} alt={p.title} />
             ) : (
               <Package size={70} aria-label="Sin fotografía" />
             )}
           </div>
-          <div className="live-thumbnails">
-            {p.images.map((image, i) => (
-              <button
-                className={photo === i ? "is-active" : ""}
-                key={image}
-                aria-label={`Ver foto ${i + 1}`}
-                onClick={() => setPhoto(i)}
-              >
-                <img src={image} alt="" />
-              </button>
-            ))}
-          </div>
           {(p.videos ?? []).length > 0 && (
-            <div className="live-videos" aria-label="Videos del producto">
+            <div className="pd-videos" aria-label="Videos del producto">
               {p.videos.map((src, i) => (
                 <video key={src} src={src} controls preload="metadata" playsInline aria-label={`Video ${i + 1} de ${p.title}`} />
               ))}
             </div>
           )}
         </section>
-        <section className="live-detail-copy">
-          <p className="eyebrow">
-            {p.kind === "book" ? "LIBRO CRISTIANO" : p.category}
-          </p>
-          <h1>{p.title}</h1>
-          <Link className="live-verified" href={`/tiendas/${p.store.slug}`}>
-            <StoreLogo name={p.store.name} logoUrl={p.store.logoUrl} size={32} />
-            {p.store.name} · Vendedor verificado
-            <BadgeCheck size={20} />
+
+        {/* 2. Información y opciones */}
+        <section className="pd-info">
+          <Link className="pd-store" href={`/tiendas/${p.store.slug}`}>
+            <StoreLogo name={p.store.name} logoUrl={p.store.logoUrl} size={22} />
+            Visita la tienda {p.store.name}
+            <BadgeCheck size={16} aria-label="Vendedor verificado" />
           </Link>
-          <StoreStars slug={p.store.slug} size={16} />
-          <StoreBrandBadge slug={p.store.slug} />
-          <p>
-            <Star size={16} />{" "}
+          <h1 className="pd-title">{p.title}</h1>
+          <div className="pd-rating">
+            <Star size={15} aria-hidden="true" />
             {p.reviewCount
-              ? `${p.rating.toFixed(1)} / 5 · ${p.reviewCount} reseñas`
+              ? `${p.rating.toFixed(1)} · ${p.reviewCount} reseñas`
               : "Sin reseñas todavía"}
-          </p>
-          <strong className="live-detail-price">
-            {usd(variant?.priceCents ?? p.priceCents)}
-          </strong>
-          <label>
-            Variante
-            <select
-              value={variant?.id ?? ""}
-              onChange={e => {
-                setVariantId(Number(e.target.value));
-                setQuantity(1);
-              }}
-            >
-              {p.variants.map(v => (
-                <option key={v.id} value={v.id}>
-                  {[v.size, v.color].filter(Boolean).join(" / ") ||
-                    "Presentación estándar"}{" "}
-                  · {v.stock} disponibles · {usd(v.priceCents)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Cantidad
-            <input
-              type="number"
-              min={1}
-              max={Math.min(20, variant?.stock ?? 0)}
-              value={quantity}
-              onChange={e => setQuantity(Number(e.target.value))}
-            />
-          </label>
-          <button
-            className="btn btn-gold btn-wide"
-            disabled={
-              add.isPending ||
-              !variant ||
-              variant.stock === 0 ||
-              !Number.isInteger(quantity) ||
-              quantity < 1 ||
-              quantity > Math.min(20, variant.stock)
-            }
-            onClick={() => {
-              if (!auth.user) navigate("/mi-cuenta");
-              else if (variant) add.mutate({ variantId: variant.id, quantity });
-            }}
-          >
-            <ShoppingBag size={19} />
-            {variant?.stock ? "Añadir al carrito" : "Agotado"}
-          </button>
-          <Link href="/mi-carrito" className="btn btn-outline btn-wide">
-            Ver mi carrito guardado
-          </Link>
-          <div className={`live-description-wrap${showMore ? " is-open" : ""}`}>
-            <p className="live-description">{p.description}</p>
+            <StoreStars slug={p.store.slug} size={14} />
+            <StoreBrandBadge slug={p.store.slug} />
           </div>
-          {p.description.length > 280 && (
-            <button
-              type="button"
-              className="live-more"
-              aria-expanded={showMore}
-              onClick={() => setShowMore(v => !v)}
-            >
+          <p className="pd-category">{p.kind === "book" ? "Libro cristiano" : p.category}</p>
+          <hr />
+          <div className="pd-price">
+            {discountPct > 0 && <span className="pd-off">−{discountPct} %</span>}
+            <strong>{usd(price)}</strong>
+          </div>
+          {listPrice && (
+            <p className="pd-list">Antes: <s>{usd(listPrice)}</s></p>
+          )}
+          {sizes.length > 0 && (
+            <fieldset className="pd-chips">
+              <legend>Talla: <b>{pickSize ?? variant?.size ?? "elige"}</b></legend>
+              {sizes.map(size => {
+                const left = stockFor(size, pickColor);
+                const active = (pickSize ?? variant?.size) === size;
+                return (
+                  <button
+                    key={size}
+                    type="button"
+                    className={`${active ? "is-active" : ""} ${left ? "" : "is-out"}`}
+                    aria-pressed={active}
+                    onClick={() => choose(size, pickColor)}
+                  >
+                    {size}
+                  </button>
+                );
+              })}
+            </fieldset>
+          )}
+          {colors.length > 0 && (
+            <fieldset className="pd-chips">
+              <legend>Color: <b>{pickColor ?? variant?.color ?? "elige"}</b></legend>
+              {colors.map(color => {
+                const left = stockFor(pickSize, color);
+                const active = (pickColor ?? variant?.color) === color;
+                return (
+                  <button
+                    key={color}
+                    type="button"
+                    className={`${active ? "is-active" : ""} ${left ? "" : "is-out"}`}
+                    aria-pressed={active}
+                    onClick={() => choose(pickSize, color)}
+                  >
+                    {color}
+                  </button>
+                );
+              })}
+            </fieldset>
+          )}
+          <div className={`pd-desc${showMore ? " is-open" : ""}`}>
+            <p>{p.description}</p>
+          </div>
+          {p.description.length > 220 && (
+            <button type="button" className="live-more" aria-expanded={showMore} onClick={() => setShowMore(v => !v)}>
               {showMore ? "Ver menos" : "Ver más"}
             </button>
           )}
-          {p.kind === "product" && (
+        </section>
+
+        {/* 3. Cuadro de compra */}
+        <aside className="pd-buy" aria-label="Comprar">
+          <strong className="pd-buy-price">{usd(price)}</strong>
+          <ShippingNote store={p.store} modes={p.deliveryModes} />
+          <p className={`pd-stock ${stock ? "" : "is-out"}`}>
+            {stock === 0 ? "Agotado" : stock <= 5 ? `¡Solo quedan ${stock}!` : "Disponible"}
+          </p>
+          <label className="pd-qty">
+            Cantidad
+            <select value={quantity} onChange={e => setQuantity(Number(e.target.value))} disabled={!stock}>
+              {Array.from({ length: Math.max(1, Math.min(20, stock)) }, (_, i) => i + 1).map(n => (
+                <option key={n} value={n}>{n}</option>
+              ))}
+            </select>
+          </label>
+          <button className="btn btn-gold btn-wide" disabled={add.isPending || !canBuy} onClick={() => buy(false)}>
+            <ShoppingBag size={18} /> {stock ? "Añadir al carrito" : "Agotado"}
+          </button>
+          <button className="btn pd-now btn-wide" disabled={add.isPending || !canBuy} onClick={() => buy(true)}>
+            Comprar ahora
+          </button>
+          <dl className="pd-facts">
+            <div><dt>Vende</dt><dd><Link href={`/tiendas/${p.store.slug}`}>{p.store.name}</Link></dd></div>
+            <div><dt>Desde</dt><dd>{p.store.province}</dd></div>
+            <div><dt>Entrega</dt><dd>{p.deliveryModes.map(mode => (mode === "pickup" ? "Retiro" : mode === "shipping" ? "Envío" : "A domicilio")).join(" · ")}</dd></div>
+            <div><dt>Pago</dt><dd>Directo a la tienda</dd></div>
+          </dl>
+          <Link href="/mi-carrito" className="pd-cart-link">Ver mi carrito</Link>
+        </aside>
+      </div>
+
+      {/* Debajo, a todo el ancho: detalles, libro y ubicación */}
+      {(specs.length > 0 || p.book) && (
+        <section className="live-panel pd-more">
+          <h2>Detalles</h2>
+          {specs.length > 0 && (
             <dl className="live-book-meta live-specs">
-              {(
-                [
-                  ["Condición", productConditionLabels[p.condition ?? "nuevo"]],
-                  ["Marca", p.brand],
-                  ["Peso", p.weightGrams ? (p.weightGrams >= 1000 ? `${(p.weightGrams / 1000).toLocaleString("es-PA")} kg` : `${p.weightGrams} g`) : ""],
-                  ["Medidas", p.lengthCm && p.widthCm && p.heightCm ? `${p.lengthCm} × ${p.widthCm} × ${p.heightCm} cm` : ""],
-                  ["Garantía", p.warranty],
-                ] as Array<[string, string]>
-              )
-                .filter(([, value]) => value)
-                .map(([label, value]) => (
-                  <div key={label}><dt>{label}</dt><dd>{value}</dd></div>
-                ))}
+              {specs.map(([label, value]) => (
+                <div key={label}><dt>{label}</dt><dd>{value}</dd></div>
+              ))}
             </dl>
           )}
           {p.book && (
@@ -442,35 +516,13 @@ export function RealDetailPage({ slug }: { slug: string }) {
                 ["Formato", p.book.format],
                 ["Estado", p.book.condition === "used" ? "Usado" : "Nuevo"],
               ].map(([name, value]) => (
-                <div key={name}>
-                  <dt>{name}</dt>
-                  <dd>{value || "No indicado"}</dd>
-                </div>
+                <div key={name}><dt>{name}</dt><dd>{value || "No indicado"}</dd></div>
               ))}
             </dl>
           )}
-          <div className="live-notice">
-            <strong>Entrega desde {p.store.province}</strong>
-            <ShippingNote store={p.store} modes={p.deliveryModes} />
-            <PublicPlaceMap kind="tienda" slug={p.store.slug} title="Dónde está la tienda" />
-            <p>
-              {p.deliveryModes
-                .map(mode =>
-                  mode === "pickup"
-                    ? "Retiro personal"
-                    : mode === "shipping"
-                      ? "Envío"
-                      : "A domicilio"
-                )
-                .join(" · ")}
-            </p>
-            <small>
-              Pago directo pendiente; la integración electrónica se conectará en
-              su etapa. No se cobra una mensualidad al comprador.
-            </small>
-          </div>
         </section>
-      </div>
+      )}
+      <PublicPlaceMap kind="tienda" slug={p.store.slug} title="Dónde está la tienda" />
       <Feedback key={p.id} product={p} />
       <h2>También en esta categoría</h2>
       {related.error && (
