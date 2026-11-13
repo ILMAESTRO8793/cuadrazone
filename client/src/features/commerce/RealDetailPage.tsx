@@ -252,6 +252,7 @@ export function RealDetailPage({ slug }: { slug: string }) {
   const [variantId, setVariantId] = useState<number>();
   const [quantity, setQuantity] = useState(1);
   const [photo, setPhoto] = useState(0);
+  const [showMore, setShowMore] = useState(false);
   const p = product.data;
   const related = trpc.catalog.list.useQuery(
     { category: p?.category, limit: 5 },
@@ -341,7 +342,7 @@ export function RealDetailPage({ slug }: { slug: string }) {
             {p.store.name} · Vendedor verificado
             <BadgeCheck size={20} />
           </Link>
-          <StoreStars slug={p.store.slug} size={18} labeled />
+          <StoreStars slug={p.store.slug} size={16} />
           <StoreBrandBadge slug={p.store.slug} />
           <p>
             <Star size={16} />{" "}
@@ -352,41 +353,6 @@ export function RealDetailPage({ slug }: { slug: string }) {
           <strong className="live-detail-price">
             {usd(variant?.priceCents ?? p.priceCents)}
           </strong>
-          <p className="live-description">{p.description}</p>
-          {p.kind === "product" && (
-            <dl className="live-book-meta live-specs">
-              {(
-                [
-                  ["Condición", productConditionLabels[p.condition ?? "nuevo"]],
-                  ["Marca", p.brand],
-                  ["Peso", p.weightGrams ? (p.weightGrams >= 1000 ? `${(p.weightGrams / 1000).toLocaleString("es-PA")} kg` : `${p.weightGrams} g`) : ""],
-                  ["Medidas", p.lengthCm && p.widthCm && p.heightCm ? `${p.lengthCm} × ${p.widthCm} × ${p.heightCm} cm` : ""],
-                  ["Garantía", p.warranty],
-                ] as Array<[string, string]>
-              )
-                .filter(([, value]) => value)
-                .map(([label, value]) => (
-                  <div key={label}><dt>{label}</dt><dd>{value}</dd></div>
-                ))}
-            </dl>
-          )}
-          {p.book && (
-            <dl className="live-book-meta">
-              {[
-                ["Autor", p.book.author],
-                ["Editorial", p.book.publisher],
-                ["ISBN", p.book.isbn],
-                ["Idioma", p.book.language],
-                ["Formato", p.book.format],
-                ["Estado", p.book.condition === "used" ? "Usado" : "Nuevo"],
-              ].map(([name, value]) => (
-                <div key={name}>
-                  <dt>{name}</dt>
-                  <dd>{value || "No indicado"}</dd>
-                </div>
-              ))}
-            </dl>
-          )}
           <label>
             Variante
             <select
@@ -436,6 +402,53 @@ export function RealDetailPage({ slug }: { slug: string }) {
           <Link href="/mi-carrito" className="btn btn-outline btn-wide">
             Ver mi carrito guardado
           </Link>
+          <div className={`live-description-wrap${showMore ? " is-open" : ""}`}>
+            <p className="live-description">{p.description}</p>
+          </div>
+          {p.description.length > 280 && (
+            <button
+              type="button"
+              className="live-more"
+              aria-expanded={showMore}
+              onClick={() => setShowMore(v => !v)}
+            >
+              {showMore ? "Ver menos" : "Ver más"}
+            </button>
+          )}
+          {p.kind === "product" && (
+            <dl className="live-book-meta live-specs">
+              {(
+                [
+                  ["Condición", productConditionLabels[p.condition ?? "nuevo"]],
+                  ["Marca", p.brand],
+                  ["Peso", p.weightGrams ? (p.weightGrams >= 1000 ? `${(p.weightGrams / 1000).toLocaleString("es-PA")} kg` : `${p.weightGrams} g`) : ""],
+                  ["Medidas", p.lengthCm && p.widthCm && p.heightCm ? `${p.lengthCm} × ${p.widthCm} × ${p.heightCm} cm` : ""],
+                  ["Garantía", p.warranty],
+                ] as Array<[string, string]>
+              )
+                .filter(([, value]) => value)
+                .map(([label, value]) => (
+                  <div key={label}><dt>{label}</dt><dd>{value}</dd></div>
+                ))}
+            </dl>
+          )}
+          {p.book && (
+            <dl className="live-book-meta">
+              {[
+                ["Autor", p.book.author],
+                ["Editorial", p.book.publisher],
+                ["ISBN", p.book.isbn],
+                ["Idioma", p.book.language],
+                ["Formato", p.book.format],
+                ["Estado", p.book.condition === "used" ? "Usado" : "Nuevo"],
+              ].map(([name, value]) => (
+                <div key={name}>
+                  <dt>{name}</dt>
+                  <dd>{value || "No indicado"}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
           <div className="live-notice">
             <strong>Entrega desde {p.store.province}</strong>
             <ShippingNote store={p.store} modes={p.deliveryModes} />
