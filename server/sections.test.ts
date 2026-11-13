@@ -25,7 +25,7 @@ describe("Marketplace y Servicios separados", () => {
   });
   it("Servicios no muestra productos ni libros", () => {
     const { nav, main } = mainAndNav(renderPage("/servicios").html);
-    expect(main).toContain("Servicios cerca de ti");
+    expect(main).toContain("<h1 class=\"sr-only\">Servicios</h1>");
     expect(main).not.toContain("Envío");
     expect(main).not.toContain("Bolso artesanal");
     expect(main).not.toContain("Biblia de estudio");
