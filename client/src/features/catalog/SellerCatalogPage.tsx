@@ -303,7 +303,10 @@ function SellerCatalogContent({
   });
   const saveStore = trpc.catalog.saveStore.useMutation();
   // Comercio (cosas tangibles) o servicios: cada uno ve solo lo suyo.
-  const membership = trpc.membership.me.useQuery(undefined, { enabled, refetchOnWindowFocus: false });
+  const membership = trpc.membership.me.useQuery(undefined, {
+    enabled,
+    refetchOnWindowFocus: false,
+  });
   const storeKind = membership.data?.application?.storeKind ?? "comercio";
   const saveProduct = trpc.catalog.saveProduct.useMutation();
   const setStatus = trpc.catalog.setStatus.useMutation();
@@ -369,14 +372,30 @@ function SellerCatalogContent({
   async function uploadVideo(files: FileList | null) {
     const file = files?.[0];
     if (!file || !productForm.id) return;
-    if (file.size > MAX_PRODUCT_VIDEO_BYTES) { toast.error("El video supera el límite de 40 MB"); return; }
+    if (file.size > MAX_PRODUCT_VIDEO_BYTES) {
+      toast.error("El video supera el límite de 40 MB");
+      return;
+    }
     setUploadingVideo(true);
     try {
-      const r = await fetch(`/api/catalog/products/${productForm.id}/videos`, { method: "POST", credentials: "include", headers: { "Content-Type": file.type || "video/mp4", "x-cz-request": "1" }, body: file });
+      const r = await fetch(`/api/catalog/products/${productForm.id}/videos`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": file.type || "video/mp4",
+          "x-cz-request": "1",
+        },
+        body: file,
+      });
       const data = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(data.error || "No se pudo subir el video");
-      setProductForm(current => ({ ...current, videos: [...current.videos, data.url] }));
-      toast.success("Video subido. Toca «Guardar» para que quede en el producto.");
+      setProductForm(current => ({
+        ...current,
+        videos: [...current.videos, data.url],
+      }));
+      toast.success(
+        "Video subido. Toca «Guardar» para que quede en el producto."
+      );
     } catch (error) {
       toast.error(errorText(error, "No se pudo subir el video"));
     } finally {
@@ -401,16 +420,17 @@ function SellerCatalogContent({
       for (const [province, value] of Object.entries(storeForm.provinceFees)) {
         if (!value.trim()) continue;
         const cents = decimalToCents(value);
-        if (cents === null) throw new Error(`Precio de envío inválido para ${province}; usa hasta dos decimales.`);
+        if (cents === null)
+          throw new Error(
+            `Precio de envío inválido para ${province}; usa hasta dos decimales.`
+          );
         feesByProvince[province] = cents;
       }
       const feeValues = Object.values(feesByProvince);
       const homeFeeCents = storeForm.homeFee.trim()
         ? decimalToCents(storeForm.homeFee)
         : null;
-      if (
-        (storeForm.homeFee.trim() && homeFeeCents === null)
-      )
+      if (storeForm.homeFee.trim() && homeFeeCents === null)
         throw new Error("Tarifa inválida; utiliza hasta dos decimales.");
       const saved = await saveStore.mutateAsync({
         name: storeForm.name,
@@ -418,12 +438,16 @@ function SellerCatalogContent({
         province: storeForm.province,
         city: storeForm.city,
         // Tarifa base = la más baja; el precio real sale de cada provincia.
-        shippingFeeCents: feeValues.length ? Math.min(...feeValues) : shippingFeeCentsLegacy,
+        shippingFeeCents: feeValues.length
+          ? Math.min(...feeValues)
+          : shippingFeeCentsLegacy,
         homeFeeCents,
         shippingFeesByProvince: feesByProvince,
         deliveryProvinces: validProvinces([
           ...Object.keys(feesByProvince),
-          ...(homeFeeCents !== null && !(storeForm.province in feesByProvince) ? [storeForm.province] : []),
+          ...(homeFeeCents !== null && !(storeForm.province in feesByProvince)
+            ? [storeForm.province]
+            : []),
         ]),
         yappyPhone: normalizePanamaPhone(storeForm.yappyPhone),
         yappyDirectory: storeForm.yappyDirectory,
@@ -587,10 +611,21 @@ function SellerCatalogContent({
         condition: productForm.condition,
         brand: productForm.brand.trim(),
         // El peso se escribe en kilos y se guarda en gramos.
-        weightGrams: productForm.weight.trim() ? Math.max(1, Math.round(Number(productForm.weight) * 1000)) || null : null,
-        lengthCm: Number(productForm.lengthCm) > 0 ? Math.round(Number(productForm.lengthCm)) : null,
-        widthCm: Number(productForm.widthCm) > 0 ? Math.round(Number(productForm.widthCm)) : null,
-        heightCm: Number(productForm.heightCm) > 0 ? Math.round(Number(productForm.heightCm)) : null,
+        weightGrams: productForm.weight.trim()
+          ? Math.max(1, Math.round(Number(productForm.weight) * 1000)) || null
+          : null,
+        lengthCm:
+          Number(productForm.lengthCm) > 0
+            ? Math.round(Number(productForm.lengthCm))
+            : null,
+        widthCm:
+          Number(productForm.widthCm) > 0
+            ? Math.round(Number(productForm.widthCm))
+            : null,
+        heightCm:
+          Number(productForm.heightCm) > 0
+            ? Math.round(Number(productForm.heightCm))
+            : null,
         warranty: productForm.warranty.trim(),
         deliveryModes: productForm.deliveryModes,
         variants: normalizedVariants.map(variant => ({
@@ -756,33 +791,39 @@ function SellerCatalogContent({
       <header className="seller-catalog-heading">
         <div>
           <p className="seller-catalog-eyebrow">PANEL DE VENDEDOR</p>
-          <h1>{storeKind === "servicios" ? "Tu tienda de servicios" : "Tu tienda y publicaciones"}</h1>
+          <h1>
+            {storeKind === "servicios"
+              ? "Tu tienda de servicios"
+              : "Tu tienda y publicaciones"}
+          </h1>
           <p>
             {storeKind === "servicios"
               ? "Publica tus servicios y atiende las solicitudes de tus clientes. Sin envíos ni inventario."
               : "Prepara tus borradores, cuida tu inventario y publica solo cuando tu perfil vendedor esté aprobado y activo."}
           </p>
         </div>
-        {storeKind !== "servicios" && <div className="seller-catalog-heading-actions">
-          <Link
-            className="seller-catalog-button seller-catalog-button--outline"
-            href="/vendedor/pedidos"
-          >
-            <Package size={16} /> Pedidos
-          </Link>
-          <Link
-            className="seller-catalog-button seller-catalog-button--outline"
-            href="/vendedor/menu"
-          >
-            <UtensilsCrossed size={16} /> Mi menú (restaurante)
-          </Link>
-          <Link
-            className="seller-catalog-button seller-catalog-button--outline"
-            href="/vendedor/mensajes"
-          >
-            <MessageSquare size={16} /> Mensajes
-          </Link>
-        </div>}
+        {storeKind !== "servicios" && (
+          <div className="seller-catalog-heading-actions">
+            <Link
+              className="seller-catalog-button seller-catalog-button--outline"
+              href="/vendedor/pedidos"
+            >
+              <Package size={16} /> Pedidos
+            </Link>
+            <Link
+              className="seller-catalog-button seller-catalog-button--outline"
+              href="/vendedor/menu"
+            >
+              <UtensilsCrossed size={16} /> Mi menú (restaurante)
+            </Link>
+            <Link
+              className="seller-catalog-button seller-catalog-button--outline"
+              href="/vendedor/mensajes"
+            >
+              <MessageSquare size={16} /> Mensajes
+            </Link>
+          </div>
+        )}
       </header>
 
       <nav className="seller-catalog-nav" aria-label="Navegación de vendedor">
@@ -801,7 +842,14 @@ function SellerCatalogContent({
           className={activeTab === "products" ? "is-active" : ""}
           onClick={() => setActiveTab("products")}
         >
-          <Package size={17} /> {storeKind === "servicios" ? "Mis servicios" : <>Publicaciones <span>{productCountLabel}</span></>}
+          <Package size={17} />{" "}
+          {storeKind === "servicios" ? (
+            "Mis servicios"
+          ) : (
+            <>
+              Publicaciones <span>{productCountLabel}</span>
+            </>
+          )}
         </button>
         {storeKind === "servicios" && (
           <Link href="/vendedor/agenda">
@@ -946,7 +994,9 @@ function SellerCatalogContent({
                   Nombre en el Directorio Yappy (si tienes Yappy Comercial)
                   <Input
                     value={storeForm.yappyDirectory}
-                    onChange={e => updateStore("yappyDirectory", e.target.value)}
+                    onChange={e =>
+                      updateStore("yappyDirectory", e.target.value)
+                    }
                     placeholder="Opcional"
                     maxLength={80}
                   />
@@ -957,7 +1007,9 @@ function SellerCatalogContent({
                     type="url"
                     inputMode="url"
                     value={storeForm.cardPaymentUrl}
-                    onChange={e => updateStore("cardPaymentUrl", e.target.value)}
+                    onChange={e =>
+                      updateStore("cardPaymentUrl", e.target.value)
+                    }
                     placeholder="https://..."
                     maxLength={500}
                   />
@@ -967,66 +1019,81 @@ function SellerCatalogContent({
                 <input
                   type="checkbox"
                   checked={storeForm.cardOnDelivery}
-                  onChange={e => updateStore("cardOnDelivery", e.target.checked)}
+                  onChange={e =>
+                    updateStore("cardOnDelivery", e.target.checked)
+                  }
                 />{" "}
                 Cobro con tarjeta (datáfono) al retirar o entregar a domicilio
               </label>
             </fieldset>
             {storeKind !== "servicios" && (
-            <fieldset className="seller-catalog-subsection">
-              <legend>Envíos por provincia</legend>
-              <p>
-                Marca las provincias a las que envías y escribe el precio del
-                envío para cada una. El comprador verá el precio de su
-                provincia en cada producto. Escribe 0 para envío gratis. El
-                retiro personal siempre es gratis.
-              </p>
-              <div className="ship-table" role="table" aria-label="Precio de envío por provincia">
-                {storeProvinces.map(p => {
-                  const enabled = p in storeForm.provinceFees;
-                  return (
-                    <div className="ship-row" role="row" key={p}>
-                      <label className="ship-province" role="cell">
-                        <input
-                          type="checkbox"
-                          checked={enabled}
-                          onChange={e => {
-                            const next = { ...storeForm.provinceFees };
-                            if (e.target.checked) next[p] = next[p] ?? "";
-                            else delete next[p];
-                            updateStore("provinceFees", next);
-                          }}
-                        />
-                        {p}
-                        {p === storeForm.province && <span className="ship-own">Tu provincia</span>}
-                      </label>
-                      <label className="ship-price" role="cell">
-                        <span className="visually-hidden">Precio de envío a {p} en dólares</span>
-                        <span aria-hidden="true">US$</span>
-                        <Input
-                          inputMode="decimal"
-                          disabled={!enabled}
-                          value={storeForm.provinceFees[p] ?? ""}
-                          onChange={e => updateStore("provinceFees", { ...storeForm.provinceFees, [p]: e.target.value })}
-                          placeholder={enabled ? "0.00" : "No envía"}
-                        />
-                      </label>
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="seller-catalog-form-grid">
-                <label>
-                  Entrega a domicilio en tu provincia (USD)
-                  <Input
-                    inputMode="decimal"
-                    value={storeForm.homeFee}
-                    onChange={e => updateStore("homeFee", e.target.value)}
-                    placeholder="Sin configurar"
-                  />
-                </label>
-              </div>
-            </fieldset>
+              <fieldset className="seller-catalog-subsection">
+                <legend>Envíos por provincia</legend>
+                <p>
+                  Marca las provincias a las que envías y escribe el precio del
+                  envío para cada una. El comprador verá el precio de su
+                  provincia en cada producto. Escribe 0 para envío gratis. El
+                  retiro personal siempre es gratis.
+                </p>
+                <div
+                  className="ship-table"
+                  role="table"
+                  aria-label="Precio de envío por provincia"
+                >
+                  {storeProvinces.map(p => {
+                    const enabled = p in storeForm.provinceFees;
+                    return (
+                      <div className="ship-row" role="row" key={p}>
+                        <label className="ship-province" role="cell">
+                          <input
+                            type="checkbox"
+                            checked={enabled}
+                            onChange={e => {
+                              const next = { ...storeForm.provinceFees };
+                              if (e.target.checked) next[p] = next[p] ?? "";
+                              else delete next[p];
+                              updateStore("provinceFees", next);
+                            }}
+                          />
+                          {p}
+                          {p === storeForm.province && (
+                            <span className="ship-own">Tu provincia</span>
+                          )}
+                        </label>
+                        <label className="ship-price" role="cell">
+                          <span className="visually-hidden">
+                            Precio de envío a {p} en dólares
+                          </span>
+                          <span aria-hidden="true">US$</span>
+                          <Input
+                            inputMode="decimal"
+                            disabled={!enabled}
+                            value={storeForm.provinceFees[p] ?? ""}
+                            onChange={e =>
+                              updateStore("provinceFees", {
+                                ...storeForm.provinceFees,
+                                [p]: e.target.value,
+                              })
+                            }
+                            placeholder={enabled ? "0.00" : "No envía"}
+                          />
+                        </label>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="seller-catalog-form-grid">
+                  <label>
+                    Entrega a domicilio en tu provincia (USD)
+                    <Input
+                      inputMode="decimal"
+                      value={storeForm.homeFee}
+                      onChange={e => updateStore("homeFee", e.target.value)}
+                      placeholder="Sin configurar"
+                    />
+                  </label>
+                </div>
+              </fieldset>
             )}
             <div className="seller-catalog-form-actions">
               <button
@@ -1065,7 +1132,9 @@ function SellerCatalogContent({
 
       {activeTab === "store" && hasStore && <DeleteStoreSection />}
 
-      {activeTab === "products" && storeKind === "servicios" && <ServicesPanel hasStore={hasStore} />}
+      {activeTab === "products" && storeKind === "servicios" && (
+        <ServicesPanel hasStore={hasStore} />
+      )}
 
       {activeTab === "products" && storeKind !== "servicios" && (
         <>
@@ -1114,6 +1183,21 @@ function SellerCatalogContent({
                   <X size={19} />
                 </button>
               </div>
+              {!hasStore && (
+                <div className="member-notice" role="alert">
+                  <p>
+                    <strong>Primero guarda tu tienda.</strong> Sin tienda no se
+                    pueden guardar productos ni subir sus fotos.
+                  </p>
+                  <button
+                    type="button"
+                    className="btn btn-gold"
+                    onClick={() => setActiveTab("store")}
+                  >
+                    Ir a «Información de tu tienda»
+                  </button>
+                </div>
+              )}
               <form className="seller-catalog-form" onSubmit={saveProductDraft}>
                 <div
                   className="seller-catalog-kind-switch"
@@ -1159,11 +1243,13 @@ function SellerCatalogContent({
                       }
                       required
                     >
-                      {withCurrent(catalogCategories, productForm.category).map(category => (
-                        <option key={category} value={category}>
-                          {category}
-                        </option>
-                      ))}
+                      {withCurrent(catalogCategories, productForm.category).map(
+                        category => (
+                          <option key={category} value={category}>
+                            {category}
+                          </option>
+                        )
+                      )}
                     </select>
                   </label>
                   <label>
@@ -1444,49 +1530,127 @@ function SellerCatalogContent({
                     <div className="seller-catalog-form-grid">
                       <label>
                         Condición
-                        <select value={productForm.condition} onChange={e => updateProduct("condition", e.target.value as ProductForm["condition"])}>
-                          {productConditions.map(c => <option key={c} value={c}>{productConditionLabels[c]}</option>)}
+                        <select
+                          value={productForm.condition}
+                          onChange={e =>
+                            updateProduct(
+                              "condition",
+                              e.target.value as ProductForm["condition"]
+                            )
+                          }
+                        >
+                          {productConditions.map(c => (
+                            <option key={c} value={c}>
+                              {productConditionLabels[c]}
+                            </option>
+                          ))}
                         </select>
                       </label>
                       <label>
                         Marca (opcional)
-                        <Input value={productForm.brand} onChange={e => updateProduct("brand", e.target.value)} maxLength={80} placeholder="Ej.: Samsung, hecho a mano" />
+                        <Input
+                          value={productForm.brand}
+                          onChange={e => updateProduct("brand", e.target.value)}
+                          maxLength={80}
+                          placeholder="Ej.: Samsung, hecho a mano"
+                        />
                       </label>
                       <label>
                         Peso en kg (opcional)
-                        <Input inputMode="decimal" value={productForm.weight} onChange={e => updateProduct("weight", e.target.value)} placeholder="Ej.: 0.5" />
+                        <Input
+                          inputMode="decimal"
+                          value={productForm.weight}
+                          onChange={e =>
+                            updateProduct("weight", e.target.value)
+                          }
+                          placeholder="Ej.: 0.5"
+                        />
                       </label>
                       <label>
                         Largo × ancho × alto en cm (opcional)
                         <span className="seller-catalog-dims">
-                          <Input inputMode="numeric" aria-label="Largo en cm" value={productForm.lengthCm} onChange={e => updateProduct("lengthCm", e.target.value)} placeholder="Largo" />
-                          <Input inputMode="numeric" aria-label="Ancho en cm" value={productForm.widthCm} onChange={e => updateProduct("widthCm", e.target.value)} placeholder="Ancho" />
-                          <Input inputMode="numeric" aria-label="Alto en cm" value={productForm.heightCm} onChange={e => updateProduct("heightCm", e.target.value)} placeholder="Alto" />
+                          <Input
+                            inputMode="numeric"
+                            aria-label="Largo en cm"
+                            value={productForm.lengthCm}
+                            onChange={e =>
+                              updateProduct("lengthCm", e.target.value)
+                            }
+                            placeholder="Largo"
+                          />
+                          <Input
+                            inputMode="numeric"
+                            aria-label="Ancho en cm"
+                            value={productForm.widthCm}
+                            onChange={e =>
+                              updateProduct("widthCm", e.target.value)
+                            }
+                            placeholder="Ancho"
+                          />
+                          <Input
+                            inputMode="numeric"
+                            aria-label="Alto en cm"
+                            value={productForm.heightCm}
+                            onChange={e =>
+                              updateProduct("heightCm", e.target.value)
+                            }
+                            placeholder="Alto"
+                          />
                         </span>
                       </label>
                       <label>
                         Garantía (opcional)
-                        <Input value={productForm.warranty} onChange={e => updateProduct("warranty", e.target.value)} maxLength={200} placeholder="Ej.: 6 meses por defectos de fábrica" />
+                        <Input
+                          value={productForm.warranty}
+                          onChange={e =>
+                            updateProduct("warranty", e.target.value)
+                          }
+                          maxLength={200}
+                          placeholder="Ej.: 6 meses por defectos de fábrica"
+                        />
                       </label>
                     </div>
                   </fieldset>
                 )}
                 {productForm.id && (
                   <fieldset className="seller-catalog-subsection">
-                    <legend>Videos del producto ({productForm.videos.length} de {MAX_PRODUCT_VIDEOS})</legend>
-                    <p className="seller-catalog-help">Muestra tu producto en uso: MP4, WEBM o MOV · máximo 40 MB por video · hasta {MAX_PRODUCT_VIDEOS} videos. Después de subirlos, toca «Guardar» para que queden en el producto.</p>
+                    <legend>
+                      Videos del producto ({productForm.videos.length} de{" "}
+                      {MAX_PRODUCT_VIDEOS})
+                    </legend>
+                    <p className="seller-catalog-help">
+                      Muestra tu producto en uso: MP4, WEBM o MOV · máximo 40 MB
+                      por video · hasta {MAX_PRODUCT_VIDEOS} videos. Después de
+                      subirlos, toca «Guardar» para que queden en el producto.
+                    </p>
                     <div className="seller-catalog-videos">
                       {productForm.videos.map(src => (
                         <div key={src} className="seller-catalog-video">
                           <video src={src} controls preload="metadata" />
-                          <button type="button" className="seller-catalog-button seller-catalog-button--small" onClick={() => updateProduct("videos", productForm.videos.filter(v => v !== src))}>Quitar</button>
+                          <button
+                            type="button"
+                            className="seller-catalog-button seller-catalog-button--small"
+                            onClick={() =>
+                              updateProduct(
+                                "videos",
+                                productForm.videos.filter(v => v !== src)
+                              )
+                            }
+                          >
+                            Quitar
+                          </button>
                         </div>
                       ))}
                     </div>
                     {productForm.videos.length < MAX_PRODUCT_VIDEOS && (
                       <label className="re-upload">
                         {uploadingVideo ? "Subiendo video…" : "+ Agregar video"}
-                        <input type="file" accept="video/mp4,video/webm,video/quicktime" disabled={uploadingVideo} onChange={e => void uploadVideo(e.target.files)} />
+                        <input
+                          type="file"
+                          accept="video/mp4,video/webm,video/quicktime"
+                          disabled={uploadingVideo}
+                          onChange={e => void uploadVideo(e.target.files)}
+                        />
                       </label>
                     )}
                   </fieldset>
@@ -1726,10 +1890,21 @@ export function SellerCatalogPage({
 export default SellerCatalogPage;
 
 /** Precios por provincia guardados; si la tienda usaba tarifa única, la aplica a sus provincias. */
-function feesFromStore(store: { shippingFeesByProvince?: Record<string, number>; shippingFeeCents?: number | null; deliveryProvinces?: string[] }): Record<string, string> {
+function feesFromStore(store: {
+  shippingFeesByProvince?: Record<string, number>;
+  shippingFeeCents?: number | null;
+  deliveryProvinces?: string[];
+}): Record<string, string> {
   const byProvince = store.shippingFeesByProvince ?? {};
   if (Object.keys(byProvince).length)
-    return Object.fromEntries(Object.entries(byProvince).map(([p, c]) => [p, centsToDecimal(c)]));
+    return Object.fromEntries(
+      Object.entries(byProvince).map(([p, c]) => [p, centsToDecimal(c)])
+    );
   if (store.shippingFeeCents == null) return {};
-  return Object.fromEntries((store.deliveryProvinces ?? []).map(p => [p, centsToDecimal(store.shippingFeeCents!)]));
+  return Object.fromEntries(
+    (store.deliveryProvinces ?? []).map(p => [
+      p,
+      centsToDecimal(store.shippingFeeCents!),
+    ])
+  );
 }
