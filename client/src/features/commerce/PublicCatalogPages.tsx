@@ -1,3 +1,4 @@
+import { FeaturedPicks } from "@/components/marketplace/FeaturedPicks";
 import { RestaurantDishesStrip } from "@/features/restaurant/RestaurantDishesStrip";
 import { RestaurantMenu } from "@/features/restaurant/RestaurantMenu";
 import { PublicPlaceMap } from "@/components/maps/Maps";
@@ -128,10 +129,6 @@ export function LiveCatalogPage() {
     { enabled: mounted && cursor !== undefined }
   );
   // Mayor Visibilidad: destacados que cumplen los mismos filtros.
-  const featured = trpc.catalog.featured.useQuery(
-    { ...input, cursor: undefined },
-    { enabled: mounted }
-  );
   useEffect(() => {
     setMore([]);
     setCursor(undefined);
@@ -159,26 +156,8 @@ export function LiveCatalogPage() {
   const current = new URLSearchParams(search);
   return (
     <div className="live-page container">
-      <SectionShowcase section="comercios" />
-      {/* Sin título: al entrar se ven primero los destacados. */}
-      <h1 className="sr-only">Catálogo de productos</h1>
-      {input.q && (
-        <StoreSearchMatches
-          key={`${input.q}-${input.province ?? ""}`}
-          q={input.q}
-          province={input.province}
-        />
-      )}
-      <FeaturedStrip
-        className="featured-strip--photo"
-        count={featured.data?.length ?? 0}
-      >
-        {featured.data?.map(product => (
-          <RealProductCard key={`featured-${product.id}`} product={product} />
-        ))}
-      </FeaturedStrip>
-      <RestaurantDishesStrip />
-      <div className="live-catalog-layout">
+      {/* Búsqueda y filtros arriba, justo debajo del menú. */}
+      <div className="live-search-top">
         <FilterDrawer
           className="filter-drawer--catalog"
           active={[...current.entries()].filter(([k, v]) => k !== "q" && k !== "page" && k !== "sort" && v).length}
@@ -285,6 +264,21 @@ export function LiveCatalogPage() {
           </Link>
         </form>
         </FilterDrawer>
+      </div>
+      <SectionShowcase section="comercios" />
+      {/* Sin título: al entrar se ven primero los destacados. */}
+      <h1 className="sr-only">Catálogo de productos</h1>
+      {input.q && (
+        <StoreSearchMatches
+          key={`${input.q}-${input.province ?? ""}`}
+          q={input.q}
+          province={input.province}
+        />
+      )}
+      {/* Solo productos activados por el administrador (Service Pub + Mayor Visibilidad). */}
+      <FeaturedPicks />
+      <RestaurantDishesStrip />
+      <div className="live-catalog-layout">
         <section aria-label="Resultados del catálogo">
           {result.error ? (
             <RequestError

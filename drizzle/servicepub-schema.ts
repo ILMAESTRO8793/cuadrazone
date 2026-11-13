@@ -60,3 +60,19 @@ export const czServicePubPayments = mysqlTable(
     index("cz_service_pub_payment_user_ix").on(table.userId, table.createdAt),
   ]
 );
+
+/**
+ * Productos que un administrador activó en «Destacados» de /mercado. Solo se
+ * muestran mientras la tienda tenga Service Pub pagado y vigente y el plan
+ * Mayor Visibilidad.
+ */
+export const czServicePubProducts = mysqlTable("cz_service_pub_products", {
+  productId: int("productId").primaryKey(),
+  userId: int("userId")
+    .notNull()
+    .references(() => users.id),
+  activatedBy: int("activatedBy")
+    .notNull()
+    .references(() => users.id),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});

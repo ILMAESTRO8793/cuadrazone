@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { adminProcedure, protectedProcedure, router } from "../_core/trpc";
+import { adminProcedure, protectedProcedure, publicProcedure, router } from "../_core/trpc";
+import { adminProductsFor, adminSetFeatured, publicFeaturedPicks } from "../services/featuredPicks";
 import {
   recordServicePubPaymentInput,
   requestServicePubInput,
@@ -49,5 +50,16 @@ export const servicePubRouter = router({
     .mutation(({ ctx, input }) => {
       csrf(ctx);
       return adminCancelServicePub(input.userId);
+    }),
+  /** «Destacados» de /mercado: solo lo que el administrador activó. */
+  featured: publicProcedure.query(() => publicFeaturedPicks()),
+  adminProducts: adminProcedure
+    .input(z.object({ userId: z.number().int().positive() }).strict())
+    .query(({ input }) => adminProductsFor(input.userId)),
+  adminSetFeatured: adminProcedure
+    .input(z.object({ productId: z.number().int().positive(), on: z.boolean() }).strict())
+    .mutation(({ ctx, input }) => {
+      csrf(ctx);
+      return adminSetFeatured(ctx.user.id, input.productId, input.on);
     }),
 });

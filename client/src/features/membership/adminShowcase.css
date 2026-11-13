@@ -39,3 +39,8 @@
 .sp-pay input, .sp-pay select { border: 1px solid #ccc4b5; border-radius: 8px; padding: 8px; font: inherit; background: #fff; }
 .sp-pay .as-row-actions { grid-column: 1 / -1; }
 @media (max-width: 800px) { .sp-pay { grid-template-columns: 1fr 1fr; } }
+.sp-picks { margin-top: 10px; padding: 10px; border: 1px dashed #e3d3a8; border-radius: 10px; background: #fffdf7; }
+.sp-picks ul { list-style: none; padding: 0; margin: 8px 0 0; display: flex; flex-direction: column; gap: 6px; }
+.sp-picks label { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 14px; }
+.sp-picks img, .sp-noimg { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; background: #f4f5f7; display: inline-block; flex: 0 0 auto; }
+.sp-picks small { color: #b42318; }

@@ -31,6 +31,7 @@ export function AdminServicePub({ enabled }: { enabled: boolean }) {
   const pay = trpc.servicePub.adminRecordPayment.useMutation();
   const cancel = trpc.servicePub.adminCancel.useMutation();
   const [paying, setPaying] = useState<number | null>(null);
+  const [picking, setPicking] = useState<number | null>(null);
   const [form, setForm] = useState({
     months: 1,
     method: "yappy" as Method,
@@ -124,6 +125,9 @@ export function AdminServicePub({ enabled }: { enabled: boolean }) {
                   </>
                 ) : null}
               </small>
+              {picking === r.userId && (
+                <PickProducts userId={r.userId} active={r.status === "active"} />
+              )}
               {paying === r.userId && (
                 <form
                   className="sp-pay"
@@ -200,6 +204,13 @@ export function AdminServicePub({ enabled }: { enabled: boolean }) {
               )}
             </div>
             <div className="as-row-actions">
+              <button
+                type="button"
+                className="member-button"
+                onClick={() => setPicking(picking === r.userId ? null : r.userId)}
+              >
+                {picking === r.userId ? "Cerrar productos" : "Productos en Destacados"}
+              </button>
               {paying !== r.userId && (
                 <button
                   type="button"
@@ -224,5 +235,55 @@ export function AdminServicePub({ enabled }: { enabled: boolean }) {
         ))}
       </ul>
     </section>
+  );
+}
+
+/**
+ * Qué productos de este cliente salen en «Destacados» de /mercado. Solo se
+ * ven en la web mientras su Service Pub esté pagado y tenga Mayor Visibilidad.
+ */
+function PickProducts({ userId, active }: { userId: number; active: boolean }) {
+  const utils = trpc.useUtils();
+  const list = trpc.servicePub.adminProducts.useQuery({ userId });
+  const set = trpc.servicePub.adminSetFeatured.useMutation({
+    onSuccess: () => {
+      void utils.servicePub.adminProducts.invalidate({ userId });
+      void utils.servicePub.featured.invalidate();
+    },
+    onError: e => toast.error(e.message),
+  });
+  if (list.isLoading) return <p className="as-empty">Cargando productos…</p>;
+  if (!list.data?.length)
+    return <p className="as-empty">Esta tienda todavía no tiene productos.</p>;
+  return (
+    <div className="sp-picks">
+      {!active && (
+        <p className="as-empty">
+          Su Service Pub no está pagado: lo que actives se verá cuando registres el pago.
+        </p>
+      )}
+      <p className="as-empty">
+        Solo se muestra si la tienda tiene el plan Mayor Visibilidad. Se ve la foto, el nombre de la tienda y las 5 estrellas.
+      </p>
+      <ul>
+        {list.data.map(p => (
+          <li key={p.id}>
+            <label>
+              <input
+                type="checkbox"
+                checked={p.featured}
+                disabled={set.isPending || (!p.published && !p.featured)}
+                onChange={e => set.mutate({ productId: p.id, on: e.target.checked })}
+              />
+              {p.imageUrl ? <img src={p.imageUrl} alt="" /> : <span className="sp-noimg" />}
+              <span>
+                {p.title}
+                {!p.published && <small> · no publicado</small>}
+              </span>
+            </label>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
