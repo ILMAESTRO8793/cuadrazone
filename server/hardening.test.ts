@@ -26,7 +26,9 @@ describe("cabeceras de seguridad", () => {
   });
   it("solo permite la cámara (escáner de boletos)", () => {
     expect(securityHeaders["Permissions-Policy"]).toContain("camera=(self)");
-    expect(securityHeaders["Permissions-Policy"]).toContain("geolocation=(self)");
+    expect(securityHeaders["Permissions-Policy"]).toContain(
+      "geolocation=(self)"
+    );
   });
 });
 
@@ -41,6 +43,11 @@ describe("buscadores", () => {
     const robots = robotsTxt("https://www.cuadrazone.com");
     expect(robots).toContain("Allow: /entrar$");
     expect(robots).toContain("Disallow: /\n");
+    // El sitemap debe quedar permitido aunque todo lo demás esté bloqueado.
+    expect(robots).toContain("Allow: /sitemap.xml$\n");
+    expect(robots.indexOf("Allow: /sitemap.xml$")).toBeLessThan(
+      robots.indexOf("Disallow: /\n")
+    );
     expect(robots).toContain("Sitemap: https://www.cuadrazone.com/sitemap.xml");
   });
   it("el sitemap lista direcciones completas", () => {

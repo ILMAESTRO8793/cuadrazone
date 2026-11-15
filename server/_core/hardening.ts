@@ -53,6 +53,8 @@ export function robotsTxt(origin: string) {
     "User-agent: *",
     ...publicPagePaths().map(p => `Allow: ${p}$`),
     "Allow: /assets/",
+    // Sin esto, «Disallow: /» también bloqueaba el sitemap en Google Search Console.
+    "Allow: /sitemap.xml$",
     "Disallow: /",
   ];
   if (origin) lines.push("", `Sitemap: ${origin}/sitemap.xml`);
