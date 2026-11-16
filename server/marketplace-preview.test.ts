@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 import fs from "node:fs";
 import { renderPage } from "../client/src/entry-server";
 import { getPageMeta } from "../client/src/lib/pageMeta";
-import { SELLER_MONTHLY_FEE_CENTS, SELLER_MONTHLY_FEE_LABEL } from "../shared/pricing";
+import {
+  SELLER_MONTHLY_FEE_CENTS,
+  SELLER_MONTHLY_FEE_LABEL,
+} from "../shared/pricing";
 import { listings, listingSearchText } from "../client/src/data/catalog";
 import {
   parseCatalogFilters,
@@ -14,7 +17,8 @@ describe("CuadraZone preview", () => {
   it("renders meaningful home content and the gold logo without a browser", () => {
     const result = renderPage("/");
     expect(result.meta.status).toBe(200);
-    expect(result.html).toContain("¿Qué estás buscando hoy?");
+    expect(result.html).toContain("Bienvenido a CuadraZone</h1>");
+    expect(result.html).toContain("¿En qué país estás?");
     expect(result.html).toContain(">COMERCIOS<");
     expect(result.html).toContain(">CREAR TU TIENDA<");
     expect(result.html).toContain('href="/vender" class="gate-choice');
@@ -35,10 +39,17 @@ describe("CuadraZone preview", () => {
     expect(html).toContain("Habitar los hermanos juntos en armonía!");
     expect(html).toContain("Salmo 133:1");
     expect(html).not.toContain("Reina-Valera 1960");
-    expect(html).toContain("en un espacio con valores cristianos");
   });
   it("renders protected pages with no invented identity and one main region", () => {
-    for (const path of ["/vendedor/plan", "/mi-cuenta", "/solicitud-vendedor", "/vendedor", "/admin", "/admin/verificaciones", "/admin/denominaciones"]) {
+    for (const path of [
+      "/vendedor/plan",
+      "/mi-cuenta",
+      "/solicitud-vendedor",
+      "/vendedor",
+      "/admin",
+      "/admin/verificaciones",
+      "/admin/denominaciones",
+    ]) {
       const page = renderPage(path);
       expect(page.meta.status).toBe(200);
       expect(page.meta.private).toBe(true);
@@ -62,7 +73,9 @@ describe("CuadraZone preview", () => {
     expect(result.html).toContain("Mayor Visibilidad");
     expect(result.html).toContain("Normal");
     expect(result.html).not.toContain("USD 10.00");
-    expect(result.html).toContain("Productos físicos: 10% de comisión por venta entregada");
+    expect(result.html).toContain(
+      "Productos físicos: 10% de comisión por venta entregada"
+    );
     expect(result.html).toContain("Los servicios no pagan comisión.");
     expect(result.html).toContain("Los primeros 3 meses son gratis");
     expect(result.html).not.toMatch(/(^|[^0-9])0% de comisión/);

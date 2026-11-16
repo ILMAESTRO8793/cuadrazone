@@ -818,6 +818,10 @@ textarea:focus-visible {
   --door-accent: var(--cz-emblem-blue);
   --door-wash: #e6eef8;
 }
+.gate-choice--food {
+  --door-accent: #c2410c;
+  --door-wash: #fbeadf;
+}
 .gate-choice--estate {
   --door-accent: #1f7a5a;
   --door-wash: #e2f2ec;
@@ -1767,6 +1771,10 @@ body,
   --door-accent: var(--cz-olive);
   --door-wash: #e9ebd8;
 }
+.gate-choice--food {
+  --door-accent: #b4532a;
+  --door-wash: #f8e9df;
+}
 .gate-choice--estate {
   --door-accent: #5e6b25;
   --door-wash: #eef0de;
@@ -2184,4 +2192,97 @@ html.cz-app .main-nav a.admin-nav {
 html.cz-app .main-nav nav > a.active {
   background: #ead18d;
   color: #071e38;
+}
+
+/* Portada compacta: solo «Bienvenido a CuadraZone» y el país, para que las
+   entradas (Comercios, Servicios, Restaurantes…) se vean enseguida. */
+.gate-band .gate {
+  padding-top: 18px;
+  padding-bottom: 28px;
+}
+.gate-band .gate-main {
+  row-gap: 12px;
+}
+.gate-band .gate h1 {
+  font-size: clamp(28px, 7vw, 40px);
+  line-height: 1.08;
+  max-width: none;
+}
+.gate-band .gate-main > .gate-choices {
+  margin-top: 6px;
+}
+@media (min-width: 1100px) {
+  .gate-band .gate .gate-main {
+    grid-template-areas:
+      "title picker"
+      "doors doors"
+      "small small";
+    align-items: center;
+  }
+  .gate-band .gate .gate-main > h1 {
+    align-self: center;
+    max-width: none;
+    font-size: clamp(38px, 3.4vw, 50px);
+  }
+  .gate-band .gate .gate-main > .country-picker {
+    align-self: center;
+    justify-self: end;
+    padding-bottom: 0;
+  }
+  .gate-band .gate .gate-main > .gate-choices {
+    margin-top: 8px;
+  }
+}
+@media (max-width: 1099px) {
+  .gate-band .country-select {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 10px;
+  }
+  .gate-band .country-select select {
+    flex: 1;
+    min-width: 0;
+    min-height: 42px;
+  }
+}
+
+/* «Bienvenido a CuadraZone»: aparece como en el cine (sale de un leve
+   desenfoque y sube un poco), se queda quieto para leerlo y se apaga suave
+   antes de volver a aparecer. Ciclo de 7 s: 1 s de entrada, 4,6 s visible y
+   1,4 s de salida (más suave que la entrada). Solo opacidad, transform y
+   filter, para que no mueva nada alrededor. */
+@keyframes cz-welcome-loop {
+  0% {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(10px);
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  14% {
+    opacity: 1;
+    filter: blur(0);
+    transform: none;
+  }
+  80% {
+    opacity: 1;
+    filter: blur(0);
+    transform: none;
+    animation-timing-function: cubic-bezier(0.7, 0, 0.84, 0);
+  }
+  100% {
+    opacity: 0;
+    filter: blur(4px);
+    transform: translateY(-4px);
+  }
+}
+.gate-band .gate h1#gate-title {
+  animation: cz-welcome-loop 7s infinite both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .gate-band .gate h1#gate-title {
+    animation: none;
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
 }

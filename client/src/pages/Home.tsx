@@ -44,14 +44,7 @@ export default function Home() {
         <section className="gate container" aria-labelledby="gate-title">
           <div className="gate-grid">
             <div className="gate-main">
-              <div className="eyebrow">
-                <span className="tiny-gold-dot" /> BIENVENIDO A CUADRAZONE
-              </div>
-              <h1 id="gate-title">¿Qué estás buscando hoy?</h1>
-              <p className="gate-copy">
-                Emprendedores de Panamá en un espacio con valores cristianos.
-                Elige por dónde quieres empezar.
-              </p>
+              <h1 id="gate-title">Bienvenido a CuadraZone</h1>
               <CountryPicker />
               <div className="gate-choices">
                 <Link href="/vender" className="gate-choice gate-choice--store">
@@ -93,6 +86,22 @@ export default function Home() {
                     <span className="gate-detail">
                       Clases, tutorías, trabajos a domicilio, consultas
                       profesionales y eventos.
+                    </span>
+                  </span>
+                  <span className="gate-arrow" aria-hidden="true">
+                    <ArrowRight size={26} />
+                  </span>
+                </Link>
+                <Link
+                  href="/restaurantes"
+                  className="gate-choice gate-choice--food"
+                >
+                  <GatePhoto name="restaurantes" eager />
+                  <span className="gate-text">
+                    <strong>RESTAURANTES</strong>
+                    <span className="gate-detail">
+                      Platos de restaurantes cerca de ti, con entrega a
+                      domicilio.
                     </span>
                   </span>
                   <span className="gate-arrow" aria-hidden="true">
