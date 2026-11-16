@@ -1931,3 +1931,9 @@
 
 /* Grupos de planes en /suscripciones */
 .plans-group-title { margin: 36px 0 4px; font-size: clamp(22px, 2.4vw, 30px); }
+
+/* Selector de sección en /suscripciones */
+.plans-sections { display: flex; flex-wrap: wrap; gap: 8px; margin: 28px 0 20px; }
+.plans-sections button { min-height: 42px; padding: 0 18px; border: 1px solid var(--cz-line-strong, #c9c2b0); border-radius: 999px; background: #fff; color: var(--cz-navy, #0b1f3b); font: inherit; font-weight: 700; cursor: pointer; }
+.plans-sections button.is-active { background: var(--cz-navy, #0b1f3b); border-color: var(--cz-navy, #0b1f3b); color: #fff; }
+.plans-sections button:focus-visible { outline: 3px solid var(--cz-gold, #b58c3c); outline-offset: 2px; }

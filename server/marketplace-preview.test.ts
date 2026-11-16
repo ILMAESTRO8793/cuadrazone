@@ -78,9 +78,17 @@ describe("CuadraZone preview", () => {
     );
     expect(result.html).toContain("Servicios, bienes raíces, autos y empleos no pagan comisión.");
     expect(result.html).toContain("No pagas nada hasta el 1 de febrero de 2027");
-    // Comercios, servicios, restaurantes y anuncios con sus precios.
-    for (const price of ["US$79.99", "US$159.99", "US$49.99"])
+    // Comercios por defecto; cada sección muestra solo sus planes y condiciones.
+    for (const price of ["US$79.99", "US$159.99"])
       expect(result.html).toContain(price);
+    expect(result.html).not.toContain("Cómo funciona el plan de Restaurantes");
+    const rest = renderPage("/suscripciones?seccion=restaurantes").html;
+    expect(rest).toContain("US$49.99");
+    expect(rest).toContain("Cómo funciona el plan de Restaurantes");
+    expect(rest).not.toContain("Cómo funciona el plan de Comercios");
+    const autos = renderPage("/suscripciones?seccion=autos").html;
+    expect(autos).toContain("Cómo funciona el plan de Autos");
+    expect(autos).toContain("Hasta 20 vehículos");
     expect(result.html).not.toMatch(/(^|[^0-9])0% de comisión/);
   });
   it("uses the shared USD 19.99 seller fee without restoring a buyer subscription", () => {

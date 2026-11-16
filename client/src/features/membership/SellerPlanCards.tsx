@@ -6,6 +6,7 @@ import {
   getSellerPlan,
   isFeaturedPlan,
   plansForStoreKind,
+  SERVICE_PLAN_BENEFITS,
   sellerPlanLabel,
   sellerPlanAnnualLabel,
   planAmountCents,
@@ -93,7 +94,10 @@ export function SellerPlanCards({
             )}
             <p>{plan.description}</p>
             <ul>
-              {plan.benefits.map(item => (
+              {(
+                (storeKind === "servicios" && SERVICE_PLAN_BENEFITS[id]) ||
+                plan.benefits
+              ).map(item => (
                 <li key={item}>
                   <Check size={16} aria-hidden="true" />
                   {item}
@@ -147,45 +151,115 @@ export function SellerPlanCards({
   );
 }
 
-export function PlanConditions() {
+/** Sección de planes que la persona está mirando. */
+export type PlanSection =
+  | "comercios"
+  | "servicios"
+  | "restaurantes"
+  | "inmuebles"
+  | "autos"
+  | "empleos";
+
+/** Sección según el tipo de tienda del vendedor. */
+export function planSectionForStoreKind(kind: string | null | undefined): PlanSection {
+  if (kind === "servicios") return "servicios";
+  if (kind === "restaurante") return "restaurantes";
+  return "comercios";
+}
+
+const anuncios: Record<"inmuebles" | "autos" | "empleos", [string, string]> = {
+  inmuebles: ["Bienes raíces", "cuántos inmuebles tienes publicados"],
+  autos: ["Autos", "cuántos vehículos tienes publicados"],
+  empleos: ["Empleos", "cuántas vacantes tienes publicadas"],
+};
+
+/** Condiciones del plan, solo de la sección que la persona va a escoger. */
+export function PlanConditions({ section }: { section: PlanSection }) {
+  const tope =
+    "Al llegar al tope de tu plan no puedes publicar más hasta que subes de plan.";
+  const verificacion =
+    "La verificación de identidad es obligatoria. Cambiar tu preferencia de plan no cambia una suscripción ya cobrada.";
+  let title = "";
+  let parts: React.ReactNode[] = [];
+  if (section === "comercios") {
+    title = "Cómo funciona el plan de Comercios";
+    parts = [
+      <>
+        El plan depende de cuántos productos publicas: pymes hasta 99
+        (Normal o Mayor Visibilidad), empresas medianas de 100 a 300 y grandes
+        empresas más de 300. {tope}
+      </>,
+      <>
+        Las cinco estrellas de verificación son de Mayor Visibilidad (al
+        pagarlo) y de las empresas medianas y grandes (desde que se registran).
+        Con esos planes tus productos también aparecen en la franja{" "}
+        <strong>Destacados</strong>, identificados como{" "}
+        <strong>ubicación de pago</strong>; la franja rota cada 10 minutos.
+      </>,
+      <>
+        La comisión por venta entregada es de 10% (Normal), 5% (Mayor
+        Visibilidad y empresa mediana) o 3% (gran empresa), solo sobre el
+        precio de los productos. No hay comisión durante el tiempo gratis. El
+        envío se informa por separado.
+      </>,
+      <>
+        Comercios no acepta restaurantes, casas, autos ni vacantes de empleo:
+        cada uno tiene su propia sección. {verificacion}
+      </>,
+    ];
+  } else if (section === "servicios") {
+    title = "Cómo funciona el plan de Servicios";
+    parts = [
+      <>
+        Con el plan Normal publicas hasta 20 servicios; con Mayor Visibilidad,
+        sin límite. {tope}
+      </>,
+      <>
+        Con Mayor Visibilidad tienes las cinco estrellas de verificación y tus
+        servicios aparecen en la franja <strong>Destacados</strong>,
+        identificados como <strong>ubicación de pago</strong>; la franja rota
+        cada 10 minutos.
+      </>,
+      <>Los servicios y las citas no pagan comisión, solo la mensualidad. {verificacion}</>,
+    ];
+  } else if (section === "restaurantes") {
+    title = "Cómo funciona el plan de Restaurantes";
+    parts = [
+      <>
+        El plan depende de cuántos platos tiene tu menú: pyme hasta 20, mediana
+        empresa de 21 a 100 y gran empresa más de 100. {tope}
+      </>,
+      <>
+        Tu restaurante tiene su menú con secciones, tamaños y extras, y recibe
+        pedidos a domicilio. Aparece en Restaurantes, no en Comercios.
+      </>,
+      <>
+        La comisión por pedido entregado es de 10% (pyme), 5% (mediana empresa)
+        o 3% (gran empresa). No hay comisión durante el tiempo gratis.{" "}
+        {verificacion}
+      </>,
+    ];
+  } else {
+    const [name, unit] = anuncios[section];
+    title = `Cómo funciona el plan de ${name}`;
+    parts = [
+      <>
+        El plan depende de {unit}: hasta 20, de 21 a 100 o más de 100. {tope}
+      </>,
+      <>
+        Este plan es solo para {name}; las otras secciones se pagan aparte. La
+        primera vez que publicas empieza tu mes gratis. No necesitas tener
+        tienda.
+      </>,
+      <>{name} no paga comisión, solo la mensualidad.</>,
+    ];
+  }
   return (
-    <section
-      className="plan-conditions"
-      aria-labelledby="plan-conditions-title"
-    >
-      <h2 id="plan-conditions-title">Un solo plan, según tu tamaño</h2>
-      <p>
-        Cada tienda elige un plan; los precios no se suman. El plan depende de
-        cuánto publicas: pymes hasta 99 productos, empresas medianas de 100 a
-        300 y grandes empresas más de 300. En servicios, el plan Normal publica
-        hasta 20 servicios y Mayor Visibilidad sin límite. En restaurantes:
-        hasta 20 platos (pyme), de 21 a 100 (mediana empresa) o más de 100
-        (gran empresa). Al llegar al tope de tu plan, para publicar más subes
-        de plan. Cambiar tu preferencia no cambia una suscripción cobrada.
-      </p>
-      <p>
-        La verificación de identidad es obligatoria para todos. Las cinco
-        estrellas de verificación son de Mayor Visibilidad (al pagarlo) y de las
-        empresas medianas y grandes (desde que se registran). Se ven en tu
-        tienda y en todos tus anuncios. Si el plan vence, no se muestran.
-      </p>
-      <p>
-        Con Mayor Visibilidad, empresa mediana o grande, tus publicaciones
-        aparecen en la franja{" "}
-        <strong>Destacados</strong> arriba del Mercado, Tiendas, Servicios y
-        Eventos cuando cumplen los filtros de quien busca, identificadas como{" "}
-        <strong>ubicación de pago</strong>. La franja rota cada 10 minutos entre
-        las tiendas destacadas: no se promete una primera posición permanente.
-        La prueba gratis no incluye destacados. La publicidad personalizada
-        (banners hechos a tu medida) no está incluida en ningún plan: es el
-        servicio aparte Service Pub, que pides desde «Mi plan».
-      </p>
-      <p>
-        El envío e impuestos aplicables se informan por separado. La comisión
-        por venta (10%, 5% o 3% según el plan) se calcula sobre los productos,
-        los pedidos de restaurante y los boletos; los servicios, las citas,
-        los bienes raíces, los autos y las vacantes no pagan comisión.
-      </p>
+    <section className="plan-conditions" aria-labelledby="plan-conditions-title">
+      <h2 id="plan-conditions-title">{title}</h2>
+      {parts.map((part, i) => (
+        <p key={i}>{part}</p>
+      ))}
     </section>
   );
 }

@@ -3,7 +3,11 @@ import { Link, useSearch } from "wouter";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { AuthGate } from "./AuthGate";
-import { SellerPlanCards, PlanConditions } from "./SellerPlanCards";
+import {
+  SellerPlanCards,
+  PlanConditions,
+  planSectionForStoreKind,
+} from "./SellerPlanCards";
 import { ServicePubCard } from "./ServicePubCard";
 import {
   Dialog,
@@ -160,7 +164,11 @@ function PlanContent() {
           </button>
         </section>
         <ServicePubCard />
-        <PlanConditions />
+        <PlanConditions
+          section={planSectionForStoreKind(
+            membership.data?.application?.storeKind
+          )}
+        />
         <Link className="btn btn-outline" href="/solicitud-vendedor">
           {membership.data?.application
             ? "Continuar mi solicitud"

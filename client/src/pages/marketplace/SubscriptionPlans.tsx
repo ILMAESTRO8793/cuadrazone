@@ -2,41 +2,41 @@ import {
   LISTING_PLANS,
   PLAN_ACTIVATION_NOTICE,
   listingPlanIds,
-  listingSectionLabels,
-  listingSections,
   listingUnits,
+  type ListingSection,
   moneyLabel,
   trialOfferLabel,
 } from "@shared/pricing";
 import { Check, Info, ShoppingBag } from "lucide-react";
-import { Link } from "wouter";
+import { useState } from "react";
+import { Link, useSearch } from "wouter";
 import {
   SellerPlanCards,
   PlanConditions,
+  type PlanSection,
 } from "@/features/membership/SellerPlanCards";
 
-/** Planes de Bienes raíces, Autos y Empleos: cada sección se paga aparte. */
-function ListingPlans() {
+/** Planes de una sección de anuncios (Bienes raíces, Autos o Empleos). */
+function ListingPlans({ section }: { section: ListingSection }) {
   return (
     <div className="plan-grid seller-plan-grid">
       {listingPlanIds.map(id => {
         const plan = LISTING_PLANS[id];
         return (
           <article className="plan-card seller-plan-card" key={id}>
-            <div className="plan-kicker">{plan.range} anuncios</div>
+            <div className="plan-kicker">
+              {`${plan.range} ${listingUnits[section]}`}
+            </div>
             <h2>{plan.name}</h2>
             <div className="plan-price">
               <strong>{moneyLabel(plan.monthlyCents)}</strong>
-              <span>/ mes por sección</span>
+              <span>/ mes</span>
             </div>
             <ul>
-              {listingSections.map(section => (
-                <li key={section}>
-                  <Check size={16} aria-hidden="true" />
-                  {listingSectionLabels[section]}: {plan.range.toLowerCase()}{" "}
-                  {listingUnits[section]}
-                </li>
-              ))}
+              <li>
+                <Check size={16} aria-hidden="true" />
+                {`${plan.range} ${listingUnits[section]} ${section === "empleos" ? "publicadas" : "publicados"}`}
+              </li>
               <li>
                 <Check size={16} aria-hidden="true" />
                 Sin comisión
@@ -49,7 +49,28 @@ function ListingPlans() {
   );
 }
 
+const sections: [PlanSection, string][] = [
+  ["comercios", "Comercios"],
+  ["servicios", "Servicios"],
+  ["restaurantes", "Restaurantes"],
+  ["inmuebles", "Bienes raíces"],
+  ["autos", "Autos"],
+  ["empleos", "Empleos"],
+];
+
 export function SubscriptionsPage() {
+  // La sección se puede abrir directo: /suscripciones?seccion=restaurantes
+  const search = useSearch();
+  const fromUrl = new URLSearchParams(search).get("seccion");
+  const [section, setSection] = useState<PlanSection>(
+    sections.some(([id]) => id === fromUrl)
+      ? (fromUrl as PlanSection)
+      : "comercios"
+  );
+  const choose = (id: PlanSection) => {
+    setSection(id);
+    window.history.replaceState(null, "", `/suscripciones?seccion=${id}`);
+  };
   return (
     <div className="market-page plans-page">
       <div className="container">
@@ -79,22 +100,28 @@ export function SubscriptionsPage() {
           <span className="demo-badge">{trialOfferLabel()}</span>
         </div>
 
-        <h2 className="plans-group-title">Comercios</h2>
-        <SellerPlanCards storeKind="comercio" />
-
-        <h2 className="plans-group-title">Servicios</h2>
-        <SellerPlanCards storeKind="servicios" />
-
-        <h2 className="plans-group-title">Restaurantes</h2>
-        <SellerPlanCards storeKind="restaurante" />
-
-        <h2 className="plans-group-title">Bienes raíces, Autos y Empleos</h2>
-        <p className="intro-copy">
-          Cada sección se paga aparte, según cuántos anuncios tienes publicados
-          en ella. La primera vez que publicas en una sección empieza tu mes
-          gratis.
-        </p>
-        <ListingPlans />
+        <div className="plans-sections" role="tablist" aria-label="¿Qué quieres publicar?">
+          {sections.map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={section === id}
+              className={section === id ? "is-active" : ""}
+              onClick={() => choose(id)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        {section === "comercios" && <SellerPlanCards storeKind="comercio" />}
+        {section === "servicios" && <SellerPlanCards storeKind="servicios" />}
+        {section === "restaurantes" && (
+          <SellerPlanCards storeKind="restaurante" />
+        )}
+        {(section === "inmuebles" ||
+          section === "autos" ||
+          section === "empleos") && <ListingPlans section={section} />}
 
         <section
           className="plan-buyer-strip"
@@ -125,7 +152,7 @@ export function SubscriptionsPage() {
             </p>
           </div>
         </div>
-        <PlanConditions />
+        <PlanConditions section={section} />
         <section className="plan-steps">
           <h2>Tu recorrido como vendedor</h2>
           <ol>

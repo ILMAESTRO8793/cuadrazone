@@ -30,7 +30,7 @@ export function getPageMeta(url: string, snapshot: PublicSnapshot = {}) {
     "/mis-citas": "Mis citas",
     "/vendedor/agenda": "Mi agenda",
     "/servicios": "Servicios en Panamá",
-    "/suscripciones": "Planes Normal US$19.99 y Mayor Visibilidad US$39.99",
+    "/suscripciones": "Planes y precios para vender",
     "/vendedor/plan": "Mi selección de plan",
     "/vender": "Vende en CuadraZone",
     "/despachador": "Despachador",

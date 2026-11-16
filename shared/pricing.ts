@@ -71,10 +71,10 @@ export const SELLER_PLANS: Record<SellerPlanId, SellerPlan> = {
     featured: false,
     description: "Para pymes: tu negocio conectado con la comunidad.",
     benefits: [
-      "Hasta 99 productos o hasta 20 servicios publicados",
+      "Hasta 99 productos publicados",
       "Tienda y directorio por categorías y especialidades",
       "Productos y libros con inventario y pedidos",
-      "Productos físicos: 10% de comisión por venta entregada. Servicios: sin comisión",
+      "Productos físicos: 10% de comisión por venta entregada",
       "Envío gratis cuando tú y el comprador están en la misma provincia",
       "Sin prioridad comercial de pago",
     ],
@@ -92,7 +92,7 @@ export const SELLER_PLANS: Record<SellerPlanId, SellerPlan> = {
     description: "Para pymes: más exposición para tu negocio.",
     benefits: [
       "Todos los beneficios del plan Normal",
-      "Hasta 99 productos o servicios sin límite",
+      "Hasta 99 productos publicados",
       "Comisión más baja: 5% por venta entregada",
       "Espacios superiores destacados por categoría, con rotación",
       "Ubicación identificada como Destacado — ubicación de pago",
@@ -188,6 +188,24 @@ export const SELLER_PLANS: Record<SellerPlanId, SellerPlan> = {
       "3% de comisión por pedido entregado",
     ],
   },
+};
+/** Beneficios de los planes cuando la tienda es de servicios. */
+export const SERVICE_PLAN_BENEFITS: Partial<Record<SellerPlanId, readonly string[]>> = {
+  normal: [
+    "Hasta 20 servicios publicados",
+    "Tienda y directorio por categorías y especialidades",
+    "Solicitudes y agenda de citas con tus clientes",
+    "Sin comisión: solo la mensualidad",
+    "Sin prioridad comercial de pago",
+  ],
+  mayor_visibilidad: [
+    "Servicios publicados sin límite",
+    "Espacios superiores destacados por categoría, con rotación",
+    "Ubicación identificada como Destacado — ubicación de pago",
+    "Las cinco estrellas de verificación desde el primer día",
+    "Tu marca: insignia «Tienda Destacada», foto de portada, lema y color propio en tu tienda",
+    "Sin comisión: solo la mensualidad",
+  ],
 };
 export const PLAN_CATALOG_VERSION = "2026-11-16-v2";
 export function getSellerPlan(id: SellerPlanId): SellerPlan {

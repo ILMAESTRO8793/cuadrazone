@@ -26,7 +26,7 @@ describe("Oferta de dos planes", () => {
   });
   it("shows both plans with buyer free, links and honest pending benefits", () => {
     const html = renderPage("/suscripciones").html;
-    for (const value of ["Normal", "Mayor Visibilidad", "US$19.99", "US$39.99", "Gratis", "no se suman", "Destacado — ubicación de pago", "cinco estrellas de verificación", "1 de febrero de 2027", "Empresa mediana", "Gran empresa", "Restaurantes", "/vendedor/plan?plan=normal", "/vendedor/plan?plan=mayor_visibilidad"]) expect(html).toContain(value);
+    for (const value of ["Normal", "Mayor Visibilidad", "US$19.99", "US$39.99", "Gratis", "Cómo funciona el plan de Comercios", "Destacado — ubicación de pago", "cinco estrellas de verificación", "1 de febrero de 2027", "Empresa mediana", "Gran empresa", "Restaurantes", "/vendedor/plan?plan=normal", "/vendedor/plan?plan=mayor_visibilidad"]) expect(html).toContain(value);
     expect(html).not.toContain("US$59.98");
     expect(html).not.toContain("USD 2.99");
   });
