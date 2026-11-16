@@ -1928,3 +1928,6 @@
 .plan-cycle button.is-active { background: #fff; color: #1d2733; box-shadow: 0 2px 6px rgba(0,0,0,.12); }
 .plan-cycle button span { background: #3f7d2a; color: #fff; border-radius: 999px; padding: 2px 8px; font-size: 12px; }
 .plan-cycle button:focus-visible { outline: 3px solid #ae832f; outline-offset: 2px; }
+
+/* Grupos de planes en /suscripciones */
+.plans-group-title { margin: 36px 0 4px; font-size: clamp(22px, 2.4vw, 30px); }

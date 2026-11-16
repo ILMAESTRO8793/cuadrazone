@@ -37,15 +37,15 @@ describe("avisos antes de que termine el período", () => {
     expect(reminderKey(5, "2026-12-01", 1)).toBe("sub-reminder:5:2026-12-01:1");
   });
 
-  it("el correo dice cuándo termina, el plan elegido y que la comisión baja a 5%", () => {
+  it("el correo dice cuándo termina, el plan elegido y la comisión del plan", () => {
     const email = renderEmail(
       trialEndingSoon(inDays(7), 7, "Mayor Visibilidad", "US$39.99")
     );
-    expect(email.subject).toBe("Tus 3 meses gratis terminan en 7 días");
+    expect(email.subject).toBe("Tu tiempo gratis termina en 7 días");
     expect(email.text).toContain("Mayor Visibilidad (US$39.99 al mes)");
-    expect(email.text).toContain("baja de 8% a 5%");
+    expect(email.text).toContain("la comisión por venta de tu plan");
     expect(
       renderEmail(trialEndingSoon(inDays(1), 1, "Normal", "US$19.99")).subject
-    ).toBe("Mañana terminan tus 3 meses gratis");
+    ).toBe("Mañana termina tu tiempo gratis");
   });
 });

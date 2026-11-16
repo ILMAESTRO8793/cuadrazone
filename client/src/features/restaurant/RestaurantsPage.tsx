@@ -20,13 +20,11 @@ export function RestaurantsPage() {
       {q.isLoading && <p role="status">Cargando restaurantes…</p>}
       {!q.isLoading && !list.length && (
         <div className="re-empty">
-          <h2>Todavía no hay restaurantes</h2>
-          <p>
-            ¿Tienes un restaurante? Abre tu tienda de comercio y activa «Es un
-            restaurante» en «Mi menú».
-          </p>
-          <Link href="/vender" className="btn btn-gold">
-            Vende en CuadraZone
+          <Link
+            href="/solicitud-vendedor?tipo=restaurante"
+            className="btn btn-gold"
+          >
+            Registra tu restaurante
           </Link>
         </div>
       )}

@@ -826,12 +826,14 @@ function SellerCatalogContent({
             >
               <Package size={16} /> Pedidos
             </Link>
-            <Link
-              className="seller-catalog-button seller-catalog-button--outline"
-              href="/vendedor/menu"
-            >
-              <UtensilsCrossed size={16} /> Mi menú (restaurante)
-            </Link>
+            {storeKind === "restaurante" && (
+              <Link
+                className="seller-catalog-button seller-catalog-button--outline"
+                href="/vendedor/menu"
+              >
+                <UtensilsCrossed size={16} /> Mi menú
+              </Link>
+            )}
             <Link
               className="seller-catalog-button seller-catalog-button--outline"
               href="/vendedor/mensajes"
@@ -1152,7 +1154,25 @@ function SellerCatalogContent({
         <ServicesPanel hasStore={hasStore} />
       )}
 
-      {activeTab === "products" && storeKind !== "servicios" && (
+      {activeTab === "products" && storeKind === "restaurante" && (
+        <section className="seller-catalog-toolbar">
+          <div>
+            <p className="seller-catalog-eyebrow">RESTAURANTE</p>
+            <h2>Tus platos van en «Mi menú»</h2>
+            <p>
+              Un restaurante no publica productos: arma tus secciones y platos
+              en tu menú.
+            </p>
+          </div>
+          <Link className="seller-catalog-button" href="/vendedor/menu">
+            <UtensilsCrossed size={16} /> Ir a Mi menú
+          </Link>
+        </section>
+      )}
+
+      {activeTab === "products" &&
+        storeKind !== "servicios" &&
+        storeKind !== "restaurante" && (
         <>
           <section className="seller-catalog-toolbar">
             <div>

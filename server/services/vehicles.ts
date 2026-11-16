@@ -1,7 +1,7 @@
 // Autos: mismas reglas que bienes raíces (plan activo para publicar, destacado
 // con Mayor Visibilidad, los anuncios se ocultan si vence el plan).
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, ne, sql } from "drizzle-orm";
 import express, { type Express, type Request, type Response } from "express";
 import { czVehicles } from "../../drizzle/catalog-schema";
 import type { User } from "../../drizzle/schema";
@@ -20,7 +20,8 @@ import { getDb } from "../db";
 import { storagePut, storageRemove } from "../storage";
 import { validateCatalogImageBytes } from "./catalogImages";
 import { validateVideoBytes } from "./catalogVideos";
-import { publishPlans, slugify } from "./realEstate";
+import { slugify } from "./realEstate";
+import { NO_PLAN, assertCanPublish, publishPlans } from "./sectionPlans";
 
 const PAGE_SIZE = 24;
 const IMAGE_EXT: Record<string, string> = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" };
@@ -134,7 +135,7 @@ export async function saveVehicle(user: User, raw: unknown): Promise<OwnVehicleD
   if (!parsed.success) fail("BAD_REQUEST", parsed.error.issues[0]?.message ?? "Datos inválidos");
   const input = parsed.data;
   const db = await requireDb();
-  const plan = (await publishPlans(db, [user.id])).get(user.id);
+  const plan = (await publishPlans(db, [user.id], "autos")).get(user.id);
   if (!input.id) {
     const inserted = await db.insert(czVehicles).values({ userId: user.id, slug: `tmp-${crypto.randomUUID()}`, ...columns(input), images: [], videos: [] });
     const id = Number((Array.isArray(inserted) ? inserted[0] : inserted).insertId);
@@ -156,9 +157,12 @@ export async function setVehicleStatus(user: User, id: number, status: "publishe
   const db = await requireDb();
   const row = await ownVehicle(db, user.id, id);
   if (status === "published") {
-    const plan = (await publishPlans(db, [user.id])).get(user.id);
-    if (!plan?.active)
-      fail("PRECONDITION_FAILED", "Para publicar necesitas un plan activo (Normal o Mayor Visibilidad). Escríbenos para activarlo.");
+    // Mes gratis la primera vez, plan vigente y sin pasar el límite del plan.
+    const published = await db
+      .select({ n: sql<number>`count(*)` })
+      .from(czVehicles)
+      .where(and(eq(czVehicles.userId, user.id), eq(czVehicles.status, "published"), ne(czVehicles.id, id)));
+    await assertCanPublish(db, user.id, "autos", Number(published[0]?.n ?? 0));
     if (!jsonList(row.images).length) fail("PRECONDITION_FAILED", "Agrega al menos una foto antes de publicar.");
   }
   await db
@@ -179,7 +183,7 @@ export async function deleteVehicle(user: User, id: number) {
 
 export async function myVehicles(user: User) {
   const db = await requireDb();
-  const plan = (await publishPlans(db, [user.id])).get(user.id) ?? { active: false, featured: false, source: null, planId: null, endsAt: null };
+  const plan = (await publishPlans(db, [user.id], "autos")).get(user.id) ?? NO_PLAN;
   const rows = await db.select().from(czVehicles).where(eq(czVehicles.userId, user.id)).orderBy(desc(czVehicles.updatedAt)).limit(200);
   return { plan, vehicles: rows.map((r: any) => toOwnDTO(r, plan.featured)) };
 }
@@ -194,7 +198,7 @@ export async function publicVehicles(filters: VehicleFilters) {
   if (filters.fuel) conditions.push(eq(czVehicles.fuel, filters.fuel));
   if (filters.condition) conditions.push(eq(czVehicles.condition, filters.condition));
   const rows = await db.select().from(czVehicles).where(and(...conditions)).orderBy(desc(czVehicles.publishedAt)).limit(1000);
-  const plans = await publishPlans(db, [...new Set<number>(rows.map((r: any) => r.userId))]);
+  const plans = await publishPlans(db, [...new Set<number>(rows.map((r: any) => r.userId))], "autos");
   const q = filters.q?.toLowerCase();
   const make = filters.make?.toLowerCase();
   const visible = rows
@@ -216,7 +220,7 @@ export async function publicVehicle(slug: string) {
   const db = await requireDb();
   const rows = await db.select().from(czVehicles).where(and(eq(czVehicles.slug, slug), eq(czVehicles.status, "published"))).limit(1);
   const row = rows[0];
-  const plan = row ? (await publishPlans(db, [row.userId])).get(row.userId) : undefined;
+  const plan = row ? (await publishPlans(db, [row.userId], "autos")).get(row.userId) : undefined;
   if (!row || !plan?.active) fail("NOT_FOUND", "Este anuncio ya no está disponible");
   return toDTO(row, plan.featured);
 }

@@ -35,6 +35,7 @@ import VerseOfDay from "./VerseOfDay";
 import { footerLegalLinks, LEGAL_OWNER } from "@/data/legal";
 import { loginRedirectFor } from "@shared/accessGate";
 import { greetingName } from "@shared/greeting";
+import { trialBadgeLabel } from "@shared/pricing";
 
 /*
  * La portada separa dos mundos: el Marketplace (productos físicos y libros) y
@@ -177,7 +178,7 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
           <span className="utility-right">
             Panamá <span className="utility-dot" /> USD{" "}
             <span className="utility-dot" />{" "}
-            <strong>3 meses gratis para vendedores</strong>
+            <strong>{trialBadgeLabel()}</strong>
           </span>
         </div>
       </div>

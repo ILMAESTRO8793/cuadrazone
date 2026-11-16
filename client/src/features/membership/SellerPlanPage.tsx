@@ -17,6 +17,7 @@ import {
   sellerPlanIdInput,
   sellerPlanLabel,
   getSellerPlan,
+  plansForStoreKind,
   type SellerPlanId,
 } from "@shared/pricing";
 
@@ -47,6 +48,12 @@ function PlanContent() {
     if (value.success) setChoice(value.data);
     else if (preference.data) setChoice(preference.data.planId);
   }, [search, preference.data]);
+  // Si su tipo de tienda no ofrece el plan elegido, propone el primero de su tipo.
+  const kindPlans = plansForStoreKind(membership.data?.application?.storeKind);
+  useEffect(() => {
+    if (membership.data && !kindPlans.includes(choice)) setChoice(kindPlans[0]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [membership.data, choice]);
   const selectedPlan = getSellerPlan(choice);
   async function persist() {
     if (!acknowledged || preference.isLoading || preference.error) return;
@@ -126,6 +133,7 @@ function PlanContent() {
           </div>
         </div>
         <SellerPlanCards
+          storeKind={membership.data?.application?.storeKind}
           selected={choice}
           disabled={save.isPending}
           onChoose={id => {

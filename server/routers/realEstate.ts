@@ -1,11 +1,15 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { propertyFiltersInput } from "@shared/realEstate";
-import { sellerPlanIds } from "@shared/pricing";
+import { listingPlanIds, listingSections } from "@shared/pricing";
 import { adminProcedure, protectedProcedure, publicProcedure, router } from "../_core/trpc";
+import { getDb } from "../db";
 import {
-  adminAdvertiserPlans,
-  adminRecordAdvertiserPayment,
+  adminRecordSectionPayment,
+  adminSectionPlans,
+  myPublishPlan,
+} from "../services/sectionPlans";
+import {
   deleteProperty,
   myProperties,
   publicProperties,
@@ -40,12 +44,21 @@ export const realEstateRouter = router({
     csrf(ctx);
     return deleteProperty(ctx.user as any, input.id);
   }),
-  advertiserPlans: adminProcedure.query(() => adminAdvertiserPlans()),
-  recordAdvertiserPayment: adminProcedure
+  /** Mi plan en una sección (Bienes raíces, Autos o Empleos). */
+  myPlan: protectedProcedure
+    .input(z.object({ section: z.enum(listingSections) }).strict())
+    .query(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "La base de datos no está disponible" });
+      return myPublishPlan(db, (ctx.user as any).id, input.section);
+    }),
+  sectionPlans: adminProcedure.query(() => adminSectionPlans()),
+  recordSectionPayment: adminProcedure
     .input(
       z.object({
         account: z.string().trim().min(5).max(320),
-        planId: z.enum(sellerPlanIds),
+        section: z.enum(listingSections),
+        planId: z.enum(listingPlanIds),
         months: z.number().int().min(1).max(12),
         amountCents: z.number().int().positive(),
         method: z.enum(["yappy", "transferencia", "efectivo", "otro"]),
@@ -56,6 +69,6 @@ export const realEstateRouter = router({
     )
     .mutation(({ ctx, input }) => {
       csrf(ctx);
-      return adminRecordAdvertiserPayment(ctx.user as any, input);
+      return adminRecordSectionPayment(ctx.user as any, input);
     }),
 });

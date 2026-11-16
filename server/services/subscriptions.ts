@@ -7,6 +7,7 @@ import { TRPCError } from "@trpc/server";
 import { and, desc, eq, inArray, lt } from "drizzle-orm";
 import {
   TRIAL_MONTHS,
+  trialEndsFor,
   TRIAL_PLAN_ID,
   getSellerPlan,
   planAmountCents,
@@ -506,15 +507,15 @@ export async function sweepExpiredSubscriptions(
 }
 
 /**
- * Aprobado = activo al instante: los primeros 3 meses son gratis, así que una
+ * Aprobado = activo al instante: el primer mes es gratis, así que una
  * tienda aprobada nunca debe quedar inactiva por «no haber pagado». Si alguna
  * quedó aprobada sin su prueba gratuita (aprobaciones antiguas o por otra vía),
- * se la activa ahora con sus 3 meses completos. Devuelve cuántas activó.
+ * se la activa ahora con su mes gratis. Devuelve cuántas activó.
  */
 export async function startMissingTrials(now = new Date()): Promise<number> {
   const db = await getDb();
   if (!db) return 0;
-  const trialEndsAt = addMonths(now, TRIAL_MONTHS);
+  const trialEndsAt = trialEndsFor(now);
   const result: any = await db
     .update(czApplications)
     .set({

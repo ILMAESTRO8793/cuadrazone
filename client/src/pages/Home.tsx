@@ -1,6 +1,10 @@
 import { LiveFeatured } from "@/features/commerce/LiveFeatured";
 import { HomeBanners } from "@/components/marketplace/HomeBanners";
-import { sellerPlanLabel } from "@shared/pricing";
+import {
+  sellerPlanLabel,
+  trialBadgeLabel,
+  trialOfferLabel,
+} from "@shared/pricing";
 import { useState } from "react";
 import { Link } from "wouter";
 import { countries, type CountryCode } from "@shared/countries";
@@ -154,7 +158,7 @@ export default function Home() {
                   <ShieldCheck size={16} /> Verificación de vendedores
                 </span>
                 <span>
-                  <Check size={15} /> 3 meses gratis para vendedores
+                  <Check size={15} /> {trialBadgeLabel()}
                 </span>
               </div>
             </div>
@@ -178,7 +182,7 @@ export default function Home() {
             <Store size={28} strokeWidth={1.4} />
             <span>
               <strong>Más para tu emprendimiento</strong>
-              <small>Empieza con 3 meses sin mensualidad.</small>
+              <small>{trialOfferLabel()}.</small>
             </span>
           </div>
           <div>
@@ -199,14 +203,11 @@ export default function Home() {
           <span className="eyebrow">TU TRABAJO MERECE SER VISTO</span>
           <h2>Abre nuevas puertas para tu negocio.</h2>
           <p>
-            Tu tienda por{" "}
-            <strong>Normal {sellerPlanLabel("normal")}/mes</strong> o{" "}
-            <strong>
-              Mayor Visibilidad {sellerPlanLabel("mayor_visibilidad")}/mes
-            </strong>
-            . Los primeros 3 meses son gratis y sin comisión. Después, los
-            productos físicos pagan 10% de comisión por venta con el plan Normal
-            y 5% con Mayor Visibilidad; los servicios no pagan comisión.
+            Planes para pymes desde{" "}
+            <strong>{sellerPlanLabel("normal")}/mes</strong>, para empresas
+            medianas y grandes, restaurantes, bienes raíces, autos y empleos.{" "}
+            {trialOfferLabel()}, sin comisión. Después, la comisión por venta
+            es de 10%, 5% o 3% según el plan, solo en comercios y restaurantes.
           </p>
         </div>
         <Link className="btn btn-gold" href="/vender">

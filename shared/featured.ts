@@ -8,6 +8,8 @@
  * La prueba gratuita no cuenta como Mayor Visibilidad.
  */
 export const FEATURED_PLAN_ID = "mayor_visibilidad";
+/** Todos los planes con «Destacados»: Mayor Visibilidad, mediana y grande. */
+export { FEATURED_PLAN_IDS, isFeaturedPlan } from "./pricing";
 export const FEATURED_ROTATION_MINUTES = 10;
 export const FEATURED_SLOTS = 4;
 export const FEATURED_TITLE = "Destacados";

@@ -2,7 +2,7 @@
 // envió al aplicar a su vacante. Publicar vacantes exige plan activo, igual que
 // bienes raíces y autos; crear el CV y aplicar es gratis.
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { czJobApplications, czJobs, czResumes } from "../../drizzle/catalog-schema";
 import type { User } from "../../drizzle/schema";
 import {
@@ -19,7 +19,8 @@ import {
 } from "@shared/jobs";
 import { getDb } from "../db";
 import { queueEmail, recipientFor } from "./email";
-import { publishPlans, slugify } from "./realEstate";
+import { slugify } from "./realEstate";
+import { NO_PLAN, assertCanPublish, publishPlans } from "./sectionPlans";
 import { isDuplicateKeyError } from "./subscriptions";
 
 const PAGE_SIZE = 25;
@@ -153,9 +154,12 @@ export async function setJobStatus(user: User, id: number, status: "published" |
   const db = await requireDb();
   const row = await ownJob(db, user.id, id);
   if (status === "published") {
-    const plan = (await publishPlans(db, [user.id])).get(user.id);
-    if (!plan?.active)
-      fail("PRECONDITION_FAILED", "Para publicar vacantes necesitas un plan activo (Normal o Mayor Visibilidad). Escríbenos para activarlo.");
+    // Mes gratis la primera vez, plan vigente y sin pasar el límite del plan.
+    const published = await db
+      .select({ n: sql<number>`count(*)` })
+      .from(czJobs)
+      .where(and(eq(czJobs.userId, user.id), eq(czJobs.status, "published"), ne(czJobs.id, id)));
+    await assertCanPublish(db, user.id, "empleos", Number(published[0]?.n ?? 0));
     if (row.closesOn < todayPanama()) fail("PRECONDITION_FAILED", "La fecha de cierre ya pasó. Cámbiala antes de publicar.");
   }
   await db
@@ -174,7 +178,7 @@ export async function deleteJob(user: User, id: number) {
 
 export async function myJobs(user: User) {
   const db = await requireDb();
-  const plan = (await publishPlans(db, [user.id])).get(user.id) ?? { active: false, featured: false, source: null, planId: null, endsAt: null };
+  const plan = (await publishPlans(db, [user.id], "empleos")).get(user.id) ?? NO_PLAN;
   const rows = await db.select().from(czJobs).where(eq(czJobs.userId, user.id)).orderBy(desc(czJobs.updatedAt)).limit(200);
   const ids = rows.map((r: any) => r.id);
   const counts = ids.length
@@ -199,7 +203,7 @@ export async function myJobs(user: User) {
 /** Vacante visible: publicada, sin vencer y con el plan del publicador activo. */
 async function visibleJobs(db: any, rows: any[]) {
   const today = todayPanama();
-  const plans = await publishPlans(db, [...new Set<number>(rows.map(r => r.userId))]);
+  const plans = await publishPlans(db, [...new Set<number>(rows.map(r => r.userId))], "empleos");
   return rows.filter(r => r.closesOn >= today && plans.get(r.userId)?.active).map(r => jobDTO(r, Boolean(plans.get(r.userId)?.featured)));
 }
 

@@ -212,6 +212,12 @@ export function storeKindError(input: {
   businessCategories: readonly unknown[];
   productCategories: readonly unknown[];
 }): string | null {
+  if (input.storeKind === "restaurante") {
+    // Un restaurante publica su menú: no lleva categorías de productos ni de servicios.
+    if (input.productCategories.length || input.businessCategories.length)
+      return "Un restaurante no lleva categorías de productos ni de servicios";
+    return null;
+  }
   if (input.storeKind === "comercio") {
     if (!input.productCategories.length)
       return "Escoge al menos una categoría de productos";
@@ -264,7 +270,7 @@ export function sellerStatus(
     const fecha = fechaLarga(app.trialEndsAt!);
     return {
       label: `Aprobado · prueba gratis hasta el ${fecha}`,
-      notice: `Tu tienda está activa. Tu período de 3 meses gratis vence el ${fecha}; antes de esa fecha te avisaremos para que pagues tu primera mensualidad. Durante la prueba no pagas mensualidad, solo la comisión de tus ventas al cerrar cada mes.`,
+      notice: `Tu tienda está activa. Tu tiempo gratis vence el ${fecha}; antes de esa fecha te avisaremos para que pagues tu primera mensualidad. Durante el tiempo gratis no pagas mensualidad ni comisión.`,
       inTrial: true,
       active: true,
     };

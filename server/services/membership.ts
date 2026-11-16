@@ -2,7 +2,7 @@ import { getPlanSelection } from "./sellerPlans";
 import { addMonths } from "./subscriptions";
 import { queueAdminEmail, queueEmail, recipientFor } from "./email";
 import { applicationApproved, applicationReceived, applicationRejected, newApplicationForAdmin } from "./emailMessages";
-import { TRIAL_MONTHS, TRIAL_PLAN_ID } from "@shared/pricing";
+import { TRIAL_MONTHS, TRIAL_PLAN_ID, trialEndsFor } from "@shared/pricing";
 import { evaluateDocuments, nameKeyOf, type AutoChecks } from "./idVerification";
 import { and, desc, eq, lt, or, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
@@ -220,7 +220,7 @@ export async function runAutoChecks(user: User): Promise<AutoChecks> {
 
 function mapApplication(row: Application): ApplicationSnapshot {
   return {
-    storeKind: (row.storeKind === "servicios" ? "servicios" : "comercio") as ApplicationSnapshot["storeKind"],
+    storeKind: (row.storeKind === "servicios" || row.storeKind === "restaurante" ? row.storeKind : "comercio") as ApplicationSnapshot["storeKind"],
     businessType: row.businessType,
     businessName: row.businessName,
     businessCategories: readBusinessSelections(row.details),
@@ -427,7 +427,7 @@ async function ensureSubmissionGuards(
         "PRECONDITION_FAILED",
         categories.error?.issues[0]?.message ?? "Debes seleccionar al menos una categoría de servicios"
       );
-  } else if (!readProductCategories(app.details).length) {
+  } else if (app.storeKind !== "restaurante" && !readProductCategories(app.details).length) {
     throw new MembershipError("PRECONDITION_FAILED", "Debes seleccionar al menos una categoría de productos");
   }
   assertConsentVersion(app.consentVersion);
@@ -775,7 +775,7 @@ export async function submitApplication(
     const nextRevision = app.revision + 1;
     const now = new Date();
     const startsTrial = instant && app.subscriptionStatus === "not_started";
-    const trialEndsAt = startsTrial ? addMonths(now, TRIAL_MONTHS) : null;
+    const trialEndsAt = startsTrial ? trialEndsFor(now) : null;
     const updated = await tx
       .update(czApplications)
       .set({
@@ -1025,9 +1025,9 @@ export async function reviewApplication(
       await ensureSubmissionGuards(tx, app, await profileFor(tx, app.userId), "approve");
     const nextRevision = app.revision + 1;
     const now = new Date();
-    // Prueba gratuita: la primera aprobación activa la tienda 3 meses sin mensualidad (comisión 8%).
+    // Tiempo gratis: la primera aprobación activa la tienda sin mensualidad ni comisión (ver trialEndsFor).
     const startsTrial = decision === "approved" && app.subscriptionStatus === "not_started";
-    const trialEndsAt = startsTrial ? addMonths(now, TRIAL_MONTHS) : null;
+    const trialEndsAt = startsTrial ? trialEndsFor(now) : null;
     const updated = await tx
       .update(czApplications)
       .set({

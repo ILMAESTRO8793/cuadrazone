@@ -8,6 +8,7 @@ import { and, asc, eq, inArray } from "drizzle-orm";
 import express, { type Express, type Request, type Response } from "express";
 import { czProducts, czServices, czStores } from "../../drizzle/catalog-schema";
 import { servicePriceLabel } from "@shared/services";
+import { isFeaturedPlan } from "@shared/pricing";
 import { czApplications } from "../../drizzle/schema";
 import { czShowcaseItems } from "../../drizzle/showcase-schema";
 import {
@@ -136,7 +137,7 @@ export async function publicShowcase(
     : [];
   const activeIds = new Set(activeRows.map(r => r.id));
   const featuredIds = new Set(
-    activeRows.filter(r => r.planId === "mayor_visibilidad").map(r => r.id)
+    activeRows.filter(r => isFeaturedPlan(r.planId)).map(r => r.id)
   );
   const kindOf = new Map(activeRows.map(r => [r.id, r.kind]));
   const live = items.filter(i => {

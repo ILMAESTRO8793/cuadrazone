@@ -25,7 +25,7 @@ vi.mock("./db", () => ({
 }));
 
 describe("prueba gratis al aprobar", () => {
-  it("activa con 3 meses gratis las tiendas aprobadas que no tenían plan", async () => {
+  it("activa con su mes gratis las tiendas aprobadas que no tenían plan", async () => {
     const { startMissingTrials } = await import("./services/subscriptions");
     const now = new Date("2026-11-08T12:00:00Z");
     const count = await startMissingTrials(now);
@@ -34,7 +34,8 @@ describe("prueba gratis al aprobar", () => {
     expect(setValues.subscriptionPlanId).toBe(TRIAL_PLAN_ID);
     expect(setValues.holdReason).toBeNull();
     const ends = new Date(setValues.trialEndsAt);
-    expect(ends.toISOString().slice(0, 10)).toBe("2027-02-08");
+    // Antes del lanzamiento (enero de 2027) el mes gratis llega hasta el 1 de febrero.
+    expect(ends.toISOString()).toBe("2027-02-01T05:00:00.000Z");
     expect(setValues.subscriptionEndsAt).toEqual(setValues.trialEndsAt);
     // Solo toca solicitudes aprobadas que nunca empezaron su plan.
     expect(whereClause).toBeTruthy();

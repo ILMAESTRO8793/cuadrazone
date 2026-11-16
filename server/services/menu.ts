@@ -26,6 +26,7 @@ import { sdk } from "../_core/sdk";
 import { getDb } from "../db";
 import { storagePut } from "../storage";
 import { validateCatalogImageBytes } from "./catalogImages";
+import { assertStoreQuota } from "./planLimits";
 
 type Db = NonNullable<Awaited<ReturnType<typeof getDb>>>;
 
@@ -67,10 +68,10 @@ async function myCommerceStore(db: Db, userId: number) {
     .limit(1);
   if (!store)
     fail("PRECONDITION_FAILED", "Primero guarda los datos de tu tienda");
-  if (store.kind !== "comercio")
+  if (store.kind !== "restaurante")
     fail(
       "PRECONDITION_FAILED",
-      "El menú de restaurante es para tiendas de comercio"
+      "El menú es para restaurantes. Registra tu restaurante en Restaurantes."
     );
   return store.id;
 }
@@ -133,7 +134,8 @@ export async function myMenu(userId: number) {
     .where(eq(czStores.userId, userId))
     .limit(1);
   if (!store) return { status: "no_store" as const };
-  if (store.kind !== "comercio") return { status: "not_commerce" as const };
+  if (store.kind !== "restaurante")
+    return { status: "not_commerce" as const };
   return { status: "ok" as const, ...(await readMenu(db, store.id)) };
 }
 
@@ -143,8 +145,9 @@ export async function saveRestaurant(
 ) {
   const db = await requireDb();
   const storeId = await myCommerceStore(db, userId);
+  // Un restaurante siempre muestra su menú.
   const values = {
-    enabled: input.enabled ? 1 : 0,
+    enabled: 1,
     prepMinutes: input.prepMinutes,
     hours: input.hours,
   };
@@ -224,6 +227,8 @@ export async function saveMenuItem(userId: number, input: SaveMenuItemInput) {
         and(eq(czMenuItems.id, input.id), eq(czMenuItems.storeId, storeId))
       );
   } else {
+    // Platos según el plan del restaurante (20, 100 o sin límite).
+    await assertStoreQuota(db, userId, "dish", { storeId });
     await db.insert(czMenuItems).values({ storeId, ...values });
   }
   return myMenu(userId);

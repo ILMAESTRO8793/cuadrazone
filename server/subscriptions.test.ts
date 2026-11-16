@@ -84,7 +84,7 @@ describe("comisión por venta", () => {
     expect(() => commissionCents(100, 20000)).toThrow();
   });
   it("nombra los planes vigentes, incluida la prueba", () => {
-    expect(subscriptionPlanName("prueba")).toBe("Prueba gratis (3 meses)");
+    expect(subscriptionPlanName("prueba")).toBe("Mes gratis");
     expect(subscriptionPlanName("normal")).toBe("Normal");
     expect(subscriptionPlanName("desconocido")).toBe("Sin plan");
   });

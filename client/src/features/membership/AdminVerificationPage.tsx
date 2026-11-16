@@ -86,7 +86,7 @@ const auditLabels: Record<string, string> = {
   phone_verified_admin: "Teléfono verificado por administrador",
   phone_verification_revoked: "Verificación de teléfono revocada",
   plan_selected: "Plan elegido",
-  trial_started: "Prueba gratis de 3 meses iniciada",
+  trial_started: "Tiempo gratis iniciado",
   auto_approved: "Aprobada automáticamente (documentos coinciden)",
   subscription_payment_recorded: "Mensualidad registrada",
   subscription_deactivated: "Suscripción desactivada",

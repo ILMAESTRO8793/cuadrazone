@@ -11,7 +11,7 @@
  * hecha el 11 de noviembre de 2026, según el titular. Cualquier cambio de
  * fondo debe volver a revisarse antes de publicarse.
  */
-import { sellerPlanLabel } from "@shared/pricing";
+import { LISTING_PLANS, moneyLabel, sellerPlanLabel } from "@shared/pricing";
 
 export type LegalSection = {
   title: string;
@@ -32,6 +32,11 @@ export type LegalDoc = {
 
 const NORMAL = sellerPlanLabel("normal");
 const MAYOR = sellerPlanLabel("mayor_visibilidad");
+const MEDIANA = sellerPlanLabel("mediana");
+const GRANDE = sellerPlanLabel("grande");
+const BASICO = moneyLabel(LISTING_PLANS.basico.monthlyCents);
+const MEDIO = moneyLabel(LISTING_PLANS.medio.monthlyCents);
+const GRANDE_ANUNCIOS = moneyLabel(LISTING_PLANS.grande.monthlyCents);
 /** Titular de CuadraZone. */
 export const LEGAL_OWNER = {
   name: "Salem Pierre",
@@ -47,7 +52,7 @@ export const legalDocs: Record<string, LegalDoc> = {
   terminos: {
     title: "Condiciones de uso",
     short: "Condiciones de uso",
-    updated: "6 de noviembre de 2026",
+    updated: "16 de noviembre de 2026",
     intro:
       "Estas condiciones regulan el uso de CuadraZone (cuadrazone.com) por parte de visitantes, compradores y vendedores. Al navegar, crear una cuenta, publicar o comprar en CuadraZone aceptas estas condiciones y los demás documentos legales enlazados en esta página. Si no estás de acuerdo, no uses la plataforma.",
     sections: [
@@ -77,7 +82,7 @@ export const legalDocs: Record<string, LegalDoc> = {
         title: "Cuenta de vendedor, planes y comisiones",
         body: [
           "Para vender es necesario enviar una solicitud y superar la verificación de identidad y de contacto. CuadraZone puede aprobar o rechazar una solicitud según sus criterios de confianza y sus valores, indicando el motivo cuando la rechace.",
-          `Los vendedores aprobados disfrutan de 3 meses sin mensualidad. Después pagan el plan elegido: Normal (${NORMAL} al mes) o Mayor Visibilidad (${MAYOR} al mes). Además, por los productos físicos se paga una comisión por venta entregada: sin comisión durante los 3 meses de prueba; después, 10% con el plan Normal y 5% con Mayor Visibilidad, calculada solo sobre el precio de los productos. Los servicios no pagan comisión. La compra mínima en cada comercio es de US$10. El envío es gratis cuando el vendedor y el comprador están en la misma provincia; si están en provincias distintas, el comprador paga el envío y lo acuerda directo con el vendedor.`,
+          `Quien se registra antes del 1 de enero de 2027 no paga mensualidad ni comisión hasta el 1 de febrero de 2027; desde el 1 de enero de 2027, cada cuenta nueva tiene su primer mes gratis. Después se paga el plan elegido, que depende de cuánto se publica. Comercios: pymes, Normal (${NORMAL} al mes) o Mayor Visibilidad (${MAYOR} al mes), hasta 99 productos; empresa mediana (${MEDIANA} al mes), hasta 300 productos; gran empresa (${GRANDE} al mes), sin límite. Servicios: Normal hasta 20 servicios y Mayor Visibilidad sin límite. Restaurantes, bienes raíces, autos y empleos (cada sección por separado): hasta 20 publicaciones (${BASICO} al mes), de 21 a 100 (${MEDIO} al mes) o más de 100 (${GRANDE_ANUNCIOS} al mes). Al llegar al límite del plan no se puede publicar más hasta subir de plan. Por los productos físicos y los pedidos de restaurante se paga una comisión por venta entregada, calculada solo sobre el precio de lo vendido: 10% (Normal y restaurante pyme), 5% (Mayor Visibilidad, empresa mediana y restaurante de 21 a 100 platos) o 3% (gran empresa y restaurante de más de 100 platos); no hay comisión durante el tiempo gratis. Los servicios, bienes raíces, autos y empleos no pagan comisión. Comercios no acepta restaurantes, inmuebles, vehículos ni vacantes de empleo: se publican en su propia sección. La compra mínima en cada comercio es de US$10. El envío es gratis cuando el vendedor y el comprador están en la misma provincia; si están en provincias distintas, el comprador paga el envío y lo acuerda directo con el vendedor.`,
           "Podemos cambiar los precios de los planes o las comisiones avisándote con al menos 30 días de anticipación; los cambios no afectan los periodos ya pagados. Si no pagas la mensualidad o las comisiones a tiempo, podemos ocultar tu tienda y tus publicaciones hasta que regularices el pago. Los pagos hechos a CuadraZone no son reembolsables, salvo error nuestro o cuando la ley disponga otra cosa. Desactivar una tienda no cancela las comisiones pendientes.",
           "Cada vendedor es el único responsable de sus obligaciones legales y fiscales: aviso de operación y permisos de su actividad, emisión de facturas o comprobantes, declaración y pago de impuestos —incluido el ITBMS cuando corresponda— y el cumplimiento de las normas de protección al consumidor.",
         ],
@@ -487,7 +492,7 @@ export const legalDocs: Record<string, LegalDoc> = {
   conducta: {
     title: "Código de conducta",
     short: "Código de conducta",
-    updated: "23 de octubre de 2026",
+    updated: "16 de noviembre de 2026",
     intro:
       "Las reglas de convivencia y de comercio honesto que aceptan todas las personas que compran y venden en CuadraZone.",
     sections: [
@@ -496,7 +501,7 @@ export const legalDocs: Record<string, LegalDoc> = {
       { title: "Comercio honesto", body: ["Describe tus productos y servicios tal como son, con fotos reales de lo que vendes y precios claros. Mantén tu inventario al día, cumple lo que ofreces en entrega y tiempos, y no cobres recargos que no estén indicados en la publicación o en la tienda."] },
       { title: "Pagos seguros", body: ["Cobra solo por los métodos registrados en tu tienda: Yappy, link de pago de una plataforma permitida, tarjeta con datáfono al entregar, transferencia o efectivo. Nunca pidas ni envíes datos de tarjeta, contraseñas ni códigos de verificación por mensaje. CuadraZone no procesa ni guarda datos de tarjetas."] },
       { title: "Lo que no se puede publicar", body: ["Productos o servicios ilegales, robados o falsificados; armas, drogas o medicamentos que requieran receta; contenido sexual o violento; ocultismo; publicidad engañosa; y cualquier contenido contrario a los valores cristianos de CuadraZone, que aplican a todos los vendedores, sean o no cristianos."] },
-      { title: "Obligaciones del vendedor", body: ["Mantener su información y sus datos de cobro correctos, pagar la mensualidad de su plan al terminar los 3 meses gratis y, si vende productos físicos, pagar la comisión por venta entregada (0% durante la prueba; después, 10% con el plan Normal y 5% con Mayor Visibilidad, calculada solo sobre los productos), y entregar gratis dentro de su misma provincia."] },
+      { title: "Obligaciones del vendedor", body: ["Mantener su información y sus datos de cobro correctos, pagar la mensualidad de su plan al terminar su tiempo gratis y, si vende productos físicos o es un restaurante, pagar la comisión por venta entregada de su plan (0% durante el tiempo gratis; después, 10%, 5% o 3% según el plan, calculada solo sobre lo vendido), y entregar gratis dentro de su misma provincia."] },
       { title: "Incumplimientos", body: ["Si alguien no cumple este código, CuadraZone puede pedir correcciones, ocultar publicaciones, suspender o desactivar la tienda o la cuenta. Desactivar una tienda no cancela las comisiones pendientes."] },
       { title: "Reportes", body: ["Si ves una publicación o un trato que no cumple este código, comunícalo al equipo de CuadraZone con el nombre de la tienda y, si aplica, el número de pedido."] },
     ],

@@ -5,8 +5,16 @@ import {
   getSellerPlan,
   planAmountCents,
   isInTrial,
+  LISTING_PLANS,
+  listingPlanIds,
+  listingPlanName,
+  listingSectionLabels,
+  listingSections,
+  listingUnits,
   sellerPlanIds,
   subscriptionPlanName,
+  type ListingPlanId,
+  type ListingSection,
   type SellerPlanId,
 } from "@shared/pricing";
 import { trpc } from "@/lib/trpc";
@@ -169,22 +177,24 @@ export function AdminSubscriptions({ enabled }: { enabled: boolean }) {
   );
 }
 
-/** Plan de anunciante: para quien publica bienes raíces sin tener tienda. */
+/** Planes de anuncios: Bienes raíces, Autos y Empleos, cada sección aparte. */
 function AdvertiserPlans() {
-  const list = trpc.realEstate.advertiserPlans.useQuery();
-  const record = trpc.realEstate.recordAdvertiserPayment.useMutation();
+  const list = trpc.realEstate.sectionPlans.useQuery();
+  const record = trpc.realEstate.recordSectionPayment.useMutation();
   const [account, setAccount] = useState("");
-  const [planId, setPlanId] = useState<SellerPlanId>("normal");
+  const [section, setSection] = useState<ListingSection>("inmuebles");
+  const [planId, setPlanId] = useState<ListingPlanId>("basico");
   const [months, setMonths] = useState(1);
   const [method, setMethod] = useState<AdvertiserMethod>("yappy");
   const [reference, setReference] = useState("");
   const [paidOn, setPaidOn] = useState(todayInPanama());
-  const amount = planAmountCents(planId, months);
+  const amount = LISTING_PLANS[planId].monthlyCents * months;
   async function save(e: React.FormEvent) {
     e.preventDefault();
     try {
       const r = await record.mutateAsync({
         account,
+        section,
         planId,
         months,
         amountCents: amount,
@@ -205,12 +215,12 @@ function AdvertiserPlans() {
   }
   return (
     <>
-      <h2>Planes de anunciantes (bienes raíces, autos y empleos)</h2>
+      <h2>Planes de anuncios (bienes raíces, autos y empleos)</h2>
       <p className="member-muted">
-        Para quien publica casas, apartamentos, terrenos, autos o vacantes de
-        empleo sin tener tienda. Quien ya tiene una tienda activa publica con su
-        mismo plan. Con Mayor Visibilidad sus anuncios salen primero y como
-        «Destacado».
+        Cada sección se paga aparte según cuántos anuncios publica la cuenta:
+        hasta 20, de 21 a 100 o más de 100. La primera vez que alguien publica
+        en una sección empieza su mes gratis. Al llegar al tope de su plan no
+        puede publicar más hasta que registres el pago del plan siguiente.
       </p>
       <form className="admin-review-form" onSubmit={save}>
         <label>
@@ -223,15 +233,28 @@ function AdvertiserPlans() {
           />
         </label>
         <label>
+          Sección
+          <select
+            value={section}
+            onChange={e => setSection(e.target.value as ListingSection)}
+          >
+            {listingSections.map(id => (
+              <option key={id} value={id}>
+                {listingSectionLabels[id]}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
           Plan
           <select
             value={planId}
-            onChange={e => setPlanId(e.target.value as SellerPlanId)}
+            onChange={e => setPlanId(e.target.value as ListingPlanId)}
           >
-            {sellerPlanIds.map(id => (
+            {listingPlanIds.map(id => (
               <option key={id} value={id}>
-                {getSellerPlan(id).name} ·{" "}
-                {money(getSellerPlan(id).monthlyCents)} al mes
+                {LISTING_PLANS[id].range} {listingUnits[section]} ·{" "}
+                {money(LISTING_PLANS[id].monthlyCents)} al mes
               </option>
             ))}
           </select>
@@ -292,10 +315,11 @@ function AdvertiserPlans() {
       </form>
       {list.data && list.data.length > 0 && (
         <ul className="admin-audit">
-          {list.data.map(p => (
-            <li key={p.userId}>
+          {list.data.map((p: any) => (
+            <li key={`${p.userId}-${p.section}`}>
               <strong>{p.name || p.email || p.phone}</strong> ·{" "}
-              {getSellerPlan(p.planId as SellerPlanId).name} ·{" "}
+              {listingSectionLabels[p.section as ListingSection] ?? p.section}{" "}
+              · {listingPlanName(p.planId)} ·{" "}
               {p.active
                 ? `activo hasta ${day(new Date(p.endsAt))}`
                 : `venció el ${day(new Date(p.endsAt))}`}

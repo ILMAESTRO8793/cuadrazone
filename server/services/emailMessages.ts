@@ -45,7 +45,7 @@ export const applicationApproved = (
     "Revisamos tu solicitud y fue aprobada. Tu tienda ya está activa.",
     ...(trialEndsAt
       ? [
-          `Tienes 3 meses gratis, hasta el ${day(trialEndsAt)}. Prepara tu tienda y publica tus productos o servicios.`,
+          `No pagas nada hasta el ${day(trialEndsAt)}. Prepara tu tienda y publica tus productos, servicios o tu menú.`,
         ]
       : []),
   ],
@@ -272,7 +272,7 @@ export const subscriptionEndingSoon = (
   monthlyLabel: string
 ): EmailContent => ({
   subject: inTrial
-    ? "Tus 3 meses gratis terminan pronto"
+    ? "Tu tiempo gratis termina pronto"
     : "Tu mensualidad vence pronto",
   title: inTrial
     ? "Tu prueba gratis está por terminar"
@@ -303,15 +303,15 @@ export const trialEndingSoon = (
 ): EmailContent => ({
   subject:
     daysLeft <= 1
-      ? "Mañana terminan tus 3 meses gratis"
-      : `Tus 3 meses gratis terminan en ${daysLeft} días`,
+      ? "Mañana termina tu tiempo gratis"
+      : `Tu tiempo gratis termina en ${daysLeft} días`,
   title:
     daysLeft <= 1
       ? "Tu prueba gratis termina mañana"
       : "Tu prueba gratis está por terminar",
   paragraphs: [
-    `Tus 3 meses gratis en CuadraZone terminan el ${day(endsAt)}.`,
-    `Desde esa fecha empieza la mensualidad del plan ${planName} (${monthlyLabel} al mes) y la comisión por venta baja de 8% a 5%.`,
+    `Tu tiempo gratis en CuadraZone termina el ${day(endsAt)}.`,
+    `Desde esa fecha empieza la mensualidad del plan ${planName} (${monthlyLabel} al mes) y, si vendes productos o comida, la comisión por venta de tu plan.`,
     "Para que tu tienda siga visible, paga tu primera mensualidad antes de esa fecha. En Mi tienda verás cómo pagar y puedes cambiar de plan si lo prefieres.",
   ],
   details: [

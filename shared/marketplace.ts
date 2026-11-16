@@ -333,9 +333,9 @@ export type OwnerProduct = Omit<PublicProduct, "store"> & {
  * Comercio: productos con fotos y videos, inventario y envíos.
  * Servicios: sin envíos ni inventario; se solicitan y se coordinan con el proveedor.
  */
-export const storeKinds = ["comercio", "servicios"] as const;
+export const storeKinds = ["comercio", "servicios", "restaurante"] as const;
 export type StoreKind = (typeof storeKinds)[number];
-export const storeKindLabels: Record<StoreKind, string> = { comercio: "Comercio", servicios: "Servicios" };
+export const storeKindLabels: Record<StoreKind, string> = { comercio: "Comercio", servicios: "Servicios", restaurante: "Restaurante" };
 
 /** Categorías de productos físicos (solo tiendas de comercio). */
 export const catalogCategories = [

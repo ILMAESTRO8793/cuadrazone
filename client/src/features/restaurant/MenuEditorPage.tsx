@@ -60,7 +60,11 @@ export function MenuEditorPage() {
       )}
       {d?.status === "not_commerce" && (
         <p className="member-notice">
-          El menú de restaurante es para tiendas de comercio.
+          El menú es para restaurantes. Si tienes un restaurante,{" "}
+          <Link href="/solicitud-vendedor?tipo=restaurante">
+            regístralo en Restaurantes
+          </Link>
+          .
         </p>
       )}
       {d?.status === "ok" && (
@@ -82,14 +86,14 @@ function RestaurantSettings({
 }) {
   const utils = trpc.useUtils();
   const save = trpc.menu.saveRestaurant.useMutation();
-  const [enabled, setEnabled] = useState(current?.enabled ?? false);
+  // Un restaurante siempre muestra su menú.
+  const [enabled, setEnabled] = useState(true);
   const [prep, setPrep] = useState(String(current?.prepMinutes ?? 25));
   const [hours, setHours] = useState<WeekHours>(
     current?.hours ?? defaultWeekHours
   );
   useEffect(() => {
     if (current) {
-      setEnabled(current.enabled);
       setPrep(String(current.prepMinutes));
       setHours(current.hours);
     }
@@ -104,26 +108,14 @@ function RestaurantSettings({
         hours,
       });
       await utils.menu.invalidate();
-      toast.success(
-        enabled ? "Restaurante guardado" : "Menú de restaurante apagado"
-      );
+      toast.success("Restaurante guardado");
     } catch (error) {
       toast.error(errorText(error));
     }
   }
   return (
     <form className="rm-card" onSubmit={submit}>
-      <label className="rm-switch">
-        <input
-          type="checkbox"
-          checked={enabled}
-          onChange={e => setEnabled(e.target.checked)}
-        />
-        <span>
-          <strong>Es un restaurante</strong>
-          <small>Tu tienda mostrará tu menú en lugar de solo productos.</small>
-        </span>
-      </label>
+      <h2 className="rm-settings-title">Datos de tu restaurante</h2>
       {enabled && (
         <>
           <label className="rm-field rm-field--short">

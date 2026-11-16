@@ -16,11 +16,16 @@ import {
   czVehicles,
 } from "../../drizzle/catalog-schema";
 import { czClaims, czOrders, czReviews } from "../../drizzle/commerce-schema";
-import { czApplications, czSubscriptionPayments } from "../../drizzle/schema";
+import {
+  czApplications,
+  czPlanSelections,
+  czSubscriptionPayments,
+} from "../../drizzle/schema";
+import { czSectionPlans } from "../../drizzle/listingplan-schema";
 import { czListingReviews } from "../../drizzle/reviews-schema";
 import { czStoreStars } from "../../drizzle/verification-schema";
 import { czStoreLinks } from "../../drizzle/storelink-schema";
-import { TRIAL_PLAN_ID } from "@shared/pricing";
+import { TRIAL_PLAN_ID, isFeaturedPlan } from "@shared/pricing";
 import {
   MIN_DESCRIPTION,
   earnedStars,
@@ -79,9 +84,14 @@ export async function metricsForUsers(
         userId: czApplications.userId,
         status: czApplications.subscriptionStatus,
         planId: czApplications.subscriptionPlanId,
+        selectedPlanId: czPlanSelections.planId,
         phone: czApplications.contactPhone,
       })
       .from(czApplications)
+      .leftJoin(
+        czPlanSelections,
+        eq(czPlanSelections.userId, czApplications.userId)
+      )
       .where(
         and(
           inArray(czApplications.userId, ids),
@@ -99,7 +109,20 @@ export async function metricsForUsers(
           inArray(czAdvertiserPlans.userId, ids),
           gt(czAdvertiserPlans.endsAt, now)
         )
-      ),
+      )
+      .then(async (old: { userId: number; planId: string }[]) => [
+        ...old,
+        // Planes de anuncios por sección (Bienes raíces, Autos, Empleos).
+        ...(await db
+          .select({ userId: czSectionPlans.userId, planId: czSectionPlans.planId })
+          .from(czSectionPlans)
+          .where(
+            and(
+              inArray(czSectionPlans.userId, ids),
+              gt(czSectionPlans.endsAt, now)
+            )
+          )),
+      ]),
     db
       .select({
         userId: czStores.userId,
@@ -217,12 +240,20 @@ export async function metricsForUsers(
     if (a.status === "active") {
       m.active = true;
       m.upToDate = a.planId !== TRIAL_PLAN_ID;
-      if (a.planId === "mayor_visibilidad") m.featured = true;
+      // Las 5 estrellas: planes pagados con «Destacados» y, desde que se
+      // registran, las empresas medianas y grandes (también en su mes gratis).
+      if (isFeaturedPlan(a.planId)) m.featured = true;
+      if (
+        a.planId === TRIAL_PLAN_ID &&
+        (a.selectedPlanId === "mediana" || a.selectedPlanId === "grande")
+      )
+        m.featured = true;
     }
   }
   for (const a of ads) {
     const m = out.get(a.userId)!;
     m.active = true;
+    if (a.planId === TRIAL_PLAN_ID) continue;
     m.upToDate = true;
     if (a.planId === "mayor_visibilidad") m.featured = true;
   }

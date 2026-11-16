@@ -3,8 +3,9 @@ import { Check, Sparkles, Store } from "lucide-react";
 import { Link } from "wouter";
 import { VerificationStars } from "@/components/marketplace/VerificationStars";
 import {
-  sellerPlanIds,
   getSellerPlan,
+  isFeaturedPlan,
+  plansForStoreKind,
   sellerPlanLabel,
   sellerPlanAnnualLabel,
   planAmountCents,
@@ -12,15 +13,30 @@ import {
   type SellerPlanId,
 } from "@shared/pricing";
 
+/** Frase corta arriba de cada plan. */
+const kicker: Record<SellerPlanId, string> = {
+  normal: "Pymes · tu espacio para vender",
+  mayor_visibilidad: "Pymes · más exposición",
+  mediana: "Empresas medianas",
+  grande: "Grandes empresas",
+  rest_basico: "Pymes · hasta 20 platos",
+  rest_medio: "Mediana empresa · de 21 a 100 platos",
+  rest_grande: "Gran empresa · más de 100 platos",
+};
+
 export function SellerPlanCards({
   selected,
   disabled,
   onChoose,
+  storeKind,
 }: {
   selected?: SellerPlanId;
   disabled?: boolean;
   onChoose?: (id: SellerPlanId) => void;
+  /** Tipo de tienda: comercio, servicios o restaurante. */
+  storeKind?: string | null;
 }) {
+  const ids = plansForStoreKind(storeKind);
   const [cycle, setCycle] = useState<"mensual" | "anual">("mensual");
   const money = (cents: number) => `US${(cents / 100).toFixed(2)}`;
   return (
@@ -34,24 +50,22 @@ export function SellerPlanCards({
       </button>
     </div>
     <div className="plan-grid seller-plan-grid">
-      {sellerPlanIds.map(id => {
+      {ids.map(id => {
         const plan = getSellerPlan(id);
         const annual = planAmountCents(id, 12);
         const saved = plan.monthlyCents * 12 - annual;
         return (
           <article
-            className={`plan-card seller-plan-card ${id === "mayor_visibilidad" ? "plan-card--visibility" : ""} ${selected === id ? "plan-card--selected" : ""}`}
+            className={`plan-card seller-plan-card ${isFeaturedPlan(id) ? "plan-card--visibility" : ""} ${selected === id ? "plan-card--selected" : ""}`}
             key={id}
           >
             <div className="plan-kicker">
-              {id === "normal" ? (
-                <Store size={18} aria-hidden="true" />
-              ) : (
+              {isFeaturedPlan(id) ? (
                 <Sparkles size={18} aria-hidden="true" />
+              ) : (
+                <Store size={18} aria-hidden="true" />
               )}
-              {id === "normal"
-                ? "Tu espacio para vender"
-                : "Más exposición para tu negocio"}
+              {kicker[id]}
             </div>
             <h2>{plan.name}</h2>
             {cycle === "mensual" ? (
@@ -86,7 +100,7 @@ export function SellerPlanCards({
                 </li>
               ))}
             </ul>
-            {id === "mayor_visibilidad" && (
+            {isFeaturedPlan(id) && (
               <>
                 <div className="plan-stars">
                   <span>Las cinco estrellas de verificación</span>
@@ -97,10 +111,8 @@ export function SellerPlanCards({
                   confianza: más credibilidad, más ganas de comprarte.
                 </p>
                 <p className="plan-pending-note">
-                  Con Mayor Visibilidad ganas la roja. Las otras cuatro se ganan
-                  por logros: ser de los primeros, vender, tener buenas reseñas y
-                  seguir con tu plan al día. No garantiza ventas ni primer puesto
-                  permanente.
+                  Con {plan.name} se ven las cinco estrellas en tu tienda y en
+                  tus anuncios. No garantiza ventas ni primer puesto permanente.
                 </p>
               </>
             )}
@@ -141,20 +153,25 @@ export function PlanConditions() {
       className="plan-conditions"
       aria-labelledby="plan-conditions-title"
     >
-      <h2 id="plan-conditions-title">Dos opciones, una sola mensualidad</h2>
+      <h2 id="plan-conditions-title">Un solo plan, según tu tamaño</h2>
       <p>
-        El Normal permanece disponible. Cada tienda elige un plan; no se suman
-        US$19.99 y US$39.99. Cambiar tu preferencia no cambia una suscripción
-        cobrada.
+        Cada tienda elige un plan; los precios no se suman. El plan depende de
+        cuánto publicas: pymes hasta 99 productos, empresas medianas de 100 a
+        300 y grandes empresas más de 300. En servicios, el plan Normal publica
+        hasta 20 servicios y Mayor Visibilidad sin límite. En restaurantes:
+        hasta 20 platos (pyme), de 21 a 100 (mediana empresa) o más de 100
+        (gran empresa). Al llegar al tope de tu plan, para publicar más subes
+        de plan. Cambiar tu preferencia no cambia una suscripción cobrada.
       </p>
       <p>
-        La verificación de identidad es obligatoria para ambos. Las cinco
-        estrellas de verificación son del plan Mayor Visibilidad: se activan
-        al pagarlo y se ven en tu tienda y en todos tus anuncios. El plan
-        Normal no lleva estrellas. Si el plan vence, no se muestran.
+        La verificación de identidad es obligatoria para todos. Las cinco
+        estrellas de verificación son de Mayor Visibilidad (al pagarlo) y de las
+        empresas medianas y grandes (desde que se registran). Se ven en tu
+        tienda y en todos tus anuncios. Si el plan vence, no se muestran.
       </p>
       <p>
-        Con Mayor Visibilidad, tus publicaciones aparecen en la franja{" "}
+        Con Mayor Visibilidad, empresa mediana o grande, tus publicaciones
+        aparecen en la franja{" "}
         <strong>Destacados</strong> arriba del Mercado, Tiendas, Servicios y
         Eventos cuando cumplen los filtros de quien busca, identificadas como{" "}
         <strong>ubicación de pago</strong>. La franja rota cada 10 minutos entre
@@ -165,8 +182,9 @@ export function PlanConditions() {
       </p>
       <p>
         El envío e impuestos aplicables se informan por separado. La comisión
-        por venta se calcula sobre los productos y los boletos; los servicios y
-        las citas no pagan comisión.
+        por venta (10%, 5% o 3% según el plan) se calcula sobre los productos,
+        los pedidos de restaurante y los boletos; los servicios, las citas,
+        los bienes raíces, los autos y las vacantes no pagan comisión.
       </p>
     </section>
   );

@@ -190,7 +190,15 @@ export const czPlanSelections = mysqlTable("cz_plan_selections", {
     .notNull()
     .unique()
     .references(() => users.id),
-  planId: mysqlEnum("planId", ["normal", "mayor_visibilidad"]).notNull(),
+  planId: mysqlEnum("planId", [
+    "normal",
+    "mayor_visibilidad",
+    "mediana",
+    "grande",
+    "rest_basico",
+    "rest_medio",
+    "rest_grande",
+  ]).notNull(),
   catalogVersion: varchar("catalogVersion", { length: 64 }).notNull(),
   revision: int("revision").notNull().default(1),
   createdAt: timestamp("createdAt").defaultNow().notNull(),

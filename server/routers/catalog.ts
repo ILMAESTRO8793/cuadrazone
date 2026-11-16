@@ -1,4 +1,10 @@
 import { liveBanners } from "../services/siteContent";
+import { getDb } from "../db";
+import { TRPCError } from "@trpc/server";
+import { and, eq } from "drizzle-orm";
+import { czProducts } from "../../drizzle/catalog-schema";
+import { misplacedListing } from "@shared/commerceGuard";
+import { assertProductPublishQuota } from "../services/planLimits";
 import {
   featuredStores,
   listPublicStores,
@@ -29,6 +35,20 @@ import {
   slugInput,
   suggestInput,
 } from "@shared/marketplace";
+
+/** Rechaza lo que tiene su propia sección y dice dónde registrarlo. */
+function rejectMisplaced(product: {
+  title: string;
+  description?: string | null;
+  category?: string | null;
+}) {
+  const misplaced = misplacedListing(product);
+  if (misplaced)
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: misplaced.message,
+    });
+}
 
 const service = async <T>(fn: () => Promise<T>): Promise<T> => {
   try {
@@ -80,14 +100,38 @@ export const catalogRouter = router({
   ),
   saveProduct: protectedProcedure
     .input(saveProductInput)
-    .mutation(({ ctx, input }) =>
-      service(() => saveProduct(ctx.user.id, input))
-    ),
+    .mutation(({ ctx, input }) => {
+      // Comercios no acepta inmuebles, autos, vacantes ni restaurantes.
+      rejectMisplaced(input);
+      return service(() => saveProduct(ctx.user.id, input));
+    }),
   setStatus: protectedProcedure
     .input(setStatusInput)
-    .mutation(({ ctx, input }) =>
-      service(() =>
+    .mutation(async ({ ctx, input }) => {
+      // Límite de productos del plan (pymes 99, mediana 300, grande sin límite).
+      if (input.status === "published") {
+        const db = await getDb();
+        if (db) {
+          const [product] = await db
+            .select({
+              title: czProducts.title,
+              description: czProducts.description,
+              category: czProducts.category,
+            })
+            .from(czProducts)
+            .where(
+              and(
+                eq(czProducts.id, input.id),
+                eq(czProducts.ownerUserId, ctx.user.id)
+              )
+            )
+            .limit(1);
+          if (product) rejectMisplaced(product);
+          await assertProductPublishQuota(db, ctx.user.id, input.id);
+        }
+      }
+      return service(() =>
         setStatus(ctx.user.id, input.id, input.expectedRevision, input.status)
-      )
-    ),
+      );
+    }),
 });

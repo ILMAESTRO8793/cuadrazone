@@ -35,7 +35,8 @@ import { storagePut } from "../storage";
 import { validateCatalogImageBytes } from "./catalogImages";
 import { queueEmail, recipientFor } from "./email";
 import { slugify } from "./realEstate";
-import { FEATURED_PLAN_ID, pickFeatured } from "@shared/featured";
+import { isFeaturedPlan, pickFeatured } from "@shared/featured";
+import { assertStoreQuota } from "./planLimits";
 
 const PAGE_SIZE = 24;
 const IMAGE_EXT: Record<string, string> = {
@@ -175,8 +176,15 @@ export async function saveService(user: User, raw: unknown) {
   if (!v.id) {
     // Si la tienda ya puede publicar, el servicio nuevo sale publicado: antes
     // quedaba en borrador y muchos vendedores no veían el segundo botón «Publicar».
-    const canPublish =
+    // Si ya llegó al límite de servicios de su plan, queda en borrador.
+    let limitMessage: string | null = null;
+    let canPublish =
       app.status === "approved" && app.subscriptionStatus === "active";
+    if (canPublish)
+      await assertStoreQuota(db, user.id, "service").catch((error: unknown) => {
+        canPublish = false;
+        limitMessage = error instanceof Error ? error.message : null;
+      });
     const inserted = await db.insert(czServices).values({
       storeId: store.id,
       userId: user.id,
@@ -194,7 +202,7 @@ export async function saveService(user: User, raw: unknown) {
       .update(czServices)
       .set({ slug: `${slugify(v.title)}-${id}` })
       .where(eq(czServices.id, id));
-    return { id, published: canPublish };
+    return { id, published: canPublish, limitMessage };
   }
   const current = await ownService(db, user.id, v.id);
   if (
@@ -249,6 +257,8 @@ export async function setServiceStatus(
         "PRECONDITION_FAILED",
         "Tu plan no está activo. Renuévalo para publicar."
       );
+    if (row.status !== "published")
+      await assertStoreQuota(db, user.id, "service", { excludeId: id });
   }
   await db
     .update(czServices)
@@ -348,7 +358,7 @@ export async function publicServices(filters: ServiceFilters) {
     .limit(1000);
   const q = filters.q?.toLowerCase();
   const featuredIds = new Set(
-    rows.filter((r: any) => r.planId === FEATURED_PLAN_ID).map((r: any) => r.service.id)
+    rows.filter((r: any) => isFeaturedPlan(r.planId)).map((r: any) => r.service.id)
   );
   const visible = rows
     .map((r: any) => dto(r.service, r.store, r.phone))

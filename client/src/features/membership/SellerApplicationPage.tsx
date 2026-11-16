@@ -163,11 +163,18 @@ function SellerApplicationContent() {
   // Una solicitud nueva debe elegir explícitamente qué vende.
   const [kindChosen, setKindChosen] = useState(false);
   const kindReady = Boolean(app) || kindChosen;
-  const kindProblem = kindReady ? storeKindError(form) : "Elige si tu tienda es de comercio o de servicios";
-  const chooseKind = (kind: "comercio" | "servicios") => {
+  const kindProblem = kindReady ? storeKindError(form) : "Elige si tu tienda es de comercio, de servicios o un restaurante";
+  const chooseKind = (kind: "comercio" | "servicios" | "restaurante") => {
     setKindChosen(true);
     setForm(current => ({ ...current, storeKind: kind, businessCategories: kind === "servicios" ? current.businessCategories : [], productCategories: kind === "comercio" ? current.productCategories : [] }));
   };
+  // «Registra tu restaurante» llega con ?tipo=restaurante: ya viene elegido.
+  useEffect(() => {
+    if (app || kindChosen) return;
+    const tipo = new URLSearchParams(window.location.search).get("tipo");
+    if (tipo === "restaurante" || tipo === "comercio" || tipo === "servicios") chooseKind(tipo);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [app]);
   const hasUnsavedChanges = Boolean(
     app &&
       (!parsedForm.success ||
@@ -312,7 +319,7 @@ function SellerApplicationContent() {
       await utils.membership.me.invalidate();
       if (result.status === "approved")
         toast.success("¡Tu tienda fue aprobada!", {
-          description: "Todo coincide. Ya tienes tus 3 meses gratis: prepara tu tienda.",
+          description: "Todo coincide. Ya tienes tu tiempo gratis: prepara tu tienda.",
           duration: 12000,
         });
       else
@@ -394,7 +401,7 @@ function SellerApplicationContent() {
             <span> {REVIEW_RESPONSE_MESSAGE} La solicitud queda bloqueada mientras la revisamos.</span>
           )}
           {app.status === "approved" &&
-            " Tu tienda se activó con 3 meses gratis. Revisa los detalles en Mi tienda."}
+            " Tu tienda se activó con tu tiempo gratis. Revisa los detalles en Mi tienda."}
           {app.status === "rejected" && app.reviewReason && (
             <span> Motivo: {app.reviewReason}</span>
           )}
@@ -587,12 +594,13 @@ function SellerApplicationContent() {
           <div className="member-business-classification">
             <div className="member-field-heading">
               <span className="member-field-title">¿Qué vas a vender? <b>(elige uno)</b></span>
-              <small>Una tienda es de comercio o de servicios, no de los dos. Si después quieres ofrecer lo otro, podrás abrir otra tienda.</small>
+              <small>Una tienda es de comercio, de servicios o un restaurante, no de varios a la vez. Las casas, autos y vacantes de empleo no necesitan tienda: se publican en Bienes raíces, Autos y Empleos.</small>
             </div>
             <div className="kind-choices" role="radiogroup" aria-label="Tipo de tienda">
               {([
-                ["comercio", "Comercio", "Cosas tangibles: ropa, artesanías, comida, tecnología, libros… Con fotos y videos, inventario y envíos."],
+                ["comercio", "Comercio", "Cosas tangibles: ropa, artesanías, repostería, tecnología, libros… Con fotos y videos, inventario y envíos. No incluye restaurantes, casas, autos ni vacantes."],
                 ["servicios", "Servicios", "Lo que haces para otros: clases, plomería, consultas, eventos, diseño… Sin envíos: el cliente te solicita y coordinan."],
+                ["restaurante", "Restaurante", "Tu menú con platos, tamaños y extras, y pedidos a domicilio. Planes según cuántos platos tengas."],
               ] as const).map(([kind, title, text]) => (
                 <button
                   key={kind}

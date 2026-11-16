@@ -7,6 +7,7 @@ import express, { type Express, type Request, type Response } from "express";
 import { randomUUID } from "node:crypto";
 import { TRPCError } from "@trpc/server";
 import { and, eq, inArray } from "drizzle-orm";
+import { FEATURED_PLAN_IDS, isFeaturedPlan } from "@shared/pricing";
 import { czStores } from "../../drizzle/catalog-schema";
 import { czApplications, type User } from "../../drizzle/schema";
 import { czStoreBranding } from "../../drizzle/branding-schema";
@@ -36,7 +37,7 @@ async function requireDb() {
 const featuredWhere = and(
   eq(czApplications.status, "approved"),
   eq(czApplications.subscriptionStatus, "active"),
-  eq(czApplications.subscriptionPlanId, "mayor_visibilidad")
+  inArray(czApplications.subscriptionPlanId, FEATURED_PLAN_IDS)
 );
 
 /** La tienda del usuario y si su plan Mayor Visibilidad está vigente. */
@@ -56,7 +57,7 @@ async function myStore(userId: number) {
     db,
     store: store ?? null,
     eligible:
-      store?.planId === "mayor_visibilidad" && store.status === "active",
+      isFeaturedPlan(store?.planId) && store?.status === "active",
   };
 }
 

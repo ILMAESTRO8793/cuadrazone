@@ -59,7 +59,7 @@ import {
   czReviews,
 } from "../../drizzle/commerce-schema";
 import { getDb } from "../db";
-import { FEATURED_PLAN_ID, pickFeatured } from "@shared/featured";
+import { FEATURED_PLAN_IDS, pickFeatured } from "@shared/featured";
 
 export class CatalogError extends Error {
   constructor(
@@ -650,7 +650,8 @@ export async function getPublicStore(
         eq(czStores.slug, slug),
         eq(czApplications.status, "approved"),
         eq(czApplications.subscriptionStatus, "active"),
-        eq(czStores.storeKind, "comercio"),
+        // La página de la tienda también sirve a los restaurantes (su menú).
+        inArray(czStores.storeKind, ["comercio", "restaurante"]),
         isNotNull(czMembershipProfiles.emailVerifiedAt),
         eq(czApplications.contactEmail, czMembershipProfiles.email),
         eq(czApplications.contactPhone, czMembershipProfiles.phone)
@@ -861,7 +862,11 @@ export async function saveStore(userId: number, input: SaveStoreInput) {
       "Crea una solicitud de vendedor antes de crear la tienda"
     );
   // Una tienda de servicios no tiene envíos: se guardan vacíos aunque lleguen datos.
-  const storeKind = readiness.application.storeKind === "servicios" ? "servicios" : "comercio";
+  const storeKind = readiness.application.storeKind === "servicios"
+      ? "servicios"
+      : readiness.application.storeKind === "restaurante"
+        ? "restaurante"
+        : "comercio";
   const values =
     storeKind === "servicios"
       ? { ...parsed, storeKind, shippingFeesByProvince: null, deliveryProvinces: [], shippingFeeCents: null, homeFeeCents: null }
@@ -1129,6 +1134,12 @@ export async function saveProduct(
         "Debes tener perfil y solicitud de vendedor para guardar publicaciones"
       );
     // Los productos (cosas tangibles) son solo para tiendas de comercio.
+    // Los restaurantes publican sus platos en «Mi menú».
+    if (readiness.application.storeKind === "restaurante")
+      throw new CatalogError(
+        "PRECONDITION_FAILED",
+        "Tu tienda es un restaurante: publica tus platos en «Mi menú», no productos"
+      );
     if (readiness.application.storeKind === "servicios")
       throw new CatalogError("PRECONDITION_FAILED", "Tu tienda es de servicios: publica servicios, no productos");
     const previousCategory =
@@ -1481,7 +1492,7 @@ export async function featuredProducts(
     eq(czProducts.status, "published"),
     eq(czApplications.status, "approved"),
     eq(czApplications.subscriptionStatus, "active"),
-    eq(czApplications.subscriptionPlanId, FEATURED_PLAN_ID),
+    inArray(czApplications.subscriptionPlanId, FEATURED_PLAN_IDS),
     eq(czStores.storeKind, "comercio"),
     isNotNull(czMembershipProfiles.emailVerifiedAt),
     eq(czApplications.contactEmail, czMembershipProfiles.email),

@@ -2,6 +2,7 @@ import {
   and,
   desc,
   eq,
+  inArray,
   isNotNull,
   like,
   lt,
@@ -12,7 +13,7 @@ import {
 import { czStores } from "../../drizzle/catalog-schema";
 import { czApplications, czMembershipProfiles } from "../../drizzle/schema";
 import { getDb } from "../db";
-import { FEATURED_PLAN_ID, pickFeatured } from "@shared/featured";
+import { FEATURED_PLAN_IDS, pickFeatured } from "@shared/featured";
 import { CatalogError } from "./catalog";
 import {
   businessCategories,
@@ -189,7 +190,7 @@ export async function featuredStores(
     .where(
       and(
         ...directoryConditions(input),
-        eq(czApplications.subscriptionPlanId, FEATURED_PLAN_ID)
+        inArray(czApplications.subscriptionPlanId, FEATURED_PLAN_IDS)
       )
     )
     .orderBy(desc(czStores.id))

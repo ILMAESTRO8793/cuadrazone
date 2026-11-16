@@ -3,7 +3,8 @@
  * las de Mayor Visibilidad) o productos y servicios publicados.
  */
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq, like, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, like, or, sql } from "drizzle-orm";
+import { FEATURED_PLAN_IDS } from "@shared/pricing";
 import { czProducts, czServices, czStores } from "../../drizzle/catalog-schema";
 import { czApplications } from "../../drizzle/schema";
 import type { PromoCandidate } from "@shared/showcase";
@@ -26,9 +27,9 @@ export async function adminPromoCandidates(input: {
     eq(czApplications.subscriptionStatus, "active")
   );
   const onlyFeatured = input.onlyFeatured
-    ? eq(czApplications.subscriptionPlanId, "mayor_visibilidad")
+    ? inArray(czApplications.subscriptionPlanId, FEATURED_PLAN_IDS)
     : undefined;
-  const featuredSql = sql<number>`case when ${czApplications.subscriptionPlanId} = 'mayor_visibilidad' then 1 else 0 end`;
+  const featuredSql = sql<number>`case when ${czApplications.subscriptionPlanId} in ('mayor_visibilidad', 'mediana', 'grande') then 1 else 0 end`;
   const price = (c: number | null) =>
     c ? `US$${(c / 100).toFixed(2)} · ` : "";
 
@@ -54,7 +55,7 @@ export async function adminPromoCandidates(input: {
       key: `tienda-${r.id}`,
       kind: "tienda" as const,
       title: r.name,
-      subtitle: `${r.kind === "servicios" ? "Servicios" : "Comercio"} · ${r.province}`,
+      subtitle: `${r.kind === "servicios" ? "Servicios" : r.kind === "restaurante" ? "Restaurante" : "Comercio"} · ${r.province}`,
       imageUrl: r.logoUrl ?? null,
       linkUrl: `/tiendas/${r.slug}`,
       storeId: r.id,

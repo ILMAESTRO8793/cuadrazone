@@ -18,7 +18,7 @@ describe("estado del vendedor", () => {
       "Aprobado · prueba gratis hasta el 5 de febrero de 2027"
     );
     expect(s.notice).toMatch(/vence el 5 de febrero de 2027/);
-    expect(s.notice).toMatch(/no pagas mensualidad, solo la comisión/);
+    expect(s.notice).toMatch(/no pagas mensualidad ni comisión/);
     expect(s.label).not.toMatch(/pendiente/);
   });
   it("pagado y activo muestra hasta cuándo", () => {

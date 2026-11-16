@@ -5,6 +5,7 @@ import {
   planCommissionBps,
   sellerPlanLabel,
   TRIAL_MONTHS,
+  trialOfferLabel,
   TRIAL_PLAN_ID,
 } from "@shared/pricing";
 import { Link } from "wouter";
@@ -191,10 +192,10 @@ export function SellerStatusPage() {
           )}
           {app?.status === "approved" && <SellerBilling />}
           <p>
-            Los primeros {TRIAL_MONTHS} meses desde tu aprobación son gratis y
-            sin comisión; después, mensualidad del plan y comisión por venta de
-            productos: 10% con Normal y 5% con Mayor Visibilidad. Los servicios
-            no pagan comisión.
+            Tu tiempo gratis empieza al ser aprobado y no tiene comisión:{" "}
+            {trialOfferLabel().toLowerCase()}. Después pagas la mensualidad del
+            plan y, en productos y pedidos de restaurante, la comisión de tu
+            plan (10%, 5% o 3%). Los servicios no pagan comisión.
           </p>
         </section>
       </div>

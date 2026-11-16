@@ -1,14 +1,12 @@
 // Bienes raíces. Cualquier persona con cuenta puede crear anuncios; para
-// publicarlos necesita un plan activo: el de su tienda (incluida la prueba
-// gratis) o un plan de anunciante pagado. Con Mayor Visibilidad los anuncios
-// salen primero y como «Destacado». Si el plan vence, los anuncios dejan de
+// publicarlos necesita el plan de Bienes raíces (ver sectionPlans.ts): la
+// primera vez empieza su mes gratis. Si el plan vence, los anuncios dejan de
 // mostrarse sin borrarse.
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, gt, inArray } from "drizzle-orm";
+import { and, desc, eq, ne, sql } from "drizzle-orm";
 import express, { type Express, type Request, type Response } from "express";
-import { czAdvertiserPayments, czAdvertiserPlans, czProperties } from "../../drizzle/catalog-schema";
-import { czApplications, users, type User } from "../../drizzle/schema";
-import { getSellerPlan, sellerPlanIds, type SellerPlanId } from "@shared/pricing";
+import { czProperties } from "../../drizzle/catalog-schema";
+import type { User } from "../../drizzle/schema";
 import {
   MAX_PROPERTY_IMAGES,
   savePropertyInput,
@@ -21,7 +19,7 @@ import { sdk } from "../_core/sdk";
 import { getDb } from "../db";
 import { storagePut } from "../storage";
 import { validateCatalogImageBytes } from "./catalogImages";
-import { addMonths, validateReceipt, isDuplicateKeyError, type PaymentMethod } from "./subscriptions";
+import { NO_PLAN, assertCanPublish, publishPlans } from "./sectionPlans";
 
 const PAGE_SIZE = 24;
 const IMAGE_EXT: Record<string, string> = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" };
@@ -47,36 +45,6 @@ export function slugify(text: string) {
     .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 120) || "anuncio";
 }
 
-// ───────────── Plan activo ─────────────
-
-export type PublishPlan = { active: boolean; featured: boolean; source: "store" | "advertiser" | null; planId: string | null; endsAt: string | null };
-
-/** Plan con el que cada usuario puede publicar, para varios usuarios a la vez. */
-export async function publishPlans(db: any, userIds: number[], now = new Date()): Promise<Map<number, PublishPlan>> {
-  const plans = new Map<number, PublishPlan>();
-  if (!userIds.length) return plans;
-  const stores = await db
-    .select({ userId: czApplications.userId, planId: czApplications.subscriptionPlanId, endsAt: czApplications.subscriptionEndsAt })
-    .from(czApplications)
-    .where(and(inArray(czApplications.userId, userIds), eq(czApplications.subscriptionStatus, "active"), gt(czApplications.subscriptionEndsAt, now)));
-  const ads = await db
-    .select({ userId: czAdvertiserPlans.userId, planId: czAdvertiserPlans.planId, endsAt: czAdvertiserPlans.endsAt })
-    .from(czAdvertiserPlans)
-    .where(and(inArray(czAdvertiserPlans.userId, userIds), gt(czAdvertiserPlans.endsAt, now)));
-  for (const row of [...stores.map((r: any) => ({ ...r, source: "store" as const })), ...ads.map((r: any) => ({ ...r, source: "advertiser" as const }))]) {
-    const current = plans.get(row.userId);
-    const featured = row.planId === "mayor_visibilidad";
-    // Si tiene ambos, vale el mejor: destacado gana.
-    if (!current || (featured && !current.featured))
-      plans.set(row.userId, { active: true, featured, source: row.source, planId: row.planId, endsAt: new Date(row.endsAt).toISOString() });
-  }
-  return plans;
-}
-
-export async function myPublishPlan(userId: number): Promise<PublishPlan> {
-  const db = await requireDb();
-  return (await publishPlans(db, [userId])).get(userId) ?? { active: false, featured: false, source: null, planId: null, endsAt: null };
-}
 
 // ───────────── Formato ─────────────
 
@@ -173,7 +141,7 @@ export async function saveProperty(user: User, raw: unknown): Promise<OwnPropert
   if (!parsed.success) fail("BAD_REQUEST", parsed.error.issues[0]?.message ?? "Datos inválidos");
   const input = parsed.data;
   const db = await requireDb();
-  const plan = (await publishPlans(db, [user.id])).get(user.id);
+  const plan = (await publishPlans(db, [user.id], "inmuebles")).get(user.id);
   if (!input.id) {
     const inserted = await db.insert(czProperties).values({ userId: user.id, slug: `tmp-${crypto.randomUUID()}`, ...columns(input), images: [] });
     const id = Number((Array.isArray(inserted) ? inserted[0] : inserted).insertId);
@@ -195,9 +163,12 @@ export async function setPropertyStatus(user: User, id: number, status: "publish
   const db = await requireDb();
   const row = await ownProperty(db, user.id, id);
   if (status === "published") {
-    const plan = (await publishPlans(db, [user.id])).get(user.id);
-    if (!plan?.active)
-      fail("PRECONDITION_FAILED", "Para publicar necesitas un plan activo (Normal o Mayor Visibilidad). Escríbenos para activarlo.");
+    // Mes gratis la primera vez, plan vigente y sin pasar el límite del plan.
+    const published = await db
+      .select({ n: sql<number>`count(*)` })
+      .from(czProperties)
+      .where(and(eq(czProperties.userId, user.id), eq(czProperties.status, "published"), ne(czProperties.id, id)));
+    await assertCanPublish(db, user.id, "inmuebles", Number(published[0]?.n ?? 0));
     if (!jsonList(row.images).length) fail("PRECONDITION_FAILED", "Agrega al menos una foto antes de publicar.");
   }
   await db
@@ -216,7 +187,7 @@ export async function deleteProperty(user: User, id: number) {
 
 export async function myProperties(user: User) {
   const db = await requireDb();
-  const plan = (await publishPlans(db, [user.id])).get(user.id) ?? { active: false, featured: false, source: null, planId: null, endsAt: null };
+  const plan = (await publishPlans(db, [user.id], "inmuebles")).get(user.id) ?? NO_PLAN;
   const rows = await db.select().from(czProperties).where(eq(czProperties.userId, user.id)).orderBy(desc(czProperties.updatedAt)).limit(200);
   return { plan, properties: rows.map((r: any) => toOwnDTO(r, plan.featured)) };
 }
@@ -230,7 +201,7 @@ export async function publicProperties(filters: PropertyFilters) {
   if (filters.propertyType) conditions.push(eq(czProperties.propertyType, filters.propertyType));
   if (filters.province) conditions.push(eq(czProperties.province, filters.province));
   const rows = await db.select().from(czProperties).where(and(...conditions)).orderBy(desc(czProperties.publishedAt)).limit(1000);
-  const plans = await publishPlans(db, [...new Set<number>(rows.map((r: any) => r.userId))]);
+  const plans = await publishPlans(db, [...new Set<number>(rows.map((r: any) => r.userId))], "inmuebles");
   const q = filters.q?.toLowerCase();
   const visible = rows
     // Solo anunciantes con plan activo.
@@ -253,7 +224,7 @@ export async function publicProperty(slug: string) {
   const db = await requireDb();
   const rows = await db.select().from(czProperties).where(and(eq(czProperties.slug, slug), eq(czProperties.status, "published"))).limit(1);
   const row = rows[0];
-  const plan = row ? (await publishPlans(db, [row.userId])).get(row.userId) : undefined;
+  const plan = row ? (await publishPlans(db, [row.userId], "inmuebles")).get(row.userId) : undefined;
   if (!row || !plan?.active) fail("NOT_FOUND", "Este anuncio ya no está disponible");
   return toDTO(row, plan.featured);
 }
@@ -286,57 +257,3 @@ export function registerPropertyImageRoutes(app: Express) {
   app.post("/api/properties/:id/images", express.raw({ type: () => true, limit: 5 * 1024 * 1024 }), uploadImage);
 }
 
-// ───────────── Plan de anunciante (administrador) ─────────────
-
-export async function adminAdvertiserPlans() {
-  const db = await requireDb();
-  const rows = await db
-    .select({ userId: czAdvertiserPlans.userId, planId: czAdvertiserPlans.planId, endsAt: czAdvertiserPlans.endsAt, email: users.email, name: users.name, phone: users.phone })
-    .from(czAdvertiserPlans)
-    .leftJoin(users, eq(users.id, czAdvertiserPlans.userId))
-    .orderBy(desc(czAdvertiserPlans.endsAt))
-    .limit(500);
-  const now = new Date();
-  return rows.map((r: any) => ({ ...r, endsAt: new Date(r.endsAt).toISOString(), active: new Date(r.endsAt) > now }));
-}
-
-export async function adminRecordAdvertiserPayment(
-  admin: User,
-  input: { account: string; planId: SellerPlanId; months: number; amountCents: number; method: PaymentMethod; reference: string; paidOn: string; note: string }
-) {
-  const receipt = validateReceipt(input, new Date());
-  if (!(sellerPlanIds as readonly string[]).includes(input.planId)) fail("BAD_REQUEST", "Plan no válido");
-  if (!Number.isInteger(input.months) || input.months < 1 || input.months > 12) fail("BAD_REQUEST", "Entre 1 y 12 meses");
-  const expected = getSellerPlan(input.planId).monthlyCents * input.months;
-  if (input.amountCents !== expected) fail("BAD_REQUEST", `El monto debe ser US$${(expected / 100).toFixed(2)} (${input.months} × plan)`);
-  const db = await requireDb();
-  const account = input.account.trim().toLowerCase();
-  const phone = account.replace(/\D/g, "");
-  const found = await db
-    .select({ id: users.id })
-    .from(users)
-    .where(account.includes("@") ? eq(users.email, account) : eq(users.phone, phone.length === 8 ? `+507${phone}` : `+${phone}`))
-    .limit(1);
-  if (!found[0]) fail("NOT_FOUND", "No hay ninguna cuenta con ese correo o celular. La persona debe entrar a CuadraZone primero.");
-  const userId = found[0].id;
-  try {
-    return await db.transaction(async (tx: any) => {
-      const current = await tx.select().from(czAdvertiserPlans).where(eq(czAdvertiserPlans.userId, userId)).limit(1);
-      const now = new Date();
-      const base = current[0] && new Date(current[0].endsAt) > now ? new Date(current[0].endsAt) : now;
-      const periodEnd = addMonths(base, input.months);
-      await tx.insert(czAdvertiserPayments).values({
-        userId, planId: input.planId, months: input.months, amountCents: expected, method: receipt.method,
-        reference: receipt.reference || null, paidOn: receipt.paidOn, periodEnd, recordedBy: admin.id,
-      });
-      await tx
-        .insert(czAdvertiserPlans)
-        .values({ userId, planId: input.planId, endsAt: periodEnd })
-        .onDuplicateKeyUpdate({ set: { planId: input.planId, endsAt: periodEnd } });
-      return { userId, planId: input.planId, endsAt: periodEnd.toISOString() };
-    });
-  } catch (error) {
-    if (isDuplicateKeyError(error)) fail("CONFLICT", "Ese comprobante ya fue registrado");
-    throw error;
-  }
-}

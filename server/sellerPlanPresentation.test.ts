@@ -6,7 +6,18 @@ import { SELLER_PLANS, SELLER_MONTHLY_FEE_CENTS, sellerPlanIds, selectSellerPlan
 
 describe("Oferta de dos planes", () => {
   it("keeps Normal as its own plan and exact prices in cents", () => {
-    expect(sellerPlanIds).toEqual(["normal", "mayor_visibilidad"]);
+    expect(sellerPlanIds).toEqual([
+      "normal",
+      "mayor_visibilidad",
+      "mediana",
+      "grande",
+      "rest_basico",
+      "rest_medio",
+      "rest_grande",
+    ]);
+    expect(SELLER_PLANS.mediana.monthlyCents).toBe(7999);
+    expect(SELLER_PLANS.grande.monthlyCents).toBe(15999);
+    expect(SELLER_PLANS.rest_basico.monthlyCents).toBe(4999);
     expect(SELLER_PLANS.normal.monthlyCents).toBe(1999);
     expect(SELLER_PLANS.mayor_visibilidad.monthlyCents).toBe(3999);
     expect(SELLER_MONTHLY_FEE_CENTS).toBe(1999);
@@ -15,7 +26,7 @@ describe("Oferta de dos planes", () => {
   });
   it("shows both plans with buyer free, links and honest pending benefits", () => {
     const html = renderPage("/suscripciones").html;
-    for (const value of ["Normal", "Mayor Visibilidad", "US$19.99", "US$39.99", "Gratis", "no se suman", "Destacado — ubicación de pago", "cinco estrellas de verificación", "3 meses gratis", "/vendedor/plan?plan=normal", "/vendedor/plan?plan=mayor_visibilidad"]) expect(html).toContain(value);
+    for (const value of ["Normal", "Mayor Visibilidad", "US$19.99", "US$39.99", "Gratis", "no se suman", "Destacado — ubicación de pago", "cinco estrellas de verificación", "1 de febrero de 2027", "Empresa mediana", "Gran empresa", "Restaurantes", "/vendedor/plan?plan=normal", "/vendedor/plan?plan=mayor_visibilidad"]) expect(html).toContain(value);
     expect(html).not.toContain("US$59.98");
     expect(html).not.toContain("USD 2.99");
   });
@@ -23,7 +34,6 @@ describe("Oferta de dos planes", () => {
     for (const route of ["/", "/vender"]) {
       const html = renderPage(route).html;
       expect(html).toContain("19.99");
-      expect(html).toContain("39.99");
       expect(html).toContain("/assets/logo-cuadrazone.png");
     }
   });

@@ -5,7 +5,7 @@
  * publicado.
  */
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, gt } from "drizzle-orm";
+import { and, desc, eq, gt, inArray } from "drizzle-orm";
 import { czProducts, czServices, czStores } from "../../drizzle/catalog-schema";
 import { czApplications } from "../../drizzle/schema";
 import {
@@ -13,7 +13,7 @@ import {
   czServicePubProducts,
   czServicePubServices,
 } from "../../drizzle/servicepub-schema";
-import { FEATURED_PLAN_ID } from "@shared/featured";
+import { FEATURED_PLAN_IDS } from "@shared/featured";
 import { getDb } from "../db";
 
 function fail(code: TRPCError["code"], message: string): never {
@@ -60,7 +60,7 @@ export async function publicFeaturedPicks(now = new Date()) {
         eq(czProducts.status, "published"),
         eq(czStores.storeKind, "comercio"),
         eq(czApplications.subscriptionStatus, "active"),
-        eq(czApplications.subscriptionPlanId, FEATURED_PLAN_ID),
+        inArray(czApplications.subscriptionPlanId, FEATURED_PLAN_IDS),
         eq(czServicePub.status, "active"),
         gt(czServicePub.activeUntil, now)
       )
@@ -160,7 +160,7 @@ export async function publicFeaturedServices(now = new Date()) {
         eq(czServices.status, "published"),
         eq(czStores.storeKind, "servicios"),
         eq(czApplications.subscriptionStatus, "active"),
-        eq(czApplications.subscriptionPlanId, FEATURED_PLAN_ID),
+        inArray(czApplications.subscriptionPlanId, FEATURED_PLAN_IDS),
         eq(czServicePub.status, "active"),
         gt(czServicePub.activeUntil, now)
       )

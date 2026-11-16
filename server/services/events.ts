@@ -56,7 +56,7 @@ import { storagePut } from "../storage";
 import { validateCatalogImageBytes } from "./catalogImages";
 import { queueEmail, recipientFor } from "./email";
 import { slugify } from "./realEstate";
-import { FEATURED_PLAN_ID, pickFeatured } from "@shared/featured";
+import { isFeaturedPlan, pickFeatured } from "@shared/featured";
 
 const PAGE_SIZE = 24;
 const IMAGE_EXT: Record<string, string> = {
@@ -1089,7 +1089,7 @@ export async function publicEvents(filters: EventFilters) {
   const pageRows = matching.slice(start, start + PAGE_SIZE);
   // Mayor Visibilidad: franja superior con los eventos que cumplen los filtros.
   const featuredRows = pickFeatured(
-    matching.filter((r: any) => r.planId === FEATURED_PLAN_ID),
+    matching.filter((r: any) => isFeaturedPlan(r.planId)),
     (r: any) => r.store.id as number
   );
   const types = await ticketTypesFor(db, [

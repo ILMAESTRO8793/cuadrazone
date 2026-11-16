@@ -32,6 +32,9 @@ vi.mock("./db", () => ({
   }),
 }));
 
+// El límite de servicios del plan se prueba aparte.
+vi.mock("./services/planLimits", () => ({ assertStoreQuota: async () => {} }));
+
 const input = {
   title: "Clases de inglés conversacional",
   description: "Clases en línea para adultos, nivel básico a avanzado.",
@@ -64,7 +67,7 @@ describe("publicar un servicio nuevo", () => {
     expect(parsed.success, JSON.stringify(parsed.error?.issues)).toBe(true);
     const { saveService } = await import("./services/serviceListings");
     const result = await saveService(user, input);
-    expect(result).toEqual({ id: 7, published: true });
+    expect(result).toEqual({ id: 7, published: true, limitMessage: null });
     expect(inserted.status).toBe("published");
     expect(inserted.publishedAt).toBeInstanceOf(Date);
   });
@@ -76,7 +79,7 @@ describe("publicar un servicio nuevo", () => {
     };
     const { saveService } = await import("./services/serviceListings");
     const result = await saveService(user, input);
-    expect(result).toEqual({ id: 7, published: false });
+    expect(result).toEqual({ id: 7, published: false, limitMessage: null });
     expect(inserted.status).toBeUndefined();
   });
 });
