@@ -10,6 +10,7 @@ import {
 import {
   deleteMenuItem,
   featuredDishes,
+  publicRestaurants,
   deleteSection,
   myMenu,
   publicMenu,
@@ -46,6 +47,7 @@ export const menuRouter = router({
     )
     .query(({ input }) => publicMenu(input.slug)),
   dishes: publicProcedure.query(() => featuredDishes(12)),
+  restaurants: publicProcedure.query(() => publicRestaurants()),
   mine: protectedProcedure.query(({ ctx }) => myMenu(ctx.user.id)),
   saveRestaurant: protectedProcedure
     .input(saveRestaurantInput)

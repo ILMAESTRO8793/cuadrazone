@@ -3,25 +3,54 @@ import { isPublicPath, loginRedirectFor } from "../shared/accessGate";
 import { footerLegalLinks } from "../client/src/data/legal";
 
 describe("acceso con cuenta", () => {
-  it("solo deja ver sin sesión la entrada, la ayuda y los documentos legales", () => {
-    expect(isPublicPath("/entrar")).toBe(true);
-    expect(isPublicPath("/ayuda")).toBe(true);
-    for (const link of footerLegalLinks)
-      expect(isPublicPath(link.href)).toBe(true);
+  it("la web es libre: se ve sin cuenta", () => {
     for (const path of [
       "/",
+      "/entrar",
+      "/ayuda",
       "/mercado",
       "/servicios",
+      "/servicio/clase-de-ingles",
+      "/articulo/esmoquin",
+      "/tiendas",
+      "/tiendas/algo",
       "/autos",
+      "/autos/toyota-2020",
       "/bienes-raices",
       "/empleos",
+      "/empleos/cajero",
+      "/eventos",
       "/vender",
-      "/tiendas/algo",
-      "/legal",
-      "/entrar/otra",
-    ]) {
+      "/suscripciones",
+    ])
+      expect(isPublicPath(path), path).toBe(true);
+    for (const link of footerLegalLinks)
+      expect(isPublicPath(link.href)).toBe(true);
+  });
+
+  it("las páginas personales siguen pidiendo iniciar sesión", () => {
+    for (const path of [
+      "/mi-cuenta",
+      "/mi-carrito",
+      "/comprar",
+      "/checkout",
+      "/pedidos",
+      "/pedidos/12",
+      "/mensajes",
+      "/notificaciones",
+      "/mis-boletos",
+      "/despachador",
+      "/solicitud-vendedor",
+      "/vendedor",
+      "/vendedor/productos",
+      "/admin",
+      "/admin/despachadores",
+      "/autos/mis-anuncios",
+      "/bienes-raices/mis-anuncios",
+      "/empleos/mi-cv",
+      "/empleos/mis-vacantes",
+    ])
       expect(isPublicPath(path), path).toBe(false);
-    }
   });
 
   it("manda a /entrar recordando la página pedida", () => {

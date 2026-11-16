@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { eventFiltersInput, eventStatuses } from "@shared/events";
-import { protectedProcedure, router } from "../_core/trpc";
+import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import {
   cancelOrder,
   eventAttendance,
@@ -28,12 +28,12 @@ function csrf(ctx: {
 }
 const id = z.object({ id: z.number().int().positive() }).strict();
 
-// Todo el sitio exige cuenta, así que también la lista pública usa protectedProcedure.
+// La web es libre: la lista y el detalle de eventos se ven sin cuenta.
 export const eventsRouter = router({
-  list: protectedProcedure
+  list: publicProcedure
     .input(eventFiltersInput)
     .query(({ input }) => publicEvents(input)),
-  detail: protectedProcedure
+  detail: publicProcedure
     .input(z.object({ slug: z.string().min(1).max(180) }).strict())
     .query(({ input }) => publicEvent(input.slug)),
   reserve: protectedProcedure

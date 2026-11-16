@@ -390,3 +390,49 @@ export async function featuredDishes(limit = 12) {
     province: r.province,
   }));
 }
+
+/** Página /restaurantes: restaurantes con menú activo y plan al día. */
+export async function publicRestaurants(now = new Date()) {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db
+    .select({
+      storeId: czStores.id,
+      name: czStores.name,
+      slug: czStores.slug,
+      logoUrl: czStores.logoUrl,
+      province: czStores.province,
+      city: czStores.city,
+      prepMinutes: czRestaurants.prepMinutes,
+      hours: czRestaurants.hours,
+    })
+    .from(czRestaurants)
+    .innerJoin(czStores, eq(czStores.id, czRestaurants.storeId))
+    .innerJoin(czApplications, eq(czApplications.userId, czStores.userId))
+    .where(
+      and(
+        eq(czRestaurants.enabled, 1),
+        eq(czApplications.subscriptionStatus, "active")
+      )
+    )
+    .limit(200);
+  // Foto: la del primer plato disponible con foto.
+  const photos = await db
+    .select({ storeId: czMenuItems.storeId, imageUrl: czMenuItems.imageUrl })
+    .from(czMenuItems)
+    .where(eq(czMenuItems.available, 1));
+  const photoOf = new Map<number, string>();
+  for (const p of photos) if (p.imageUrl && !photoOf.has(p.storeId)) photoOf.set(p.storeId, p.imageUrl);
+  return rows
+    .map(r => ({
+      name: r.name,
+      slug: r.slug,
+      logoUrl: r.logoUrl ?? null,
+      province: r.province,
+      city: r.city,
+      prepMinutes: r.prepMinutes,
+      photoUrl: photoOf.get(r.storeId) ?? null,
+      status: openStatus(hoursOf(r.hours), now),
+    }))
+    .sort((a, b) => Number(b.status.open) - Number(a.status.open));
+}

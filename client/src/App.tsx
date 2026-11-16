@@ -1,3 +1,4 @@
+import { RestaurantsPage } from "./features/restaurant/RestaurantsPage";
 import { MenuEditorPage } from "./features/restaurant/MenuEditorPage";
 import { DispatcherPage } from "./features/dispatch/DispatcherPage";
 import { StoreDirectoryPage } from "./features/commerce/StoreDirectoryPage";
@@ -154,6 +155,7 @@ function Router() {
         <Route path="/vendedor/escanear/:id">
           {p => <SellerAccessGate><TicketScannerPage key={p.id} eventId={Number(p.id)} /></SellerAccessGate>}
         </Route>
+        <Route path="/restaurantes" component={RestaurantsPage} />
         <Route path="/servicios" component={ServiceListPage} />
         <Route path="/producto/:slug">
           {params => <DetailPage slug={params.slug} key={params.slug} />}

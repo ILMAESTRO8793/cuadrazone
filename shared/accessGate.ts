@@ -1,19 +1,23 @@
 /*
- * Acceso con cuenta: para ver CuadraZone hay que iniciar sesión (con correo,
- * celular o Google). Solo quedan abiertas la página de entrada, la ayuda y los
- * documentos legales, que se deben poder leer antes de crear la cuenta.
+ * Acceso libre: cualquiera puede ver CuadraZone sin cuenta (inicio, comercios,
+ * servicios, tiendas, productos, bienes raíces, autos, empleos, eventos…).
+ * Solo piden iniciar sesión las páginas personales: la cuenta, el carrito y la
+ * compra, pedidos, mensajes, el panel del vendedor, la administración, el
+ * despachador y «mis anuncios». Los datos privados siguen protegidos en el
+ * servidor por cada consulta, no por esta lista.
  */
 import { safeReturnPath } from "./const";
 
-const PUBLIC_PATHS = [
-  /^\/entrar\/?$/,
-  /^\/ayuda\/?$/,
-  /^\/legal\/[a-z0-9-]+\/?$/,
+const PRIVATE_PATHS = [
+  /^\/(mi-cuenta|mi-carrito|mi-lista|carrito|deseos|favoritos|comprar|checkout|pedidos|mensajes|notificaciones|mis-boletos|mis-citas|despachador|solicitud-vendedor)(\/.*)?$/,
+  /^\/(vendedor|admin)(\/.*)?$/,
+  /^\/(bienes-raices|autos)\/mis-anuncios\/?$/,
+  /^\/empleos\/(mi-cv|mis-postulaciones|mis-vacantes)\/?$/,
 ];
 
 /** ¿Se puede ver esta ruta sin haber iniciado sesión? */
 export function isPublicPath(pathname: string): boolean {
-  return PUBLIC_PATHS.some(pattern => pattern.test(pathname));
+  return !PRIVATE_PATHS.some(pattern => pattern.test(pathname));
 }
 
 /** A dónde mandar a quien llega sin sesión, recordando la página que pedía. */

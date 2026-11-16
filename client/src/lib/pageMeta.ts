@@ -34,6 +34,7 @@ export function getPageMeta(url: string, snapshot: PublicSnapshot = {}) {
     "/vendedor/plan": "Mi selección de plan",
     "/vender": "Vende en CuadraZone",
     "/despachador": "Despachador",
+    "/restaurantes": "Restaurantes",
     "/carrito": "Carrito de demostración",
     "/deseos": "Tus favoritos",
     "/favoritos": "Tus favoritos",
