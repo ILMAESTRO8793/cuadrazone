@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { Camera, Check, Plus, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { trpc } from "@/lib/trpc";
+import { PhotoEditor } from "./PhotoEditor";
 import {
   MAX_SKILLS,
   jobUsd,
@@ -272,7 +273,8 @@ export async function uploadResumePhoto(file: File): Promise<string> {
 }
 
 const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
-const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
+// La foto se recorta en el editor antes de subirla, así que puede ser grande.
+const MAX_PHOTO_BYTES = 20 * 1024 * 1024;
 
 /**
  * Foto de perfil del CV. Con el CV guardado se sube al momento; si todavía no
@@ -292,6 +294,7 @@ export function ResumePhoto({
   const utils = trpc.useUtils();
   const remove = trpc.jobs.removeResumePhoto.useMutation();
   const [uploading, setUploading] = useState(false);
+  const [editing, setEditing] = useState<File | null>(null);
   const shown = pendingUrl || photoUrl;
   async function choose(file: File | undefined) {
     if (!file) return;
@@ -300,9 +303,13 @@ export function ResumePhoto({
       return;
     }
     if (file.size > MAX_PHOTO_BYTES) {
-      toast.error("La foto debe pesar como máximo 5 MB");
+      toast.error("La foto debe pesar como máximo 20 MB");
       return;
     }
+    setEditing(file);
+  }
+  /** La foto ya ajustada en el editor: se sube o queda lista para subir al guardar. */
+  async function finish(file: File) {
     if (!saved) {
       onPick(file);
       return;
@@ -320,6 +327,16 @@ export function ResumePhoto({
   }
   return (
     <div className="cv-photo-field">
+      {editing && (
+        <PhotoEditor
+          file={editing}
+          onCancel={() => setEditing(null)}
+          onDone={edited => {
+            setEditing(null);
+            void finish(edited);
+          }}
+        />
+      )}
       <label className="cv-photo-frame cv-photo-frame--pick" title="Elegir foto">
         {shown ? (
           <img src={shown} alt="Tu foto de perfil" />
@@ -344,7 +361,7 @@ export function ResumePhoto({
         <strong>Foto de perfil</strong>
         <p className="re-muted re-small">
           Una foto de frente, con buena luz. Solo la ven las empresas donde
-          aplicas. JPG, PNG o WEBP de hasta 5 MB.
+          aplicas. JPG, PNG o WEBP de hasta 20 MB.
         </p>
         <div className="cv-photo-actions">
           <label className="btn btn-gold">

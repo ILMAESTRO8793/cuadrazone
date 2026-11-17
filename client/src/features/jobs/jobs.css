@@ -112,3 +112,30 @@
 .cv-prefixed:focus-within { outline: 3px solid #B58C3C; outline-offset: 1px; }
 .cv-prefix { display: inline-flex; align-items: center; padding: 0 4px 0 12px; background: #F1EADB; color: #4A5568; font-weight: 600; font-size: 14px; white-space: nowrap; border-right: 1px solid #DCE3E1; }
 .cv-prefixed input { flex: 1; min-width: 0; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; outline: none !important; }
+
+/* Editor de la foto del CV */
+.photo-editor-backdrop { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 16px; background: rgba(11, 31, 59, .62); }
+.photo-editor { width: min(420px, 100%); max-height: calc(100vh - 32px); overflow-x: hidden; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding: 20px; border-radius: 16px; background: #fff; box-shadow: 0 24px 60px rgba(0, 0, 0, .3); }
+.photo-editor h2 { margin: 0; font-size: 20px; color: #0B1F3B; }
+.photo-editor p { margin: 0; }
+.photo-editor-stage { position: relative; align-self: center; width: min(280px, 100%); aspect-ratio: 1 / 1; border-radius: 12px; overflow: hidden; cursor: grab; touch-action: none; background: #EEF2F1; }
+.photo-editor-stage:active { cursor: grabbing; }
+.photo-editor-stage:focus-visible { outline: 3px solid #B58C3C; outline-offset: 3px; }
+.photo-editor-stage canvas { display: block; width: 100%; height: 100%; }
+/* Fuera del círculo se oscurece: es lo que no sale en el CV. */
+.photo-editor-ring { position: absolute; inset: 0; border-radius: 50%; box-shadow: 0 0 0 999px rgba(11, 31, 59, .45); border: 2px solid #fff; pointer-events: none; }
+.photo-editor-controls { display: flex; flex-direction: column; gap: 10px; }
+.photo-editor-controls label { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 10px; align-items: center; font-size: 14px; font-weight: 600; color: #0B1F3B; }
+.photo-editor-controls label span { display: inline-flex; align-items: center; gap: 6px; }
+.photo-editor-controls input[type="range"] { width: 100%; accent-color: #B58C3C; min-height: 32px; }
+.photo-editor-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.photo-editor-row .btn { display: inline-flex; align-items: center; gap: 6px; }
+.photo-editor-actions { display: flex; justify-content: flex-end; gap: 10px; }
+
+/* «¿Ya tienes tu CV en PDF?» */
+.cv-import { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; align-items: center; margin: 0 0 18px; padding: 16px 18px; border-radius: 14px; background: #0B1F3B; color: #fff; }
+.cv-import h2 { margin: 0 0 2px; font-size: 17px; color: #fff; }
+.cv-import p { margin: 0; color: #D7DEE8; font-size: 14px; }
+.cv-import-icon { display: inline-flex; width: 44px; height: 44px; align-items: center; justify-content: center; border-radius: 12px; background: rgba(234, 209, 141, .18); color: #EAD18D; }
+.cv-import label.btn { display: inline-flex; align-items: center; cursor: pointer; white-space: nowrap; }
+@media (max-width: 640px) { .cv-import { grid-template-columns: auto minmax(0, 1fr); } .cv-import label.btn { grid-column: 1 / -1; justify-content: center; } }

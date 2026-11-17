@@ -4,6 +4,7 @@
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, gte, inArray, ne, sql } from "drizzle-orm";
 import express, { type Express, type Request, type Response } from "express";
+import path from "node:path";
 import { czJobApplications, czJobs, czResumes } from "../../drizzle/catalog-schema";
 import type { User } from "../../drizzle/schema";
 import {
@@ -21,9 +22,11 @@ import {
   type SaveJobInput,
   type SaveResumeInput,
 } from "@shared/jobs";
+import { parseResumeText } from "@shared/cvImport";
+import { ENV } from "../_core/env";
 import { sdk } from "../_core/sdk";
 import { getDb } from "../db";
-import { storagePut } from "../storage";
+import { isSafeStorageKey, storagePut } from "../storage";
 import { validateCatalogImageBytes } from "./catalogImages";
 import { queueEmail, recipientFor } from "./email";
 import { slugify } from "./realEstate";
@@ -387,6 +390,84 @@ export async function removeResumePhoto(user: User) {
   return { ok: true as const };
 }
 
+/** ¿Puede esta persona ver la foto del CV de `ownerId`? El dueño, un admin o una empresa a la que aplicó. */
+async function canSeeResumePhoto(viewer: User, ownerId: number) {
+  if (viewer.id === ownerId || viewer.role === "admin") return true;
+  const db = await requireDb();
+  const rows = await db
+    .select({ id: czJobApplications.id })
+    .from(czJobApplications)
+    .innerJoin(czJobs, eq(czJobs.id, czJobApplications.jobId))
+    .where(and(eq(czJobApplications.applicantUserId, ownerId), eq(czJobs.userId, viewer.id)))
+    .limit(1);
+  return rows.length > 0;
+}
+
+/** Sirve la foto del CV solo a quien puede verla (no es una carpeta pública). */
+async function serveResumePhoto(req: Request, res: Response) {
+  try {
+    const ownerId = Number(req.params.userId);
+    const key = `resumes/${req.params.userId}/${req.params.file}`;
+    if (!Number.isSafeInteger(ownerId) || ownerId <= 0 || !isSafeStorageKey(key)) return res.status(404).end();
+    const viewer = await sdk.authenticateRequest(req).catch(() => null);
+    if (!viewer || !(await canSeeResumePhoto(viewer as User, ownerId))) return res.status(404).end();
+    const root = path.resolve(ENV.storageDir);
+    const full = path.resolve(root, key);
+    if (!full.startsWith(root + path.sep)) return res.status(404).end();
+    res.setHeader("Cache-Control", "private, max-age=3600");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    return res.sendFile(full, err => {
+      if (err && !res.headersSent) res.status(404).end();
+    });
+  } catch {
+    return res.status(404).end();
+  }
+}
+
+// ───────────── Importar un CV en PDF ─────────────
+// Lee el texto del PDF y devuelve los campos del CV para que la persona los
+// revise en el formulario. No guarda nada ni conserva el PDF.
+
+const MAX_PDF_BYTES = 5 * 1024 * 1024;
+const MAX_PDF_PAGES = 6;
+
+/** Texto de las primeras páginas de un PDF, con sus saltos de línea. */
+export async function pdfText(bytes: Uint8Array): Promise<string> {
+  const { getDocumentProxy } = await import("unpdf");
+  const pdf = await getDocumentProxy(bytes);
+  const pages: string[] = [];
+  for (let n = 1; n <= Math.min(pdf.numPages, MAX_PDF_PAGES); n++) {
+    const page = await pdf.getPage(n);
+    const content = await page.getTextContent();
+    pages.push(
+      content.items
+        .map((item: any) => ("str" in item ? item.str + (item.hasEOL ? "\n" : "") : ""))
+        .join("")
+    );
+  }
+  return pages.join("\n");
+}
+
+async function importResumePdf(req: Request, res: Response) {
+  try {
+    if (req.headers["x-cz-request"] !== "1") return res.status(412).json({ error: "Falta la cabecera x-cz-request: 1" });
+    const user = await sdk.authenticateRequest(req).catch(() => null);
+    if (!user) return res.status(401).json({ error: "Inicia sesión" });
+    const body = req.body as Buffer;
+    if (!Buffer.isBuffer(body) || body.length === 0) return res.status(400).json({ error: "Elige tu CV en PDF" });
+    if (body.length > MAX_PDF_BYTES) return res.status(413).json({ error: "El PDF debe pesar como máximo 5 MB" });
+    if (body.subarray(0, 5).toString("latin1") !== "%PDF-") return res.status(400).json({ error: "El archivo no es un PDF" });
+    const text = await pdfText(new Uint8Array(body));
+    if (text.replace(/\s/g, "").length < 20)
+      return res.status(422).json({ error: "No pudimos leer texto en este PDF. Si es una foto o un escaneo, llena el CV a mano." });
+    return res.json({ resume: parseResumeText(text) });
+  } catch {
+    return res.status(400).json({ error: "No pudimos leer este PDF. Prueba con otro o llena el CV a mano." });
+  }
+}
+
 export function registerResumePhotoRoutes(app: Express) {
+  app.post("/api/resume/import", express.raw({ type: () => true, limit: MAX_PDF_BYTES }), importResumePdf);
   app.post("/api/resume/photo", express.raw({ type: () => true, limit: 5 * 1024 * 1024 }), uploadResumePhoto);
+  app.get("/media/resumes/:userId/:file", serveResumePhoto);
 }

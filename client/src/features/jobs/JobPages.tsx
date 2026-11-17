@@ -49,6 +49,8 @@ import FilterDrawer, { countActiveFilters } from "@/components/marketplace/Filte
 import { LanguagePicker, ResumePhoto,
   uploadResumePhoto, SalaryCalculator, SkillPicker, ToggleChips } from "./CvParts";
 import { instagramUrlFrom, instagramUserFrom } from "@shared/socialLinks";
+import { mergeImportedResume } from "@shared/cvImport";
+import { CvImport } from "./CvImport";
 
 const errorText = (e: unknown) => (e instanceof Error ? e.message : "Ocurrió un error");
 const dateEs = (iso: string) => new Date(`${iso.slice(0, 10)}T12:00:00Z`).toLocaleDateString("es-PA", { day: "numeric", month: "long", year: "numeric" });
@@ -319,6 +321,7 @@ function ResumeContent() {
           {mine.data && <button className="btn btn-gold" onClick={() => window.print()}>Descargar PDF</button>}
         </div>
       </div>
+      <CvImport onImport={data => setCv(c => mergeImportedResume(c, data))} />
       <div className="cv-layout">
         <form className="re-form no-print" onSubmit={submit}>
           <fieldset>
