@@ -1,5 +1,5 @@
 import { landingForAccount } from "./codeAuth";
-import { COOKIE_NAME, ONE_YEAR_MS, OAUTH_STATE_COOKIE, safeReturnPath } from "@shared/const";
+import { COOKIE_NAME, SESSION_MS, OAUTH_STATE_COOKIE, safeReturnPath } from "@shared/const";
 import { parse as parseCookieHeader } from "cookie";
 import { randomBytes, timingSafeEqual } from "node:crypto";
 import type { Express, Request, Response } from "express";
@@ -107,8 +107,8 @@ export function registerOAuthRoutes(app: Express) {
         lastSignedIn: new Date(),
       });
 
-      const sessionToken = await sdk.createSessionToken(openId, { name: profile.name ?? "", expiresInMs: ONE_YEAR_MS });
-      res.cookie(COOKIE_NAME, sessionToken, { ...getSessionCookieOptions(req), maxAge: ONE_YEAR_MS });
+      const sessionToken = await sdk.createSessionToken(openId, { name: profile.name ?? "", expiresInMs: SESSION_MS });
+      res.cookie(COOKIE_NAME, sessionToken, { ...getSessionCookieOptions(req), maxAge: SESSION_MS });
       res.redirect(302, await landingForAccount(state.returnTo, openId));
     } catch (error) {
       console.error("[Auth] Google callback failed:", error instanceof Error ? error.message : "unknown error");

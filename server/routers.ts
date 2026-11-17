@@ -1,7 +1,8 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router } from "./_core/trpc";
+import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
+import { bumpSessionVersion } from "./db";
 import { catalogRouter } from "./routers/catalog";
 import { commerceRouter } from "./routers/commerce";
 import { membershipRouter } from "./routers/membership";
@@ -65,6 +66,12 @@ export const appRouter = router({
       return {
         success: true,
       } as const;
+    }),
+    /** Cierra la sesión en todos los dispositivos (también en este). */
+    logoutEverywhere: protectedProcedure.mutation(async ({ ctx }) => {
+      await bumpSessionVersion(ctx.user.id);
+      ctx.res.clearCookie(COOKIE_NAME, { ...getSessionCookieOptions(ctx.req), maxAge: -1 });
+      return { success: true } as const;
     }),
   }),
 

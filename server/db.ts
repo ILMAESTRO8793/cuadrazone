@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { czMembershipProfiles, InsertUser, users } from "../drizzle/schema";
 import { ENV } from "./_core/env";
@@ -91,6 +91,16 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     console.error("[Database] Failed to upsert user:", error);
     throw error;
   }
+}
+
+/** Invalida todas las sesiones abiertas de una cuenta. */
+export async function bumpSessionVersion(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  await db
+    .update(users)
+    .set({ sessionVersion: sql`${users.sessionVersion} + 1` })
+    .where(eq(users.id, userId));
 }
 
 export async function getUserByOpenId(openId: string) {

@@ -1,5 +1,9 @@
 export const COOKIE_NAME = "cz_session";
 export const ONE_YEAR_MS = 1000 * 60 * 60 * 24 * 365;
+/** Una sesión normal dura 90 días y se renueva sola con el uso. */
+export const SESSION_MS = 1000 * 60 * 60 * 24 * 90;
+/** Se renueva la cookie si tiene más de 7 días. */
+export const SESSION_RENEW_AFTER_MS = 1000 * 60 * 60 * 24 * 7;
 /** Los administradores entran solo con el código del correo y su sesión dura 12 horas. */
 export const ADMIN_SESSION_MS = 1000 * 60 * 60 * 12;
 export const AXIOS_TIMEOUT_MS = 30_000;

@@ -100,6 +100,21 @@ function AccountContent() {
     }
   };
 
+  const logoutEverywhere = trpc.auth.logoutEverywhere.useMutation();
+  const doLogoutEverywhere = async () => {
+    if (!confirm("Se cerrará tu sesión en todos tus teléfonos y computadoras, también en este. ¿Continuar?")) return;
+    try {
+      await logoutEverywhere.mutateAsync();
+      utils.auth.me.setData(undefined, null);
+      await utils.invalidate();
+      toast.success("Cerraste tu sesión en todos tus dispositivos");
+    } catch (error) {
+      toast.error("No se pudo cerrar la sesión", {
+        description: errorText(error, "Inténtalo de nuevo."),
+      });
+    }
+  };
+
   const doLogout = async () => {
     try {
       await logout();
@@ -162,6 +177,15 @@ function AccountContent() {
           onClick={() => void doLogout()}
         >
           <LogOut size={16} aria-hidden="true" /> Cerrar sesión
+        </button>
+        <button
+          className="member-button member-button--outline"
+          type="button"
+          disabled={logoutEverywhere.isPending}
+          onClick={() => void doLogoutEverywhere()}
+          title="Si perdiste un teléfono o usaste una computadora ajena"
+        >
+          <LogOut size={16} aria-hidden="true" /> Cerrar sesión en todos mis dispositivos
         </button>
       </div>
 

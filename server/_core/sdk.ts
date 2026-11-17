@@ -1,4 +1,4 @@
-import { ADMIN_SESSION_MS, COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
+import { ADMIN_SESSION_MS, COOKIE_NAME, SESSION_MS } from "@shared/const";
 import { ForbiddenError } from "@shared/_core/errors";
 import { parse as parseCookieHeader } from "cookie";
 import type { Request } from "express";
@@ -16,6 +16,8 @@ export type SessionPayload = {
   name: string;
   /** Cuándo se emitió la sesión (segundos). */
   iat?: number;
+  /** Versión de sesión de la cuenta al firmarla (ver users.sessionVersion). */
+  sv?: number;
 };
 
 /** lastSignedIn se guarda como mucho una vez por hora (no en cada petición). */
@@ -39,13 +41,17 @@ class SessionService {
     openId: string,
     options: { expiresInMs?: number; name?: string } = {}
   ): Promise<string> {
-    return this.signSession({ openId, appId: ENV.appId, name: options.name || "" }, options);
+    const user = await db.getUserByOpenId(openId);
+    return this.signSession(
+      { openId, appId: ENV.appId, name: options.name || "", sv: user?.sessionVersion ?? 0 },
+      options
+    );
   }
 
   async signSession(payload: SessionPayload, options: { expiresInMs?: number } = {}): Promise<string> {
-    const expiresInMs = options.expiresInMs ?? ONE_YEAR_MS;
+    const expiresInMs = options.expiresInMs ?? SESSION_MS;
     const expirationSeconds = Math.floor((Date.now() + expiresInMs) / 1000);
-    return new SignJWT({ openId: payload.openId, appId: payload.appId, name: payload.name })
+    return new SignJWT({ openId: payload.openId, appId: payload.appId, name: payload.name, sv: payload.sv ?? 0 })
       .setProtectedHeader({ alg: "HS256", typ: "JWT" })
       .setIssuedAt()
       .setExpirationTime(expirationSeconds)
@@ -56,9 +62,15 @@ class SessionService {
     if (!cookieValue) return null;
     try {
       const { payload } = await jwtVerify(cookieValue, this.getSessionSecret(), { algorithms: ["HS256"] });
-      const { openId, appId, name, iat } = payload as Record<string, unknown>;
+      const { openId, appId, name, iat, sv } = payload as Record<string, unknown>;
       if (!isNonEmptyString(openId) || appId !== ENV.appId || typeof name !== "string") return null;
-      return { openId, appId, name, iat: typeof iat === "number" ? iat : undefined };
+      return {
+        openId,
+        appId,
+        name,
+        iat: typeof iat === "number" ? iat : undefined,
+        sv: typeof sv === "number" ? sv : 0,
+      };
     } catch {
       return null;
     }
@@ -66,19 +78,26 @@ class SessionService {
 
   /** Solo acepta la cookie de sesión propia. Los usuarios se crean en el callback de Google. */
   async authenticateRequest(req: Request): Promise<AuthenticatedUser> {
+    return (await this.authenticate(req)).user;
+  }
+
+  /** La cuenta y los datos de su sesión (para renovar la cookie). */
+  async authenticate(req: Request): Promise<{ user: AuthenticatedUser; session: SessionPayload }> {
     const cookies = parseCookieHeader(req.headers.cookie ?? "");
     const session = await this.verifySession(cookies[COOKIE_NAME]);
     if (!session) throw ForbiddenError("Invalid session cookie");
 
     const user = await db.getUserByOpenId(session.openId);
     if (!user) throw ForbiddenError("User not found");
+    // «Cerrar sesión en todos los dispositivos» sube la versión: las sesiones viejas dejan de valer.
+    if ((session.sv ?? 0) !== (user.sessionVersion ?? 0)) throw ForbiddenError("Session revoked");
 
     const effective = adminCheck(user, session.iat);
 
     const last = user.lastSignedIn ? new Date(user.lastSignedIn).getTime() : 0;
     if (Date.now() - last > LAST_SEEN_EVERY_MS)
       await db.upsertUser({ openId: user.openId, lastSignedIn: new Date() });
-    return effective;
+    return { user: effective, session };
   }
 }
 

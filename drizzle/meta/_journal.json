@@ -316,6 +316,13 @@
       "when": 1794938995466,
       "tag": "0044_despachador_selfie_vehiculo",
       "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "5",
+      "when": 1794942618560,
+      "tag": "0045_sesiones_revocables",
+      "breakpoints": true
     }
   ]
 }

@@ -29,6 +29,8 @@ export const users = mysqlTable("users", {
   phone: varchar("phone", { length: 20 }).unique(),
   loginMethod: varchar("loginMethod", { length: 64 }),
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
+  /** Sube al «cerrar sesión en todos los dispositivos»: invalida las sesiones anteriores. */
+  sessionVersion: int("sessionVersion").notNull().default(0),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
