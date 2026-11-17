@@ -1,6 +1,7 @@
 import { Bike } from "lucide-react";
 import { toast } from "sonner";
 import {
+  dispatchDocKinds,
   dispatchVehicleLabels,
   dispatcherStatusLabels,
 } from "@shared/dispatch";
@@ -67,22 +68,26 @@ export function AdminDispatchers({ enabled }: { enabled: boolean }) {
                     {d.plate ? ` · ${d.plate}` : ""}
                   </td>
                   <td className="dz-actions">
-                    {d.documents.licencia ? (
-                      <a className="btn btn-outline" href={`/api/dispatch/documents/${d.userId}/licencia`}>Licencia</a>
-                    ) : (
-                      <em className="dz-doc-missing">Sin licencia</em>
-                    )}
-                    {d.documents.record ? (
-                      <a className="btn btn-outline" href={`/api/dispatch/documents/${d.userId}/record`}>Récord</a>
-                    ) : (
-                      <em className="dz-doc-missing">Sin récord</em>
+                    {(
+                      [
+                        ["licencia", "Licencia"],
+                        ["record", "Récord"],
+                        ["selfie", "Selfie"],
+                        ["vehiculo", "Vehículo"],
+                      ] as const
+                    ).map(([kind, label]) =>
+                      d.documents[kind] ? (
+                        <a key={kind} className="btn btn-outline" href={`/api/dispatch/documents/${d.userId}/${kind}`}>{label}</a>
+                      ) : (
+                        <em key={kind} className="dz-doc-missing">Sin {label.toLowerCase()}</em>
+                      )
                     )}
                   </td>
                   <td>{dispatcherStatusLabels[d.status]}</td>
                   <td>{d.delivered}</td>
                   <td>{usd(d.unpaidCents)}</td>
                   <td className="dz-actions">
-                    {d.status !== "approved" && d.documents.licencia && d.documents.record && (
+                    {d.status !== "approved" && dispatchDocKinds.every(kind => d.documents[kind]) && (
                       <button
                         className="btn btn-gold"
                         disabled={busy}

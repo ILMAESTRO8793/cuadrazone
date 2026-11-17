@@ -309,6 +309,13 @@
       "when": 1794881946570,
       "tag": "0043_cv_extras_y_bonos",
       "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "5",
+      "when": 1794938995466,
+      "tag": "0044_despachador_selfie_vehiculo",
+      "breakpoints": true
     }
   ]
 }

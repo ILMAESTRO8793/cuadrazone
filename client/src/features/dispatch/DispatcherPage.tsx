@@ -14,7 +14,13 @@ import {
   DISPATCH_PING_MS,
   DISPATCH_SHARE_PCT,
   dispatchVehicleLabels,
-  dispatchVehicles,
+  DISPATCH_DOCS_MISSING,
+  dispatchDocKinds,
+  dispatchDocLabels,
+  dispatchPhotoOnlyDocs,
+  dispatchVehicleChoices,
+  vehicleNeedsPlate,
+  type DispatchDocKind,
   dispatcherStatusLabels,
   type DispatchVehicle,
 } from "@shared/dispatch";
@@ -126,9 +132,9 @@ function ApplyForm({
   const utils = trpc.useUtils();
   const apply = trpc.dispatch.register.useMutation();
   const docs = trpc.dispatch.myDocuments.useQuery();
-  const [uploading, setUploading] = useState<"licencia" | "record" | null>(null);
-  const hasDocs = Boolean(docs.data?.licencia && docs.data?.record);
-  async function uploadDoc(kind: "licencia" | "record", file: File) {
+  const [uploading, setUploading] = useState<DispatchDocKind | null>(null);
+  const hasDocs = dispatchDocKinds.every(kind => Boolean(docs.data?.[kind]));
+  async function uploadDoc(kind: DispatchDocKind, file: File) {
     setUploading(kind);
     try {
       const r = await fetch(`/api/dispatch/documents/${kind}`, {
@@ -144,7 +150,7 @@ function ApplyForm({
       const data = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(data.error || "No se pudo subir el documento");
       await utils.dispatch.myDocuments.invalidate();
-      toast.success(kind === "licencia" ? "Licencia guardada" : "Récord policivo guardado");
+      toast.success(`${dispatchDocLabels[kind]}: guardado`);
     } catch (error) {
       toast.error(errorText(error));
     } finally {
@@ -161,7 +167,11 @@ function ApplyForm({
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!hasDocs) {
-      toast.error("Sube tu licencia de conducir y tu récord policivo para poder aplicar.");
+      toast.error(DISPATCH_DOCS_MISSING);
+      return;
+    }
+    if (vehicleNeedsPlate(f.vehicle) && f.plate.trim().length < 2) {
+      toast.error("Escribe la placa de tu vehículo");
       return;
     }
     try {
@@ -228,7 +238,7 @@ function ApplyForm({
               setF({ ...f, vehicle: e.target.value as DispatchVehicle })
             }
           >
-            {dispatchVehicles.map(v => (
+            {dispatchVehicleChoices.map(v => (
               <option key={v} value={v}>
                 {dispatchVehicleLabels[v]}
               </option>
@@ -236,25 +246,26 @@ function ApplyForm({
           </select>
         </label>
         <label>
-          Placa (si tiene)
+          {vehicleNeedsPlate(f.vehicle) ? "Placa (obligatoria)" : "Placa (si tiene)"}
           <input
             value={f.plate}
-            onChange={e => setF({ ...f, plate: e.target.value })}
+            onChange={e => setF({ ...f, plate: e.target.value.toUpperCase() })}
             maxLength={20}
+            required={vehicleNeedsPlate(f.vehicle)}
+            autoCapitalize="characters"
+            placeholder={vehicleNeedsPlate(f.vehicle) ? "Ej.: AB1234" : ""}
           />
         </label>
         <fieldset className="dz-docs">
           <legend>Documentos obligatorios</legend>
           <p className="cz-map-hint">
-            Sin estos dos documentos no puedes aplicar. Son privados: solo los
-            ve el equipo de CuadraZone para aprobarte. PDF o foto, máximo 5 MiB.
+            Sin estos cuatro no puedes aplicar. Son privados: solo los ve el
+            equipo de CuadraZone para aprobarte. La selfie sirve para comprobar
+            que quien maneja es la misma persona de la licencia; la foto del
+            vehículo debe mostrar la placa si tiene. Licencia y récord: PDF o
+            foto. Selfie y vehículo: foto. Máximo 5 MiB.
           </p>
-          {(
-            [
-              ["licencia", "Licencia de conducir"],
-              ["record", "Récord policivo"],
-            ] as const
-          ).map(([kind, label]) => (
+          {dispatchDocKinds.map(kind => [kind, dispatchDocLabels[kind]] as const).map(([kind, label]) => (
             <div key={kind} className="dz-doc-row">
               <span>
                 <strong>{label}</strong>{" "}
@@ -268,7 +279,17 @@ function ApplyForm({
                 {uploading === kind ? "Subiendo…" : docs.data?.[kind] ? "Cambiar" : "Subir"}
                 <input
                   type="file"
-                  accept="application/pdf,image/png,image/jpeg,image/webp"
+                  accept={
+                    dispatchPhotoOnlyDocs.includes(kind)
+                      ? "image/png,image/jpeg,image/webp"
+                      : "application/pdf,image/png,image/jpeg,image/webp"
+                  }
+                  // En el celular abre la cámara: la de frente para la selfie.
+                  {...(kind === "selfie"
+                    ? { capture: "user" as const }
+                    : kind === "vehiculo"
+                      ? { capture: "environment" as const }
+                      : {})}
                   hidden
                   disabled={uploading !== null}
                   onChange={e => {

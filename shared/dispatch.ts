@@ -22,9 +22,27 @@ export type DispatchVehicle = (typeof dispatchVehicles)[number];
 export const dispatchVehicleLabels: Record<DispatchVehicle, string> = {
   moto: "Moto",
   carro: "Carro",
-  bicicleta: "Bicicleta",
+  bicicleta: "Bicicleta eléctrica",
   otro: "Otro",
 };
+/** Lo que se puede elegir al aplicar («otro» queda solo para cuentas viejas). */
+export const dispatchVehicleChoices = ["moto", "carro", "bicicleta"] as const;
+/** Moto y carro llevan placa; la bicicleta eléctrica normalmente no. */
+export const vehicleNeedsPlate = (v: DispatchVehicle) => v === "moto" || v === "carro";
+
+/** Documentos obligatorios para aplicar. Selfie y vehículo: solo fotos. */
+export const dispatchDocKinds = ["licencia", "record", "selfie", "vehiculo"] as const;
+export type DispatchDocKind = (typeof dispatchDocKinds)[number];
+export const dispatchDocLabels: Record<DispatchDocKind, string> = {
+  licencia: "Licencia de conducir",
+  record: "Récord policivo",
+  selfie: "Selfie (tu cara de frente)",
+  vehiculo: "Foto de tu vehículo",
+};
+export const dispatchPhotoOnlyDocs: readonly DispatchDocKind[] = ["selfie", "vehiculo"];
+export const DISPATCH_DOCS_MISSING =
+  "Sube tu licencia, tu récord policivo, una selfie y la foto de tu vehículo para poder aplicar.";
+
 export const dispatcherStatusLabels = {
   pending: "En revisión",
   approved: "Aprobado",
@@ -48,5 +66,9 @@ export const applyDispatcherInput = z
     vehicle: z.enum(dispatchVehicles),
     plate: z.string().trim().max(20).default(""),
   })
-  .strict();
+  .strict()
+  .superRefine((v, ctx) => {
+    if (vehicleNeedsPlate(v.vehicle) && v.plate.replace(/[^A-Za-z0-9]/g, "").length < 2)
+      ctx.addIssue({ code: "custom", path: ["plate"], message: "Escribe la placa de tu vehículo" });
+  });
 export type ApplyDispatcherInput = z.infer<typeof applyDispatcherInput>;

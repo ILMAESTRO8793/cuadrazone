@@ -82,7 +82,7 @@ export const czDispatcherDocuments = mysqlTable(
     userId: int("userId")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    kind: mysqlEnum("kind", ["licencia", "record"]).notNull(),
+    kind: mysqlEnum("kind", ["licencia", "record", "selfie", "vehiculo"]).notNull(),
     fileName: varchar("fileName", { length: 200 }).notNull(),
     mimeType: varchar("mimeType", { length: 80 }).notNull(),
     size: int("size").notNull(),

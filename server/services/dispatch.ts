@@ -32,7 +32,11 @@ import {
 import { validateDocumentBytes } from "./membership";
 import { czOrderPlaces, czPlaces } from "../../drizzle/location-schema";
 import {
+  DISPATCH_DOCS_MISSING,
   DISPATCH_STALE_MS,
+  dispatchDocKinds,
+  dispatchPhotoOnlyDocs,
+  type DispatchDocKind,
   dispatchEarningCents,
   type ApplyDispatcherInput,
 } from "@shared/dispatch";
@@ -85,11 +89,8 @@ export async function applyDispatcher(
 ) {
   const db = await requireDb();
   const docs = await myDispatcherDocuments(userId);
-  if (!docs.licencia || !docs.record)
-    fail(
-      "PRECONDITION_FAILED",
-      "Sube tu licencia de conducir y tu récord policivo para poder aplicar."
-    );
+  if (dispatchDocKinds.some(kind => !docs[kind]))
+    fail("PRECONDITION_FAILED", DISPATCH_DOCS_MISSING);
   const current = await myDispatcher(userId);
   if (current?.status === "suspended")
     fail(
@@ -552,7 +553,10 @@ export async function myDispatcherDocuments(userId: number) {
     .from(czDispatcherDocuments)
     .where(eq(czDispatcherDocuments.userId, userId));
   const by = new Map(rows.map(r => [r.kind, r.fileName]));
-  return { licencia: by.get("licencia") ?? null, record: by.get("record") ?? null };
+  return Object.fromEntries(dispatchDocKinds.map(kind => [kind, by.get(kind) ?? null])) as Record<
+    DispatchDocKind,
+    string | null
+  >;
 }
 
 export async function adminDispatchers() {
@@ -560,10 +564,10 @@ export async function adminDispatchers() {
   const docRows = await db
     .select({ userId: czDispatcherDocuments.userId, kind: czDispatcherDocuments.kind })
     .from(czDispatcherDocuments);
-  const docsOf = (userId: number) => ({
-    licencia: docRows.some(r => r.userId === userId && r.kind === "licencia"),
-    record: docRows.some(r => r.userId === userId && r.kind === "record"),
-  });
+  const docsOf = (userId: number) =>
+    Object.fromEntries(
+      dispatchDocKinds.map(kind => [kind, docRows.some(r => r.userId === userId && r.kind === kind)])
+    ) as Record<DispatchDocKind, boolean>;
   const people = await db
     .select()
     .from(czDispatchers)
@@ -704,7 +708,8 @@ async function uploadPhoto(req: Request, res: Response) {
   }
 }
 
-const DOC_KINDS = new Set(["licencia", "record"]);
+const DOC_KINDS = new Set<string>(dispatchDocKinds);
+const PHOTO_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
 const DOC_TYPES = new Set(["application/pdf", "image/png", "image/jpeg", "image/webp"]);
 const MAX_DOC_BYTES = 5 * 1024 * 1024;
 
@@ -717,6 +722,9 @@ async function uploadDocument(req: Request, res: Response) {
     const kind = String(req.params.kind);
     if (!DOC_KINDS.has(kind)) return res.status(400).json({ error: "Documento no válido" });
     const mimeType = String(req.headers["content-type"] ?? "").split(";", 1)[0]!.toLowerCase();
+    // La selfie y el vehículo tienen que ser fotos; los demás pueden ser PDF.
+    if ((dispatchPhotoOnlyDocs as readonly string[]).includes(kind) && !PHOTO_TYPES.has(mimeType))
+      return res.status(400).json({ error: "Sube una foto (JPG, PNG o WEBP)" });
     if (!DOC_TYPES.has(mimeType))
       return res.status(400).json({ error: "Sube un PDF o una foto (PNG, JPEG o WEBP)" });
     try {
@@ -731,7 +739,7 @@ async function uploadDocument(req: Request, res: Response) {
     const values = { fileName, mimeType, size: req.body.length, bytes: req.body as Buffer };
     await db
       .insert(czDispatcherDocuments)
-      .values({ userId: user.id, kind: kind as "licencia" | "record", ...values })
+      .values({ userId: user.id, kind: kind as DispatchDocKind, ...values })
       .onDuplicateKeyUpdate({ set: values });
     return res.status(201).json({ ok: true, kind, fileName });
   } catch (error) {
@@ -755,7 +763,7 @@ async function downloadDocument(req: Request, res: Response) {
     const [row] = await db
       .select()
       .from(czDispatcherDocuments)
-      .where(and(eq(czDispatcherDocuments.userId, ownerId), eq(czDispatcherDocuments.kind, kind as "licencia" | "record")))
+      .where(and(eq(czDispatcherDocuments.userId, ownerId), eq(czDispatcherDocuments.kind, kind as DispatchDocKind)))
       .limit(1);
     if (!row) return res.status(404).json({ error: "Documento no disponible" });
     res.set({

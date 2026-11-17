@@ -1,0 +1,1 @@
+ALTER TABLE `cz_dispatcher_documents` MODIFY COLUMN `kind` enum('licencia','record','selfie','vehiculo') NOT NULL;
