@@ -510,9 +510,14 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
               comunidad en Panamá.
             </p>
             <div className="footer-social">
-              <Link href="/ayuda" aria-label="Información de redes sociales">
+              <a
+                href="https://www.instagram.com/cuadrazone/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram de CuadraZone (@cuadrazone)"
+              >
                 <Instagram size={17} />
-              </Link>
+              </a>
               <Link href="/ayuda" aria-label="Ayuda y contacto">
                 <Mail size={17} />
               </Link>
