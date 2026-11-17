@@ -78,6 +78,11 @@ async function startServer() {
     createExpressMiddleware({
       router: appRouter,
       createContext,
+      // El detalle de los errores inesperados queda solo aquí, en el registro.
+      onError({ error, path }) {
+        if (error.code === "INTERNAL_SERVER_ERROR")
+          console.error(`[tRPC] ${path ?? "?"}:`, error.cause instanceof Error ? error.cause.message : error.message);
+      },
     })
   );
   // development mode uses Vite, production mode uses static files

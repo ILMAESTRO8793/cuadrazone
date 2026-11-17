@@ -38,3 +38,20 @@ describe("seguridad de la cuenta de administrador", () => {
     expect(adminCheck(user, undefined)).toBe(user);
   });
 });
+
+describe("protecciones globales de la API", () => {
+  it("toda operación que cambia datos exige la cabecera anti-CSRF", async () => {
+    const { appRouter } = await import("./routers");
+    const api = appRouter.createCaller({ user: null, req: { headers: {} } as any, res: { clearCookie() {} } as any });
+    await expect(api.auth.logout()).rejects.toMatchObject({ code: "PRECONDITION_FAILED" });
+  });
+
+  it("los errores inesperados no muestran el detalle (p. ej. la consulta SQL)", async () => {
+    const { isUnexpectedError } = await import("./_core/trpc");
+    const { TRPCError } = await import("@trpc/server");
+    const leaked = new TRPCError({ code: "INTERNAL_SERVER_ERROR", cause: new Error("Failed query: select * from users") });
+    const intended = new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "La base de datos no está disponible" });
+    expect(isUnexpectedError(leaked)).toBe(true);
+    expect(isUnexpectedError(intended)).toBe(false);
+  });
+});

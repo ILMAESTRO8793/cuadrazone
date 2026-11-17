@@ -10,7 +10,7 @@ function caller(user: TrpcContext["user"], headers: Record<string,string> = {}) 
 const baseUser = { id: 7, openId: "test-memory-only", role: "user" as const, name: "Prueba", email: null, phone: null, loginMethod: null, createdAt: new Date(), updatedAt: new Date(), lastSignedIn: new Date() };
 describe("Permisos de selección de plan", () => {
   it("rejects anonymous reads and writes before database access", async () => {
-    const api = caller(null);
+    const api = caller(null, { "x-cz-request": "1" });
     await expect(api.membership.plan.get()).rejects.toMatchObject({ code: "UNAUTHORIZED" });
     await expect(api.membership.plan.select(input)).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   });
