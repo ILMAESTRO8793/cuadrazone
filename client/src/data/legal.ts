@@ -197,7 +197,7 @@ export const legalDocs: Record<string, LegalDoc> = {
   privacidad: {
     title: "Política de privacidad",
     short: "Aviso de privacidad",
-    updated: "6 de noviembre de 2026",
+    updated: "17 de noviembre de 2026",
     intro:
       "Qué datos personales recopila CuadraZone, para qué los usa, con quién los comparte y cómo puedes ejercer tus derechos según la Ley 81 de 26 de marzo de 2019 de Protección de Datos Personales y su reglamento, el Decreto Ejecutivo 285 de 28 de mayo de 2021.",
     sections: [
@@ -261,7 +261,7 @@ export const legalDocs: Record<string, LegalDoc> = {
         title: "Con quién compartimos datos",
         list: [
           "Con el vendedor o el comprador de tu pedido, solo lo necesario para pagar y entregar (nombre, teléfono y dirección de entrega).",
-          "Con Google, para el inicio de sesión con tu cuenta de Google. El sitio también carga sus tipografías desde Google Fonts, por lo que tu navegador se conecta a los servidores de Google, que reciben tu dirección IP.",
+          "Con Google, para el inicio de sesión con tu cuenta de Google y, solo si eliges ver el sitio en inglés, para traducir con el traductor de Google las partes que aún no están traducidas: tu navegador se conecta a Google, que recibe tu dirección IP y el texto de la página. Las tipografías del sitio se sirven desde nuestro propio dominio.",
           "Con Railway, que aloja el sitio, la base de datos y las fotos.",
           "Con Brevo, que envía en nuestro nombre los correos automáticos (tu correo, tu nombre y el contenido del aviso).",
           "Con el servicio de SMS que envía los códigos a tu celular (tu número y el código).",
@@ -379,7 +379,7 @@ export const legalDocs: Record<string, LegalDoc> = {
   cookies: {
     title: "Política de cookies y preferencias de privacidad",
     short: "Tus opciones de privacidad",
-    updated: "6 de noviembre de 2026",
+    updated: "17 de noviembre de 2026",
     intro:
       "Qué guarda CuadraZone en tu navegador, por qué, y qué puedes decidir tú. En resumen: solo usamos lo necesario para que el sitio funcione. No hay cookies de publicidad ni de seguimiento, y no mostramos anuncios personalizados.",
     sections: [
@@ -402,7 +402,7 @@ export const legalDocs: Record<string, LegalDoc> = {
       {
         title: "Servicios de terceros",
         body: [
-          "Las tipografías del sitio se cargan desde Google Fonts y el inicio de sesión con Google se hace en las páginas de Google. Al usarlos, Google recibe datos técnicos como tu dirección IP según su propia política de privacidad. No instalamos herramientas de analítica, píxeles de redes sociales ni publicidad de terceros.",
+          "Las tipografías del sitio se sirven desde nuestro propio dominio, sin conectarse a Google Fonts. El inicio de sesión con Google se hace en las páginas de Google y, si eliges ver el sitio en inglés, el traductor de Google traduce las partes que aún no están traducidas a mano. Al usarlos, Google recibe datos técnicos como tu dirección IP según su propia política de privacidad. No instalamos herramientas de analítica, píxeles de redes sociales ni publicidad de terceros.",
         ],
       },
       {

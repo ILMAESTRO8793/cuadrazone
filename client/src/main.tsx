@@ -5,6 +5,7 @@ import { httpBatchLink } from "@trpc/client";
 import { hydrateRoot } from "react-dom/client";
 import superjson from "superjson";
 import App from "./App";
+import "./styles/fonts.css";
 import "./index.css";
 import "./features/commerce/commerce.css";
 import "./features/catalog/seller-catalog.css";
