@@ -11,6 +11,7 @@ import { registerShowcaseMediaRoutes } from "../services/showcase";
 import { registerStoreCoverRoutes } from "../services/storeBranding";
 import { registerPropertyImageRoutes } from "../services/realEstate";
 import { registerVehicleImageRoutes } from "../services/vehicles";
+import { registerResumePhotoRoutes } from "../services/jobs";
 import { registerDocumentRoutes } from "../services/privateDocuments";
 import { registerBillingRoutes } from "../services/billing";
 import express from "express";
@@ -57,6 +58,7 @@ async function startServer() {
   registerMenuRoutes(app);
   registerPropertyImageRoutes(app);
   registerVehicleImageRoutes(app);
+  registerResumePhotoRoutes(app);
   const server = createServer(app);
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "1mb" }));

@@ -11,6 +11,7 @@ import {
   myResume,
   publicJob,
   publicJobs,
+  removeResumePhoto,
   saveJob,
   saveResume,
   setApplicationStatus,
@@ -32,6 +33,10 @@ export const jobsRouter = router({
   saveResume: protectedProcedure.input(z.record(z.string(), z.unknown())).mutation(({ ctx, input }) => {
     csrf(ctx);
     return saveResume(ctx.user as any, input);
+  }),
+  removeResumePhoto: protectedProcedure.mutation(({ ctx }) => {
+    csrf(ctx);
+    return removeResumePhoto(ctx.user as any);
   }),
   applyToJob: protectedProcedure
     .input(z.object({ jobId: z.number().int().positive(), message: z.string().max(1000) }).strict())

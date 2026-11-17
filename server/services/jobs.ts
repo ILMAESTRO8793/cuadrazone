@@ -3,9 +3,13 @@
 // bienes raíces y autos; crear el CV y aplicar es gratis.
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, inArray, ne, sql } from "drizzle-orm";
+import express, { type Express, type Request, type Response } from "express";
 import { czJobApplications, czJobs, czResumes } from "../../drizzle/catalog-schema";
 import type { User } from "../../drizzle/schema";
 import {
+  SALARY_REQUIRED_MESSAGE,
+  resumeExtraKeys,
+  resumeExtrasDefaults,
   saveJobInput,
   saveResumeInput,
   todayPanama,
@@ -17,7 +21,10 @@ import {
   type SaveJobInput,
   type SaveResumeInput,
 } from "@shared/jobs";
+import { sdk } from "../_core/sdk";
 import { getDb } from "../db";
+import { storagePut } from "../storage";
+import { validateCatalogImageBytes } from "./catalogImages";
 import { queueEmail, recipientFor } from "./email";
 import { slugify } from "./realEstate";
 import { NO_PLAN, assertCanPublish, publishPlans } from "./sectionPlans";
@@ -54,6 +61,9 @@ function resumeDTO(row: any): ResumeDTO {
     education: json(row.education, []),
     skills: json(row.skills, []),
     languages: json(row.languages, []),
+    ...resumeExtrasDefaults,
+    ...json<Partial<SaveResumeInput>>(row.extras, {}),
+    photoUrl: row.photoUrl ?? "",
     updatedAt: new Date(row.updatedAt).toISOString(),
   };
 }
@@ -69,7 +79,9 @@ export async function saveResume(user: User, raw: unknown): Promise<ResumeDTO> {
   if (!parsed.success) fail("BAD_REQUEST", parsed.error.issues[0]?.message ?? "Datos inválidos");
   const v: SaveResumeInput = parsed.data;
   const db = await requireDb();
-  const values = { ...v, summary: v.summary };
+  const extras = Object.fromEntries(resumeExtraKeys.map(k => [k, v[k]]));
+  const base = Object.fromEntries(Object.entries(v).filter(([k]) => !(resumeExtraKeys as readonly string[]).includes(k)));
+  const values = { ...base, extras } as any;
   await db.insert(czResumes).values({ userId: user.id, ...values }).onDuplicateKeyUpdate({ set: values });
   return (await myResume(user))!;
 }
@@ -89,10 +101,11 @@ function jobDTO(row: any, featured: boolean): JobDTO {
     modality: row.modality,
     province: row.province,
     district: row.district,
-    salaryNegotiable: Boolean(row.salaryNegotiable),
     salaryMinCents: row.salaryMinCents ?? null,
     salaryMaxCents: row.salaryMaxCents ?? null,
     salaryPeriod: row.salaryPeriod,
+    bonusCents: row.bonusCents ?? null,
+    bonusDetail: row.bonusDetail ?? "",
     description: row.description,
     requirements: row.requirements ?? "",
     benefits: row.benefits ?? "",
@@ -111,10 +124,12 @@ function jobColumns(v: SaveJobInput) {
     modality: v.modality,
     province: v.province,
     district: v.district,
-    salaryNegotiable: v.salaryNegotiable ? 1 : 0,
+    salaryNegotiable: 0,
     salaryMinCents: v.salaryMinCents,
     salaryMaxCents: v.salaryMinCents ? v.salaryMaxCents : null,
     salaryPeriod: v.salaryPeriod,
+    bonusCents: v.bonusCents || null,
+    bonusDetail: v.bonusDetail,
     description: v.description,
     requirements: v.requirements,
     benefits: v.benefits,
@@ -159,6 +174,8 @@ export async function setJobStatus(user: User, id: number, status: "published" |
       .select({ n: sql<number>`count(*)` })
       .from(czJobs)
       .where(and(eq(czJobs.userId, user.id), eq(czJobs.status, "published"), ne(czJobs.id, id)));
+    // Sin el sueldo base no se publica.
+    if (!row.salaryMinCents || row.salaryNegotiable) fail("PRECONDITION_FAILED", SALARY_REQUIRED_MESSAGE);
     await assertCanPublish(db, user.id, "empleos", Number(published[0]?.n ?? 0));
     if (row.closesOn < todayPanama()) fail("PRECONDITION_FAILED", "La fecha de cierre ya pasó. Cámbiala antes de publicar.");
   }
@@ -329,4 +346,39 @@ export async function setApplicationStatus(user: User, applicationId: number, st
       cta: { label: "Ver mis postulaciones", path: "/empleos/mis-postulaciones" },
     });
   return { status };
+}
+
+// ───────────── Foto del CV ─────────────
+// La foto no sale en ninguna página pública: solo en el CV de su dueño y en la
+// copia que reciben las empresas donde aplica.
+
+const PHOTO_EXT: Record<string, string> = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" };
+
+async function uploadResumePhoto(req: Request, res: Response) {
+  try {
+    if (req.headers["x-cz-request"] !== "1") return res.status(412).json({ error: "Falta la cabecera x-cz-request: 1" });
+    const user = await sdk.authenticateRequest(req).catch(() => null);
+    if (!user) return res.status(401).json({ error: "Inicia sesión" });
+    const mimeType = String(req.headers["content-type"] ?? "").split(";", 1)[0]!.toLowerCase();
+    validateCatalogImageBytes(req.body, mimeType);
+    const db = await requireDb();
+    const rows = await db.select({ userId: czResumes.userId }).from(czResumes).where(eq(czResumes.userId, user.id)).limit(1);
+    if (!rows[0]) return res.status(409).json({ error: "Primero guarda tu CV y después agrega la foto" });
+    const saved = await storagePut(`resumes/${user.id}/${crypto.randomUUID()}.${PHOTO_EXT[mimeType]}`, req.body, mimeType);
+    await db.update(czResumes).set({ photoUrl: saved.url }).where(eq(czResumes.userId, user.id));
+    return res.status(201).json({ url: saved.url });
+  } catch (error) {
+    const status = (error as { code?: string }).code === "PAYLOAD_TOO_LARGE" ? 413 : 400;
+    return res.status(status).json({ error: error instanceof Error ? error.message : "No se pudo subir la foto" });
+  }
+}
+
+export async function removeResumePhoto(user: User) {
+  const db = await requireDb();
+  await db.update(czResumes).set({ photoUrl: "" }).where(eq(czResumes.userId, user.id));
+  return { ok: true as const };
+}
+
+export function registerResumePhotoRoutes(app: Express) {
+  app.post("/api/resume/photo", express.raw({ type: () => true, limit: 5 * 1024 * 1024 }), uploadResumePhoto);
 }

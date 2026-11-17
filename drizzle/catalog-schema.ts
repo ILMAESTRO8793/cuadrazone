@@ -282,6 +282,10 @@ export const czResumes = mysqlTable("cz_resumes", {
   education: json("education"),
   skills: json("skills"),
   languages: json("languages"),
+  /** Foto de perfil del CV; solo la ven el dueño y las empresas donde aplica. */
+  photoUrl: varchar("photoUrl", { length: 512 }).notNull().default(""),
+  /** Enlaces, modalidad, cursos, licencia, vehículo, salario esperado y referencias. */
+  extras: json("extras"),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
@@ -305,6 +309,9 @@ export const czJobs = mysqlTable(
     salaryMinCents: int("salaryMinCents"),
     salaryMaxCents: int("salaryMaxCents"),
     salaryPeriod: varchar("salaryPeriod", { length: 20 }).notNull().default("mes"),
+    /** Bonos opcionales: monto al mes y en qué consisten. */
+    bonusCents: int("bonusCents"),
+    bonusDetail: varchar("bonusDetail", { length: 200 }).notNull().default(""),
     description: text("description").notNull(),
     requirements: text("requirements").notNull(),
     benefits: text("benefits").notNull(),

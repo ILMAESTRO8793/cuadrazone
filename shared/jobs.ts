@@ -39,6 +39,26 @@ export const availabilityLabels: Record<(typeof availabilities)[number], string>
   inmediata: "Inmediata", dos_semanas: "En dos semanas", un_mes: "En un mes", solo_fines: "Solo fines de semana",
 };
 export const levelLabels: Record<(typeof languageLevels)[number], string> = { basico: "Básico", intermedio: "Intermedio", avanzado: "Avanzado", nativo: "Nativo" };
+/** Licencias de conducir y vehículo propio, para marcar con un clic en el CV. */
+export const driverLicenses = ["moto", "auto", "camion", "transporte_publico", "equipo_pesado"] as const;
+export const driverLicenseLabels: Record<(typeof driverLicenses)[number], string> = {
+  moto: "Moto", auto: "Auto particular", camion: "Camión", transporte_publico: "Transporte público o taxi", equipo_pesado: "Equipo pesado",
+};
+export const ownVehicles = ["carro", "moto"] as const;
+export const ownVehicleLabels: Record<(typeof ownVehicles)[number], string> = { carro: "Carro propio", moto: "Moto propia" };
+
+/** Habilidades sugeridas: la persona las marca con un clic. */
+export const skillGroups: { title: string; skills: string[] }[] = [
+  { title: "Atención y ventas", skills: ["Atención al cliente", "Ventas", "Manejo de caja", "Cobros", "Servicio por WhatsApp", "Telemercadeo", "Negociación", "Manejo de quejas"] },
+  { title: "Oficina y digital", skills: ["Excel", "Word", "Google Workspace", "Facturación", "Contabilidad básica", "Redes sociales", "Canva", "Inteligencia artificial (IA)", "Mecanografía rápida", "Archivo y documentos"] },
+  { title: "Tecnología", skills: ["Programación", "Soporte técnico", "Diseño gráfico", "Edición de video", "Fotografía", "Marketing digital", "Análisis de datos", "Páginas web"] },
+  { title: "Oficios técnicos", skills: ["Electricidad", "Plomería", "Refrigeración y aire acondicionado", "Mecánica automotriz", "Soldadura", "Carpintería", "Albañilería", "Pintura", "Mantenimiento general"] },
+  { title: "Cocina y servicio", skills: ["Cocina", "Repostería", "Bartender", "Mesero", "Barista", "Limpieza", "Lavandería", "Cuidado de niños", "Cuidado de adultos mayores", "Manipulación de alimentos"] },
+  { title: "Transporte y bodega", skills: ["Conducción", "Entregas a domicilio", "Montacargas", "Inventario", "Bodega", "Despacho"] },
+  { title: "Habilidades personales", skills: ["Trabajo en equipo", "Puntualidad", "Liderazgo", "Comunicación", "Responsabilidad", "Resolución de problemas", "Organización", "Aprendo rápido", "Trabajo bajo presión", "Creatividad", "Adaptabilidad"] },
+];
+export const MAX_SKILLS = 30;
+
 export const jobStatusLabels: Record<JobStatus, string> = { draft: "Borrador", published: "Publicada", paused: "Pausada", closed: "Cerrada" };
 export const applicationStatusLabels: Record<ApplicationStatus, string> = {
   enviada: "Enviada", vista: "Vista por la empresa", entrevista: "En entrevista", descartada: "No seleccionada",
@@ -68,6 +88,18 @@ export const languageItem = z.object({
   level: z.enum(languageLevels),
 }).strict();
 
+export const courseItem = z.object({
+  name: z.string().trim().min(2, "Escribe el curso o certificado").max(120),
+  institution: z.string().trim().max(120).default(""),
+  year: z.string().trim().regex(/^$|^\d{4}$/, "Año inválido").default(""),
+}).strict();
+export const referenceItem = z.object({
+  name: z.string().trim().min(3, "Escribe el nombre de la referencia").max(120),
+  role: z.string().trim().max(120).default(""),
+  phone: z.string().trim().min(7, "Escribe el teléfono de la referencia").max(20),
+}).strict();
+const webLink = z.string().trim().max(200).regex(/^$|^https?:\/\/[^\s]+$/, "El enlace debe empezar con https://").default("");
+
 export const saveResumeInput = z.object({
   fullName: z.string().trim().min(3, "Escribe tu nombre completo").max(120),
   headline: z.string().trim().min(3, "Escribe tu oficio o profesión").max(120),
@@ -80,9 +112,37 @@ export const saveResumeInput = z.object({
   education: z.array(educationItem).max(10).default([]),
   skills: z.array(z.string().trim().min(1).max(60)).max(30).default([]),
   languages: z.array(languageItem).max(8).default([]),
+  linkedinUrl: webLink,
+  portfolioUrl: webLink,
+  preferredModalities: z.array(z.enum(jobModalities)).max(3).default([]),
+  canTravel: z.boolean().default(false),
+  canRelocate: z.boolean().default(false),
+  courses: z.array(courseItem).max(15).default([]),
+  driverLicenses: z.array(z.enum(driverLicenses)).max(5).default([]),
+  vehicles: z.array(z.enum(ownVehicles)).max(2).default([]),
+  expectedSalaryCents: cents.nullable().default(null),
+  references: z.array(referenceItem).max(5).default([]),
 }).strict();
 export type SaveResumeInput = z.infer<typeof saveResumeInput>;
-export type ResumeDTO = SaveResumeInput & { updatedAt: string };
+/** El CV guardado; la foto se sube aparte. */
+export type ResumeDTO = SaveResumeInput & { photoUrl: string; updatedAt: string };
+/** Campos que se agregaron después: las copias viejas del CV no los traen. */
+export const resumeExtraKeys = [
+  "linkedinUrl", "portfolioUrl", "preferredModalities", "canTravel", "canRelocate",
+  "courses", "driverLicenses", "vehicles", "expectedSalaryCents", "references",
+] as const;
+export const resumeExtrasDefaults = {
+  linkedinUrl: "", portfolioUrl: "", preferredModalities: [] as (typeof jobModalities)[number][], canTravel: false, canRelocate: false,
+  courses: [] as z.infer<typeof courseItem>[], driverLicenses: [] as (typeof driverLicenses)[number][],
+  vehicles: [] as (typeof ownVehicles)[number][], expectedSalaryCents: null as number | null, references: [] as z.infer<typeof referenceItem>[],
+};
+/** Completa un CV (también una copia vieja de una postulación) con los campos que falten. */
+export function withResumeDefaults<T extends object>(r: T): T & typeof resumeExtrasDefaults & { photoUrl: string } {
+  return { ...resumeExtrasDefaults, photoUrl: "", ...r } as T & typeof resumeExtrasDefaults & { photoUrl: string };
+}
+
+/** Mensaje cuando una vacante no trae el sueldo base. */
+export const SALARY_REQUIRED_MESSAGE = "Sin la publicación del sueldo ofrecido no se puede publicar. Escribe el sueldo base.";
 
 // ───────────── Vacantes ─────────────
 
@@ -97,10 +157,12 @@ export const saveJobInput = z
     modality: z.enum(jobModalities),
     province: z.enum(provinceOptions),
     district: z.string().trim().min(2, "Escribe el distrito").max(80),
-    salaryNegotiable: z.boolean().default(false),
+    // El sueldo base es obligatorio; los bonos son opcionales.
     salaryMinCents: cents.nullable().default(null),
     salaryMaxCents: cents.nullable().default(null),
     salaryPeriod: z.enum(salaryPeriods).default("mes"),
+    bonusCents: cents.nullable().default(null),
+    bonusDetail: z.string().trim().max(200).default(""),
     description: z.string().trim().min(30, "Describe el puesto en al menos 30 letras").max(5000),
     requirements: z.string().trim().max(3000).default(""),
     benefits: z.string().trim().max(2000).default(""),
@@ -108,8 +170,8 @@ export const saveJobInput = z
   })
   .strict()
   .superRefine((v, ctx) => {
-    if (!v.salaryNegotiable && !v.salaryMinCents)
-      ctx.addIssue({ code: "custom", path: ["salaryMinCents"], message: "Escribe el salario o marca «a convenir»" });
+    if (!v.salaryMinCents)
+      ctx.addIssue({ code: "custom", path: ["salaryMinCents"], message: SALARY_REQUIRED_MESSAGE });
     if (v.salaryMinCents && v.salaryMaxCents && v.salaryMaxCents < v.salaryMinCents)
       ctx.addIssue({ code: "custom", path: ["salaryMaxCents"], message: "El salario máximo no puede ser menor que el mínimo" });
   });
@@ -138,9 +200,9 @@ export type OwnJobDTO = JobDTO & { revision: number; applicants: number; newAppl
 
 export const jobUsd = (c: number) => `US$${(c / 100).toLocaleString("en-US", { minimumFractionDigits: c % 100 ? 2 : 0, maximumFractionDigits: 2 })}`;
 
-/** «US$800 – US$1,000 al mes», «Desde US$5 por hora» o «Salario a convenir». */
-export function salaryLabel(j: Pick<SaveJobInput, "salaryNegotiable" | "salaryMinCents" | "salaryMaxCents" | "salaryPeriod">) {
-  if (!j.salaryMinCents) return "Salario a convenir";
+/** «US$800 – US$1,000 al mes» o «US$5 por hora». */
+export function salaryLabel(j: Pick<SaveJobInput, "salaryMinCents" | "salaryMaxCents" | "salaryPeriod">) {
+  if (!j.salaryMinCents) return "Sueldo no indicado";
   const period = salaryPeriodLabels[j.salaryPeriod];
   return j.salaryMaxCents && j.salaryMaxCents > j.salaryMinCents
     ? `${jobUsd(j.salaryMinCents)} – ${jobUsd(j.salaryMaxCents)} ${period}`
@@ -149,3 +211,10 @@ export function salaryLabel(j: Pick<SaveJobInput, "salaryNegotiable" | "salaryMi
 
 /** Fecha de hoy en Panamá (AAAA-MM-DD). */
 export const todayPanama = () => new Date(Date.now() - 5 * 3600_000).toISOString().slice(0, 10);
+
+/** «+ bonos de hasta US$150: comisión por ventas» o "" si no hay bonos. */
+export function bonusLabel(j: Pick<SaveJobInput, "bonusCents" | "bonusDetail">) {
+  if (!j.bonusCents && !j.bonusDetail) return "";
+  const amount = j.bonusCents ? `Bonos de hasta ${jobUsd(j.bonusCents)}` : "Bonos";
+  return j.bonusDetail ? `${amount}: ${j.bonusDetail}` : amount;
+}

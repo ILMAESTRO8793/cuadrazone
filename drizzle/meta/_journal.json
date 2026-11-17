@@ -302,6 +302,13 @@
       "when": 1794863700626,
       "tag": "0042_planes_por_cantidad",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "5",
+      "when": 1794881946570,
+      "tag": "0043_cv_extras_y_bonos",
+      "breakpoints": true
     }
   ]
 }

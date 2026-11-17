@@ -8,6 +8,14 @@ import { BriefcaseBusiness, CalendarClock, MapPin, Star } from "lucide-react";
 import { toast } from "sonner";
 import { provinceOptions } from "@shared/marketplace";
 import {
+  SALARY_REQUIRED_MESSAGE,
+  bonusLabel,
+  driverLicenseLabels,
+  driverLicenses,
+  jobUsd,
+  ownVehicleLabels,
+  ownVehicles,
+  withResumeDefaults,
   applicationStatusLabels,
   applicationStatuses,
   areaLabels,
@@ -39,6 +47,7 @@ import { Input } from "@/components/ui/input";
 import "../realEstate/realEstate.css";
 import "./jobs.css";
 import FilterDrawer, { countActiveFilters } from "@/components/marketplace/FilterDrawer";
+import { ResumePhoto, SalaryCalculator, SkillPicker, ToggleChips } from "./CvParts";
 
 const errorText = (e: unknown) => (e instanceof Error ? e.message : "Ocurrió un error");
 const dateEs = (iso: string) => new Date(`${iso.slice(0, 10)}T12:00:00Z`).toLocaleDateString("es-PA", { day: "numeric", month: "long", year: "numeric" });
@@ -86,6 +95,7 @@ function JobCard({ j }: { j: JobDTO }) {
       </div>
       <div className="job-card-bottom">
         <strong>{salaryLabel(j)}</strong>
+        {bonusLabel(j) && <span className="job-bonus">+ {bonusLabel(j)}</span>}
         <span className="re-where"><MapPin size={14} /> {j.district}, {j.province}</span>
         <ListingStars kind="empleo" listingId={j.id} size={14} />
         <span className="re-muted re-small"><CalendarClock size={13} /> Cierra el {dateEs(j.closesOn)}</span>
@@ -122,6 +132,10 @@ export function JobListPage() {
         <label className="re-search filter-keep">Buscar<Input value={f.q} onChange={e => set("q", e.target.value)} placeholder="Cargo, empresa o palabra" /></label>
       </form>
       </FilterDrawer>
+      <details className="salary-calc-toggle">
+        <summary>Calculadora de salario neto: ¿cuánto me queda después de los descuentos?</summary>
+        <SalaryCalculator />
+      </details>
       {list.isLoading && <p role="status">Buscando vacantes…</p>}
       {list.error && <p className="member-error" role="alert">{list.error.message}</p>}
       {list.data && (
@@ -191,8 +205,12 @@ export function JobDetailPage({ slug }: { slug: string }) {
         </div>
         <aside className="re-aside">
           <strong className="re-price">{salaryLabel(j)}</strong>
+          {bonusLabel(j) && <p className="job-bonus">+ {bonusLabel(j)}</p>}
           <p className="re-where"><MapPin size={15} /> {j.district}, {j.province}</p>
           <ListingStars kind="empleo" listingId={j.id} size={20} labeled />
+          {(j.salaryPeriod === "mes" || j.salaryPeriod === "quincena") && j.salaryMinCents ? (
+            <SalaryCalculator compact initialCents={j.salaryMinCents} initialPeriod={j.salaryPeriod} />
+          ) : null}
           <PublicPlaceMap kind="empleo" id={j.id} />
           <p className="re-muted"><CalendarClock size={14} /> Recibe postulaciones hasta el {dateEs(j.closesOn)}</p>
           {isOwner ? (
@@ -224,6 +242,8 @@ export function JobDetailPage({ slug }: { slug: string }) {
 const emptyResume: SaveResumeInput = {
   fullName: "", headline: "", summary: "", phone: "", email: "", province: "Panamá", availability: "inmediata",
   experience: [], education: [], skills: [], languages: [],
+  linkedinUrl: "", portfolioUrl: "", preferredModalities: [], canTravel: false, canRelocate: false,
+  courses: [], driverLicenses: [], vehicles: [], expectedSalaryCents: null, references: [],
 };
 
 export function ResumePage() {
@@ -236,20 +256,22 @@ function ResumeContent() {
   const mine = trpc.jobs.myResume.useQuery();
   const save = trpc.jobs.saveResume.useMutation();
   const [cv, setCv] = useState<SaveResumeInput>(emptyResume);
-  const [skillsText, setSkillsText] = useState("");
+  const [expectedSalary, setExpectedSalary] = useState("");
+  const photoUrl = mine.data?.photoUrl ?? "";
   useEffect(() => {
     if (mine.data) {
-      const { updatedAt: _ignored, ...rest } = mine.data;
+      const { updatedAt: _ignored, photoUrl: _photo, ...rest } = withResumeDefaults(mine.data);
       setCv(rest);
-      setSkillsText(rest.skills.join(", "));
+      setExpectedSalary(rest.expectedSalaryCents ? String(rest.expectedSalaryCents / 100) : "");
     } else if (mine.isSuccess && auth.user) {
       setCv(c => ({ ...c, fullName: c.fullName || auth.user?.name || "", email: c.email || auth.user?.email || "" }));
     }
   }, [mine.data, mine.isSuccess, auth.user]);
   const set = <K extends keyof SaveResumeInput>(k: K, v: SaveResumeInput[K]) => setCv(c => ({ ...c, [k]: v }));
-  const updateItem = <K extends "experience" | "education" | "languages">(k: K, i: number, patch: Partial<SaveResumeInput[K][number]>) =>
+  type ListKey = "experience" | "education" | "languages" | "courses" | "references";
+  const updateItem = <K extends ListKey>(k: K, i: number, patch: Partial<SaveResumeInput[K][number]>) =>
     setCv(c => ({ ...c, [k]: (c[k] as any[]).map((x, idx) => (idx === i ? { ...x, ...patch } : x)) }));
-  const removeItem = (k: "experience" | "education" | "languages", i: number) => setCv(c => ({ ...c, [k]: (c[k] as any[]).filter((_, idx) => idx !== i) }));
+  const removeItem = (k: ListKey, i: number) => setCv(c => ({ ...c, [k]: (c[k] as any[]).filter((_, idx) => idx !== i) }));
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -257,7 +279,8 @@ function ResumeContent() {
       await save.mutateAsync({
         ...cv,
         phone: normalizePhone(cv.phone),
-        skills: skillsText.split(",").map(s => s.trim()).filter(Boolean).slice(0, 30),
+        expectedSalaryCents: centsFrom(expectedSalary),
+        references: cv.references.map(r => ({ ...r, phone: normalizePhone(r.phone) })),
         experience: cv.experience.map(x => ({ ...x, end: x.current ? null : x.end || null })),
       });
       await utils.jobs.myResume.invalidate();
@@ -282,6 +305,7 @@ function ResumeContent() {
         <form className="re-form no-print" onSubmit={submit}>
           <fieldset>
             <legend>Datos personales</legend>
+            <ResumePhoto photoUrl={photoUrl} saved={Boolean(mine.data)} />
             <div className="re-row">
               <label>Nombre completo<Input value={cv.fullName} onChange={e => set("fullName", e.target.value)} required maxLength={120} /></label>
               <label>Oficio o profesión<Input value={cv.headline} onChange={e => set("headline", e.target.value)} required maxLength={120} placeholder="Ej.: Cajera con experiencia, Técnico en refrigeración" /></label>
@@ -324,8 +348,25 @@ function ResumeContent() {
             {cv.education.length < 10 && <button type="button" className="btn btn-outline" onClick={() => set("education", [...cv.education, { institution: "", degree: "", year: "" }])}>+ Agregar estudio</button>}
           </fieldset>
           <fieldset>
-            <legend>Habilidades e idiomas</legend>
-            <label>Habilidades (sepáralas con comas)<Input value={skillsText} onChange={e => setSkillsText(e.target.value)} placeholder="Ej.: Excel, atención al cliente, licencia de conducir" /></label>
+            <legend>Cursos y certificados</legend>
+            {cv.courses.map((x, i) => (
+              <div className="cv-item" key={i}>
+                <div className="re-row">
+                  <label>Curso o certificado<Input value={x.name} onChange={e => updateItem("courses", i, { name: e.target.value })} required maxLength={120} placeholder="Ej.: Atención al cliente, Excel avanzado" /></label>
+                  <label>Dónde lo hiciste<Input value={x.institution} onChange={e => updateItem("courses", i, { institution: e.target.value })} maxLength={120} placeholder="Ej.: INADEH, Google, Coursera" /></label>
+                  <label>Año<Input inputMode="numeric" value={x.year} onChange={e => updateItem("courses", i, { year: e.target.value })} placeholder="2024" /></label>
+                </div>
+                <button type="button" className="re-back" onClick={() => removeItem("courses", i)}>Quitar</button>
+              </div>
+            ))}
+            {cv.courses.length < 15 && <button type="button" className="btn btn-outline" onClick={() => set("courses", [...cv.courses, { name: "", institution: "", year: "" }])}>+ Agregar curso o certificado</button>}
+          </fieldset>
+          <fieldset>
+            <legend>Habilidades</legend>
+            <SkillPicker value={cv.skills} onChange={next => set("skills", next)} />
+          </fieldset>
+          <fieldset>
+            <legend>Idiomas</legend>
             {cv.languages.map((x, i) => (
               <div className="re-row" key={i}>
                 <label>Idioma<Input value={x.language} onChange={e => updateItem("languages", i, { language: e.target.value })} required /></label>
@@ -335,23 +376,70 @@ function ResumeContent() {
             ))}
             {cv.languages.length < 8 && <button type="button" className="btn btn-outline" onClick={() => set("languages", [...cv.languages, { language: "", level: "intermedio" }])}>+ Agregar idioma</button>}
           </fieldset>
+          <fieldset>
+            <legend>Cómo quieres trabajar</legend>
+            <span className="cv-skill-title">Modalidad que prefieres</span>
+            <ToggleChips label="Modalidad que prefieres" options={jobModalities} labels={modalityLabels} value={cv.preferredModalities} onChange={next => set("preferredModalities", next)} />
+            <label className="re-check-inline"><input type="checkbox" checked={cv.canTravel} onChange={e => set("canTravel", e.target.checked)} /> Puedo viajar por trabajo</label>
+            <label className="re-check-inline"><input type="checkbox" checked={cv.canRelocate} onChange={e => set("canRelocate", e.target.checked)} /> Puedo mudarme a otra provincia</label>
+            <span className="cv-skill-title">Licencia de conducir</span>
+            <ToggleChips label="Licencia de conducir" options={driverLicenses} labels={driverLicenseLabels} value={cv.driverLicenses} onChange={next => set("driverLicenses", next)} />
+            <span className="cv-skill-title">Vehículo propio</span>
+            <ToggleChips label="Vehículo propio" options={ownVehicles} labels={ownVehicleLabels} value={cv.vehicles} onChange={next => set("vehicles", next)} />
+            <div className="re-row">
+              <label>Salario que esperas al mes (US$, opcional)<Input inputMode="decimal" value={expectedSalary} onChange={e => setExpectedSalary(e.target.value)} placeholder="Ej.: 800" /></label>
+              <label>LinkedIn (opcional)<Input type="url" value={cv.linkedinUrl} onChange={e => set("linkedinUrl", e.target.value)} maxLength={200} placeholder="https://www.linkedin.com/in/tu-nombre" /></label>
+              <label>Portafolio o página web (opcional)<Input type="url" value={cv.portfolioUrl} onChange={e => set("portfolioUrl", e.target.value)} maxLength={200} placeholder="https://" /></label>
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend>Referencias</legend>
+            {cv.references.map((x, i) => (
+              <div className="cv-item" key={i}>
+                <div className="re-row">
+                  <label>Nombre<Input value={x.name} onChange={e => updateItem("references", i, { name: e.target.value })} required maxLength={120} /></label>
+                  <label>Cargo o relación<Input value={x.role} onChange={e => updateItem("references", i, { role: e.target.value })} maxLength={120} placeholder="Ej.: Mi supervisor en mi último trabajo" /></label>
+                  <label>Teléfono<Input inputMode="tel" value={x.phone} onChange={e => updateItem("references", i, { phone: e.target.value })} required placeholder="6123-4567" /></label>
+                </div>
+                <button type="button" className="re-back" onClick={() => removeItem("references", i)}>Quitar</button>
+              </div>
+            ))}
+            {cv.references.length < 5 && <button type="button" className="btn btn-outline" onClick={() => set("references", [...cv.references, { name: "", role: "", phone: "" }])}>+ Agregar referencia</button>}
+            <p className="re-muted re-small">Pide permiso a tus referencias antes de ponerlas: las empresas pueden llamarlas.</p>
+          </fieldset>
           <div className="re-form-actions"><button className="btn btn-gold" type="submit" disabled={save.isPending}>{save.isPending ? "Guardando…" : "Guardar CV"}</button></div>
         </form>
-        <CvSheet cv={{ ...cv, skills: skillsText.split(",").map(s => s.trim()).filter(Boolean) }} />
+        <CvSheet cv={{ ...cv, photoUrl, expectedSalaryCents: centsFrom(expectedSalary) }} />
       </div>
     </div>
   );
 }
 
 /** Hoja del CV: vista previa en pantalla y lo único que se imprime en el PDF. */
-function CvSheet({ cv }: { cv: Omit<ResumeDTO, "updatedAt"> }) {
+function CvSheet({ cv: raw }: { cv: Omit<ResumeDTO, "updatedAt"> }) {
+  // Las copias viejas de una postulación no traen los campos nuevos.
+  const cv = withResumeDefaults(raw);
+  const work = [
+    cv.preferredModalities.length ? `Modalidad: ${cv.preferredModalities.map(m => modalityLabels[m]).join(", ")}` : "",
+    cv.canTravel ? "Puede viajar" : "",
+    cv.canRelocate ? "Puede mudarse" : "",
+    cv.driverLicenses.length ? `Licencia: ${cv.driverLicenses.map(l => driverLicenseLabels[l]).join(", ")}` : "",
+    cv.vehicles.length ? cv.vehicles.map(v => ownVehicleLabels[v]).join(", ") : "",
+    cv.expectedSalaryCents ? `Salario esperado: ${jobUsd(cv.expectedSalaryCents)} al mes` : "",
+  ].filter(Boolean);
   const month = (ym: string | null) => (ym ? new Date(`${ym}-15T12:00:00Z`).toLocaleDateString("es-PA", { month: "short", year: "numeric" }) : "");
   return (
     <article className="cv-sheet" aria-label="Vista previa del CV">
-      <header>
-        <h2>{cv.fullName || "Tu nombre"}</h2>
-        <p className="cv-headline">{cv.headline || "Tu oficio o profesión"}</p>
-        <p className="cv-contact">{[cv.phone, cv.email, cv.province, `Disponibilidad: ${availabilityLabels[cv.availability]}`].filter(Boolean).join(" · ")}</p>
+      <header className={cv.photoUrl ? "cv-header--photo" : ""}>
+        {cv.photoUrl && <img className="cv-sheet-photo" src={cv.photoUrl} alt={`Foto de ${cv.fullName}`} />}
+        <div>
+          <h2>{cv.fullName || "Tu nombre"}</h2>
+          <p className="cv-headline">{cv.headline || "Tu oficio o profesión"}</p>
+          <p className="cv-contact">{[cv.phone, cv.email, cv.province, `Disponibilidad: ${availabilityLabels[cv.availability]}`].filter(Boolean).join(" · ")}</p>
+          {(cv.linkedinUrl || cv.portfolioUrl) && (
+            <p className="cv-contact">{[cv.linkedinUrl, cv.portfolioUrl].filter(Boolean).join(" · ")}</p>
+          )}
+        </div>
       </header>
       {cv.summary && <section><h3>Sobre mí</h3><p>{cv.summary}</p></section>}
       {cv.experience.length > 0 && (
@@ -372,8 +460,21 @@ function CvSheet({ cv }: { cv: Omit<ResumeDTO, "updatedAt"> }) {
           {cv.education.map((x, i) => <div className="cv-entry" key={i}><strong>{x.degree}</strong> <span className="cv-dates">{x.institution}{x.year ? ` · ${x.year}` : ""}</span></div>)}
         </section>
       )}
+      {cv.courses.length > 0 && (
+        <section>
+          <h3>Cursos y certificados</h3>
+          {cv.courses.map((x, i) => <div className="cv-entry" key={i}><strong>{x.name}</strong> <span className="cv-dates">{[x.institution, x.year].filter(Boolean).join(" · ")}</span></div>)}
+        </section>
+      )}
       {cv.skills.length > 0 && <section><h3>Habilidades</h3><p>{cv.skills.join(" · ")}</p></section>}
       {cv.languages.length > 0 && <section><h3>Idiomas</h3><p>{cv.languages.map(l => `${l.language} (${levelLabels[l.level]})`).join(" · ")}</p></section>}
+      {work.length > 0 && <section><h3>Cómo quiere trabajar</h3><p>{work.join(" · ")}</p></section>}
+      {cv.references.length > 0 && (
+        <section>
+          <h3>Referencias</h3>
+          {cv.references.map((x, i) => <div className="cv-entry" key={i}><strong>{x.name}</strong> <span className="cv-dates">{[x.role, x.phone].filter(Boolean).join(" · ")}</span></div>)}
+        </section>
+      )}
       <footer className="cv-footer">CV creado en CuadraZone</footer>
     </article>
   );
@@ -411,18 +512,19 @@ function MyApplicationsContent() {
 
 type JobForm = {
   id?: number; expectedRevision?: number; title: string; company: string; area: string; jobType: string; modality: string;
-  province: string; district: string; salaryNegotiable: boolean; salaryMin: string; salaryMax: string; salaryPeriod: string;
+  province: string; district: string; salaryMin: string; salaryMax: string; salaryPeriod: string; bonus: string; bonusDetail: string;
   description: string; requirements: string; benefits: string; closesOn: string;
 };
 const plusDays = (d: number) => new Date(Date.now() + d * 86400_000).toISOString().slice(0, 10);
 const emptyJob = (): JobForm => ({
   title: "", company: "", area: "ventas", jobType: "tiempo_completo", modality: "presencial", province: "Panamá", district: "",
-  salaryNegotiable: false, salaryMin: "", salaryMax: "", salaryPeriod: "mes", description: "", requirements: "", benefits: "", closesOn: plusDays(30),
+  salaryMin: "", salaryMax: "", salaryPeriod: "mes", bonus: "", bonusDetail: "", description: "", requirements: "", benefits: "", closesOn: plusDays(30),
 });
 const jobFormFrom = (j: OwnJobDTO): JobForm => ({
   id: j.id, expectedRevision: j.revision, title: j.title, company: j.company, area: j.area, jobType: j.jobType, modality: j.modality,
-  province: j.province, district: j.district, salaryNegotiable: j.salaryNegotiable, salaryMin: j.salaryMinCents ? String(j.salaryMinCents / 100) : "",
-  salaryMax: j.salaryMaxCents ? String(j.salaryMaxCents / 100) : "", salaryPeriod: j.salaryPeriod, description: j.description,
+  province: j.province, district: j.district, salaryMin: j.salaryMinCents ? String(j.salaryMinCents / 100) : "",
+  salaryMax: j.salaryMaxCents ? String(j.salaryMaxCents / 100) : "", salaryPeriod: j.salaryPeriod,
+  bonus: j.bonusCents ? String(j.bonusCents / 100) : "", bonusDetail: j.bonusDetail, description: j.description,
   requirements: j.requirements, benefits: j.benefits, closesOn: j.closesOn,
 });
 
@@ -446,12 +548,16 @@ function MyJobsContent() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!form) return;
+    if (!centsFrom(form.salaryMin)) {
+      toast.error(SALARY_REQUIRED_MESSAGE);
+      return;
+    }
     try {
       await save.mutateAsync({
         ...(form.id ? { id: form.id, expectedRevision: form.expectedRevision } : {}),
         title: form.title, company: form.company, area: form.area, jobType: form.jobType, modality: form.modality, province: form.province,
-        district: form.district, salaryNegotiable: form.salaryNegotiable, salaryMinCents: centsFrom(form.salaryMin), salaryMaxCents: centsFrom(form.salaryMax),
-        salaryPeriod: form.salaryPeriod, description: form.description, requirements: form.requirements, benefits: form.benefits, closesOn: form.closesOn,
+        district: form.district, salaryMinCents: centsFrom(form.salaryMin), salaryMaxCents: centsFrom(form.salaryMax),
+        salaryPeriod: form.salaryPeriod, bonusCents: centsFrom(form.bonus), bonusDetail: form.bonusDetail, description: form.description, requirements: form.requirements, benefits: form.benefits, closesOn: form.closesOn,
       });
       await utils.jobs.mine.invalidate();
       setForm(null);
@@ -485,15 +591,17 @@ function MyJobsContent() {
             </div>
           </fieldset>
           <fieldset>
-            <legend>Salario</legend>
-            <label className="re-check-inline"><input type="checkbox" checked={form.salaryNegotiable} onChange={e => set("salaryNegotiable", e.target.checked)} /> Salario a convenir</label>
-            {!form.salaryNegotiable && (
-              <div className="re-row">
-                <label>Desde (US$)<Input inputMode="decimal" value={form.salaryMin} onChange={e => set("salaryMin", e.target.value)} required /></label>
-                <label>Hasta (US$, opcional)<Input inputMode="decimal" value={form.salaryMax} onChange={e => set("salaryMax", e.target.value)} /></label>
-                <label>Período<select value={form.salaryPeriod} onChange={e => set("salaryPeriod", e.target.value)}>{salaryPeriods.map(p => <option key={p} value={p}>{salaryPeriodLabels[p]}</option>)}</select></label>
-              </div>
-            )}
+            <legend>Sueldo</legend>
+            <p className="re-muted re-small">El sueldo base es obligatorio: sin la publicación del sueldo ofrecido no se puede publicar la vacante.</p>
+            <div className="re-row">
+              <label>Sueldo base (US$, obligatorio)<Input inputMode="decimal" value={form.salaryMin} onChange={e => set("salaryMin", e.target.value)} required placeholder="Ej.: 700" /></label>
+              <label>Hasta (US$, opcional)<Input inputMode="decimal" value={form.salaryMax} onChange={e => set("salaryMax", e.target.value)} /></label>
+              <label>Período<select value={form.salaryPeriod} onChange={e => set("salaryPeriod", e.target.value)}>{salaryPeriods.map(p => <option key={p} value={p}>{salaryPeriodLabels[p]}</option>)}</select></label>
+            </div>
+            <div className="re-row">
+              <label>Bonos al mes (US$, opcional)<Input inputMode="decimal" value={form.bonus} onChange={e => set("bonus", e.target.value)} placeholder="Ej.: 150" /></label>
+              <label>En qué consisten los bonos (opcional)<Input value={form.bonusDetail} onChange={e => set("bonusDetail", e.target.value)} maxLength={200} placeholder="Ej.: comisión por ventas, bono de puntualidad" /></label>
+            </div>
           </fieldset>
           <fieldset>
             <legend>Detalles</legend>
@@ -518,7 +626,7 @@ function MyJobsContent() {
           {plan.active ? (
             <p><strong>Plan activo{plan.featured ? " · Mayor Visibilidad (tus vacantes salen destacadas)" : ""}</strong> hasta el {new Date(plan.endsAt!).toLocaleDateString("es-PA", { timeZone: "America/Panama" })}.</p>
           ) : (
-            <p><strong>Para publicar vacantes necesitas un plan:</strong> Normal (US$19.99 al mes) o Mayor Visibilidad (US$39.99 al mes). El mismo plan te sirve para empleos, autos y bienes raíces. Paga por Yappy y escríbenos con el correo o celular de tu cuenta para activarlo.</p>
+            <p><strong>Tu primera vacante abre tu tiempo gratis.</strong> Después, el plan de Empleos es US$49.99 al mes hasta 20 vacantes, US$79.99 de 21 a 100 y US$159.99 para más de 100. <Link href="/suscripciones?seccion=empleos">Ver planes</Link></p>
           )}
         </div>
       )}
@@ -587,7 +695,7 @@ function Applicants({ jobId, onBack }: { jobId: number; onBack: () => void }) {
                 <a className="btn btn-outline" href={`tel:${a.resume.phone}`}>Llamar</a>
                 {a.resume.email && <a className="btn btn-outline" href={`mailto:${a.resume.email}`}>Correo</a>}
               </div>
-              {open === a.id && <CvSheet cv={a.resume} />}
+              {open === a.id && <CvSheet cv={withResumeDefaults(a.resume)} />}
             </li>
           );
         })}

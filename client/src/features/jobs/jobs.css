@@ -44,6 +44,51 @@
 .cv-entry { margin-bottom: 8px; }
 .cv-dates { display: block; color: #4A5568; font-size: 12.5px; }
 .cv-footer { margin-top: 18px; font-size: 11px; color: #8A9592; text-align: right; }
+.cv-header--photo { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 18px; align-items: center; }
+.cv-sheet-photo { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; border: 3px solid #B58C3C; }
+@media (max-width: 480px) { .cv-sheet { padding: 22px 18px; } .cv-header--photo { grid-template-columns: 72px minmax(0, 1fr); gap: 12px; } .cv-sheet-photo { width: 72px; height: 72px; } }
+
+/* Foto de perfil en el formulario */
+.cv-photo-field { display: flex; gap: 14px; align-items: center; padding: 12px; border: 1px dashed #DCE3E1; border-radius: 12px; }
+.cv-photo-field p { margin: 4px 0 8px; }
+.cv-photo-frame { flex: none; display: inline-flex; width: 84px; height: 84px; align-items: center; justify-content: center; overflow: hidden; border-radius: 50%; background: #F1EADB; color: #7A5A1C; font-weight: 700; font-size: 13px; }
+.cv-photo-frame img { width: 100%; height: 100%; object-fit: cover; }
+.cv-photo-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.cv-photo-actions label.btn { cursor: pointer; }
+
+/* Habilidades y opciones que se marcan con un clic */
+.cv-skills { display: flex; flex-direction: column; gap: 14px; }
+.cv-skill-group { display: flex; flex-direction: column; gap: 8px; }
+.cv-skill-title { font-weight: 700; font-size: 14px; color: #0B1F3B; }
+.cv-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.cv-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 14px; border: 1px solid #C7D0CE; border-radius: 999px; background: #fff; color: #0B1F3B; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: background-color .15s ease, border-color .15s ease, color .15s ease; }
+.cv-chip:hover { border-color: #B58C3C; }
+.cv-chip:focus-visible { outline: 3px solid #B58C3C; outline-offset: 2px; }
+.cv-chip.is-on { background: #0B1F3B; border-color: #0B1F3B; color: #fff; }
+.cv-other { display: flex; gap: 8px; align-items: center; }
+.cv-other > :first-child { flex: 1; min-width: 0; }
+.cv-other .btn { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+
+/* Bonos y calculadora de salario neto */
+.job-bonus { margin: 0; color: #0F5132; font-weight: 700; font-size: 14px; }
+.salary-calc-toggle { margin: 0 0 16px; border: 1px solid #DCE3E1; border-radius: 14px; background: #fff; }
+.salary-calc-toggle > summary { padding: 14px 16px; cursor: pointer; font-weight: 700; color: #0B1F3B; }
+.salary-calc-toggle[open] > summary { border-bottom: 1px solid #DCE3E1; }
+.salary-calc-toggle .salary-calc h2 { display: none; }
+.salary-calc { display: flex; flex-direction: column; gap: 10px; padding: 16px; }
+.salary-calc h2 { margin: 0; font-size: 18px; color: #0B1F3B; }
+.salary-calc p { margin: 0; }
+.salary-calc--compact { padding: 14px; border: 1px solid #DCE3E1; border-radius: 12px; background: #FBF8F1; }
+.salary-calc--compact h2 { font-size: 16px; }
+.salary-calc-inputs { display: grid; grid-template-columns: minmax(0, 1fr) 120px; gap: 10px; max-width: 460px; align-items: end; }
+.salary-calc-inputs label { display: flex; flex-direction: column; gap: 6px; font-weight: 600; font-size: 14px; }
+.salary-calc-inputs select { min-height: 40px; padding: 0 10px; border: 1px solid #9AA8A5; border-radius: 10px; font: inherit; background: #fff; }
+.salary-calc-rows { margin: 0; display: flex; flex-direction: column; max-width: 460px; }
+.salary-calc-rows > div { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px solid #EEF2F1; font-size: 14px; }
+.salary-calc-rows dt { color: #4A5568; }
+.salary-calc-rows dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.salary-calc-total { border-bottom: 0 !important; padding-top: 10px !important; font-size: 17px !important; }
+.salary-calc-total dt, .salary-calc-total dd { color: #0F5132; font-weight: 800; }
 /* Al imprimir o guardar como PDF solo sale la hoja del CV */
 @media print {
   body * { visibility: hidden !important; }
