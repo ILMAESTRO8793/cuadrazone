@@ -54,7 +54,12 @@
 .cv-photo-frame { flex: none; display: inline-flex; width: 84px; height: 84px; align-items: center; justify-content: center; overflow: hidden; border-radius: 50%; background: #F1EADB; color: #7A5A1C; font-weight: 700; font-size: 13px; }
 .cv-photo-frame img { width: 100%; height: 100%; object-fit: cover; }
 .cv-photo-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-.cv-photo-actions label.btn { cursor: pointer; }
+.cv-photo-actions label.btn { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.cv-photo-frame--pick { cursor: pointer; border: 2px dashed #B58C3C; transition: border-color .15s ease, background-color .15s ease; }
+.cv-photo-frame--pick:hover { border-color: #7A5A1C; background: #EADFC6; }
+.cv-photo-frame--pick:focus-within { outline: 3px solid #B58C3C; outline-offset: 2px; }
+.cv-photo-empty { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 12px; }
+.cv-photo-note { margin: 8px 0 0; color: #0F5132; font-weight: 600; font-size: 13px; }
 
 /* Habilidades y opciones que se marcan con un clic */
 .cv-skills { display: flex; flex-direction: column; gap: 14px; }

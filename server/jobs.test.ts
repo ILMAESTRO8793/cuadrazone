@@ -71,7 +71,8 @@ describe("CV", () => {
       education: [{ institution: "IPT", degree: "Bachiller en Comercio", year: "2018" }],
       skills: ["Excel", "Atención al cliente"],
       languages: [{ language: "Inglés", level: "intermedio" }],
-      linkedinUrl: "https://www.linkedin.com/in/ana",
+      instagramUrl: "https://www.instagram.com/ana",
+      facebookUrl: "https://www.facebook.com/ana",
       preferredModalities: ["presencial", "hibrido"],
       canTravel: true,
       courses: [{ name: "Excel avanzado", institution: "INADEH", year: "2024" }],
@@ -85,7 +86,7 @@ describe("CV", () => {
     expect(saveResumeInput.safeParse({ ...cv, phone: "123" }).success).toBe(false);
     expect(saveResumeInput.safeParse({ ...cv, experience: [{ company: "X", role: "Y", start: "marzo" }] }).success).toBe(false);
     expect(saveResumeInput.safeParse({ ...cv, extra: 1 }).success).toBe(false);
-    expect(saveResumeInput.safeParse({ ...cv, linkedinUrl: "javascript:alert(1)" }).success).toBe(false);
+    expect(saveResumeInput.safeParse({ ...cv, instagramUrl: "javascript:alert(1)" }).success).toBe(false);
     expect(saveResumeInput.safeParse({ ...cv, driverLicenses: ["avion"] }).success).toBe(false);
     // La foto no se manda con el CV: se sube aparte.
     expect(saveResumeInput.safeParse({ ...cv, photoUrl: "https://x" }).success).toBe(false);

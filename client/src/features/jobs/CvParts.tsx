@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { Check, Plus, X } from "lucide-react";
+import { Camera, Check, Plus, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { trpc } from "@/lib/trpc";
 import {
@@ -258,29 +258,58 @@ export function LanguagePicker({
   );
 }
 
-/** Foto de perfil del CV. Se sube después de guardar el CV por primera vez. */
+/** Sube la foto del CV de quien tiene la sesión abierta. */
+export async function uploadResumePhoto(file: File): Promise<string> {
+  const r = await fetch("/api/resume/photo", {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": file.type, "x-cz-request": "1" },
+    body: file,
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || "No se pudo subir la foto");
+  return data.url as string;
+}
+
+const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
+
+/**
+ * Foto de perfil del CV. Con el CV guardado se sube al momento; si todavía no
+ * se ha guardado, la foto elegida se muestra y se sube al guardar el CV.
+ */
 export function ResumePhoto({
   photoUrl,
   saved,
+  pendingUrl,
+  onPick,
 }: {
   photoUrl: string;
   saved: boolean;
+  pendingUrl?: string;
+  onPick: (file: File) => void;
 }) {
   const utils = trpc.useUtils();
   const remove = trpc.jobs.removeResumePhoto.useMutation();
   const [uploading, setUploading] = useState(false);
-  async function upload(file: File | undefined) {
+  const shown = pendingUrl || photoUrl;
+  async function choose(file: File | undefined) {
     if (!file) return;
+    if (!PHOTO_TYPES.includes(file.type)) {
+      toast.error("La foto debe ser JPG, PNG o WEBP");
+      return;
+    }
+    if (file.size > MAX_PHOTO_BYTES) {
+      toast.error("La foto debe pesar como máximo 5 MB");
+      return;
+    }
+    if (!saved) {
+      onPick(file);
+      return;
+    }
     setUploading(true);
     try {
-      const r = await fetch("/api/resume/photo", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": file.type, "x-cz-request": "1" },
-        body: file,
-      });
-      const data = await r.json().catch(() => ({}));
-      if (!r.ok) throw new Error(data.error || "No se pudo subir la foto");
+      await uploadResumePhoto(file);
       await utils.jobs.myResume.invalidate();
       toast.success("Foto agregada a tu CV");
     } catch (error) {
@@ -291,52 +320,63 @@ export function ResumePhoto({
   }
   return (
     <div className="cv-photo-field">
-      <span className="cv-photo-frame">
-        {photoUrl ? (
-          <img src={photoUrl} alt="Tu foto de perfil" />
+      <label className="cv-photo-frame cv-photo-frame--pick" title="Elegir foto">
+        {shown ? (
+          <img src={shown} alt="Tu foto de perfil" />
         ) : (
-          <span aria-hidden="true">Foto</span>
+          <span className="cv-photo-empty">
+            <Camera size={26} aria-hidden="true" />
+            Agregar
+          </span>
         )}
-      </span>
+        <input
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          hidden
+          disabled={uploading}
+          onChange={e => {
+            void choose(e.target.files?.[0]);
+            e.target.value = "";
+          }}
+        />
+      </label>
       <div>
         <strong>Foto de perfil</strong>
-        {saved ? (
-          <>
-            <p className="re-muted re-small">
-              Una foto de frente, con buena luz. Solo la ven las empresas
-              donde aplicas. JPG, PNG o WEBP de hasta 5 MB.
-            </p>
-            <div className="cv-photo-actions">
-              <label className="btn btn-outline">
-                {uploading ? "Subiendo…" : photoUrl ? "Cambiar foto" : "Subir foto"}
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  hidden
-                  disabled={uploading}
-                  onChange={e => {
-                    void upload(e.target.files?.[0]);
-                    e.target.value = "";
-                  }}
-                />
-              </label>
-              {photoUrl && (
-                <button
-                  type="button"
-                  className="re-back"
-                  onClick={async () => {
-                    await remove.mutateAsync();
-                    await utils.jobs.myResume.invalidate();
-                  }}
-                >
-                  Quitar foto
-                </button>
-              )}
-            </div>
-          </>
-        ) : (
-          <p className="re-muted re-small">
-            Guarda tu CV una vez y después podrás agregar tu foto.
+        <p className="re-muted re-small">
+          Una foto de frente, con buena luz. Solo la ven las empresas donde
+          aplicas. JPG, PNG o WEBP de hasta 5 MB.
+        </p>
+        <div className="cv-photo-actions">
+          <label className="btn btn-gold">
+            <Camera size={16} aria-hidden="true" />
+            {uploading ? "Subiendo…" : shown ? "Cambiar foto" : "Agregar foto"}
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              hidden
+              disabled={uploading}
+              onChange={e => {
+                void choose(e.target.files?.[0]);
+                e.target.value = "";
+              }}
+            />
+          </label>
+          {photoUrl && !pendingUrl && (
+            <button
+              type="button"
+              className="re-back"
+              onClick={async () => {
+                await remove.mutateAsync();
+                await utils.jobs.myResume.invalidate();
+              }}
+            >
+              Quitar foto
+            </button>
+          )}
+        </div>
+        {pendingUrl && (
+          <p className="cv-photo-note">
+            Foto lista. Se sube cuando guardes tu CV.
           </p>
         )}
       </div>

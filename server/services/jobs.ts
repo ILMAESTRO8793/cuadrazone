@@ -62,7 +62,12 @@ function resumeDTO(row: any): ResumeDTO {
     skills: json(row.skills, []),
     languages: json(row.languages, []),
     ...resumeExtrasDefaults,
-    ...json<Partial<SaveResumeInput>>(row.extras, {}),
+    // Solo los campos que hoy existen (un CV viejo puede traer LinkedIn).
+    ...Object.fromEntries(
+      Object.entries(json<Record<string, unknown>>(row.extras, {})).filter(([k]) =>
+        (resumeExtraKeys as readonly string[]).includes(k)
+      )
+    ),
     photoUrl: row.photoUrl ?? "",
     updatedAt: new Date(row.updatedAt).toISOString(),
   };

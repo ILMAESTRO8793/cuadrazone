@@ -114,7 +114,8 @@ export const saveResumeInput = z.object({
   education: z.array(educationItem).max(10).default([]),
   skills: z.array(z.string().trim().min(1).max(60)).max(30).default([]),
   languages: z.array(languageItem).max(8).default([]),
-  linkedinUrl: webLink,
+  instagramUrl: webLink,
+  facebookUrl: webLink,
   portfolioUrl: webLink,
   preferredModalities: z.array(z.enum(jobModalities)).max(3).default([]),
   canTravel: z.boolean().default(false),
@@ -130,11 +131,13 @@ export type SaveResumeInput = z.infer<typeof saveResumeInput>;
 export type ResumeDTO = SaveResumeInput & { photoUrl: string; updatedAt: string };
 /** Campos que se agregaron después: las copias viejas del CV no los traen. */
 export const resumeExtraKeys = [
-  "linkedinUrl", "portfolioUrl", "preferredModalities", "canTravel", "canRelocate",
+  "instagramUrl",
+  "facebookUrl", "portfolioUrl", "preferredModalities", "canTravel", "canRelocate",
   "courses", "driverLicenses", "vehicles", "expectedSalaryCents", "references",
 ] as const;
 export const resumeExtrasDefaults = {
-  linkedinUrl: "", portfolioUrl: "", preferredModalities: [] as (typeof jobModalities)[number][], canTravel: false, canRelocate: false,
+  instagramUrl: "",
+  facebookUrl: "", portfolioUrl: "", preferredModalities: [] as (typeof jobModalities)[number][], canTravel: false, canRelocate: false,
   courses: [] as z.infer<typeof courseItem>[], driverLicenses: [] as (typeof driverLicenses)[number][],
   vehicles: [] as (typeof ownVehicles)[number][], expectedSalaryCents: null as number | null, references: [] as z.infer<typeof referenceItem>[],
 };

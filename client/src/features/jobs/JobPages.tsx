@@ -46,7 +46,8 @@ import { Input } from "@/components/ui/input";
 import "../realEstate/realEstate.css";
 import "./jobs.css";
 import FilterDrawer, { countActiveFilters } from "@/components/marketplace/FilterDrawer";
-import { LanguagePicker, ResumePhoto, SalaryCalculator, SkillPicker, ToggleChips } from "./CvParts";
+import { LanguagePicker, ResumePhoto,
+  uploadResumePhoto, SalaryCalculator, SkillPicker, ToggleChips } from "./CvParts";
 
 const errorText = (e: unknown) => (e instanceof Error ? e.message : "Ocurrió un error");
 const dateEs = (iso: string) => new Date(`${iso.slice(0, 10)}T12:00:00Z`).toLocaleDateString("es-PA", { day: "numeric", month: "long", year: "numeric" });
@@ -241,7 +242,8 @@ export function JobDetailPage({ slug }: { slug: string }) {
 const emptyResume: SaveResumeInput = {
   fullName: "", headline: "", summary: "", phone: "", email: "", province: "Panamá", availability: "inmediata",
   experience: [], education: [], skills: [], languages: [],
-  linkedinUrl: "", portfolioUrl: "", preferredModalities: [], canTravel: false, canRelocate: false,
+  instagramUrl: "",
+  facebookUrl: "", portfolioUrl: "", preferredModalities: [], canTravel: false, canRelocate: false,
   courses: [], driverLicenses: [], vehicles: [], expectedSalaryCents: null, references: [],
 };
 
@@ -257,6 +259,13 @@ function ResumeContent() {
   const [cv, setCv] = useState<SaveResumeInput>(emptyResume);
   const [expectedSalary, setExpectedSalary] = useState("");
   const photoUrl = mine.data?.photoUrl ?? "";
+  // Foto elegida antes de guardar el CV por primera vez: se sube al guardar.
+  const [pendingPhoto, setPendingPhoto] = useState<{ file: File; url: string } | null>(null);
+  const pickPhoto = (file: File) =>
+    setPendingPhoto(previous => {
+      if (previous) URL.revokeObjectURL(previous.url);
+      return { file, url: URL.createObjectURL(file) };
+    });
   useEffect(() => {
     if (mine.data) {
       const { updatedAt: _ignored, photoUrl: _photo, ...rest } = withResumeDefaults(mine.data);
@@ -282,6 +291,15 @@ function ResumeContent() {
         references: cv.references.map(r => ({ ...r, phone: normalizePhone(r.phone) })),
         experience: cv.experience.map(x => ({ ...x, end: x.current ? null : x.end || null })),
       });
+      if (pendingPhoto) {
+        try {
+          await uploadResumePhoto(pendingPhoto.file);
+          URL.revokeObjectURL(pendingPhoto.url);
+          setPendingPhoto(null);
+        } catch (error) {
+          toast.error(errorText(error));
+        }
+      }
       await utils.jobs.myResume.invalidate();
       toast.success("CV guardado");
     } catch (error) { toast.error(errorText(error)); }
@@ -304,7 +322,12 @@ function ResumeContent() {
         <form className="re-form no-print" onSubmit={submit}>
           <fieldset>
             <legend>Datos personales</legend>
-            <ResumePhoto photoUrl={photoUrl} saved={Boolean(mine.data)} />
+            <ResumePhoto
+              photoUrl={photoUrl}
+              saved={Boolean(mine.data)}
+              pendingUrl={pendingPhoto?.url}
+              onPick={pickPhoto}
+            />
             <div className="re-row">
               <label>Nombre completo<Input value={cv.fullName} onChange={e => set("fullName", e.target.value)} required maxLength={120} /></label>
               <label>Oficio o profesión<Input value={cv.headline} onChange={e => set("headline", e.target.value)} required maxLength={120} placeholder="Ej.: Cajera con experiencia, Técnico en refrigeración" /></label>
@@ -380,7 +403,26 @@ function ResumeContent() {
             <ToggleChips label="Vehículo propio" options={ownVehicles} labels={ownVehicleLabels} value={cv.vehicles} onChange={next => set("vehicles", next)} />
             <div className="re-row">
               <label>Salario que esperas al mes (US$, opcional)<Input inputMode="decimal" value={expectedSalary} onChange={e => setExpectedSalary(e.target.value)} placeholder="Ej.: 800" /></label>
-              <label>LinkedIn (opcional)<Input type="url" value={cv.linkedinUrl} onChange={e => set("linkedinUrl", e.target.value)} maxLength={200} placeholder="https://www.linkedin.com/in/tu-nombre" /></label>
+              <label>
+                Instagram (opcional)
+                <Input
+                  type="url"
+                  value={cv.instagramUrl}
+                  onChange={e => set("instagramUrl", e.target.value)}
+                  maxLength={200}
+                  placeholder="https://www.instagram.com/tu-usuario"
+                />
+              </label>
+              <label>
+                Facebook (opcional)
+                <Input
+                  type="url"
+                  value={cv.facebookUrl}
+                  onChange={e => set("facebookUrl", e.target.value)}
+                  maxLength={200}
+                  placeholder="https://www.facebook.com/tu-usuario"
+                />
+              </label>
               <label>Portafolio o página web (opcional)<Input type="url" value={cv.portfolioUrl} onChange={e => set("portfolioUrl", e.target.value)} maxLength={200} placeholder="https://" /></label>
             </div>
           </fieldset>
@@ -401,7 +443,7 @@ function ResumeContent() {
           </fieldset>
           <div className="re-form-actions"><button className="btn btn-gold" type="submit" disabled={save.isPending}>{save.isPending ? "Guardando…" : "Guardar CV"}</button></div>
         </form>
-        <CvSheet cv={{ ...cv, photoUrl, expectedSalaryCents: centsFrom(expectedSalary) }} />
+        <CvSheet cv={{ ...cv, photoUrl: photoUrl || pendingPhoto?.url || "", expectedSalaryCents: centsFrom(expectedSalary) }} />
       </div>
     </div>
   );
@@ -428,8 +470,8 @@ function CvSheet({ cv: raw }: { cv: Omit<ResumeDTO, "updatedAt"> }) {
           <h2>{cv.fullName || "Tu nombre"}</h2>
           <p className="cv-headline">{cv.headline || "Tu oficio o profesión"}</p>
           <p className="cv-contact">{[cv.phone, cv.email, cv.province, `Disponibilidad: ${availabilityLabels[cv.availability]}`].filter(Boolean).join(" · ")}</p>
-          {(cv.linkedinUrl || cv.portfolioUrl) && (
-            <p className="cv-contact">{[cv.linkedinUrl, cv.portfolioUrl].filter(Boolean).join(" · ")}</p>
+          {(cv.instagramUrl || cv.facebookUrl || cv.portfolioUrl) && (
+            <p className="cv-contact">{[cv.instagramUrl, cv.facebookUrl, cv.portfolioUrl].filter(Boolean).join(" · ")}</p>
           )}
         </div>
       </header>
