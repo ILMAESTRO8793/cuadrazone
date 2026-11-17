@@ -39,7 +39,7 @@
 .cv-headline { margin: 2px 0 6px; font-size: 16px; font-weight: 700; color: #7A5A1C; }
 .cv-contact { margin: 0; color: #4A5568; font-size: 13px; }
 .cv-sheet section { margin-bottom: 14px; }
-.cv-sheet h3 { margin: 0 0 6px; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: #0B1F3B; }
+.cv-sheet h3 { margin: 0 0 10px; padding: 7px 12px; border-radius: 6px; background: #0B1F3B; color: #fff; font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; border-left: 4px solid #B58C3C; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 .cv-sheet p { margin: 0; white-space: pre-line; }
 .cv-entry { margin-bottom: 8px; }
 .cv-dates { display: block; color: #4A5568; font-size: 12.5px; }
