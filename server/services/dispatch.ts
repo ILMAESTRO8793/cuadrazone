@@ -6,6 +6,9 @@
  */
 import express, { type Express, type Request, type Response } from "express";
 import { randomUUID } from "node:crypto";
+import { mkdir, readdir, rename } from "node:fs/promises";
+import path from "node:path";
+import { ENV } from "../_core/env";
 import { TRPCError } from "@trpc/server";
 import {
   and,
@@ -14,6 +17,7 @@ import {
   inArray,
   isNotNull,
   isNull,
+  like,
   ne,
   sql,
 } from "drizzle-orm";
@@ -692,8 +696,8 @@ async function uploadPhoto(req: Request, res: Response) {
         .json({ error: "La foto debe ser PNG, JPEG o WEBP" });
     }
     const saved = await storagePut(
-      // Carpeta pública del catálogo, con nombre aleatorio imposible de adivinar.
-      `catalog/dispatch/${orderId}/${randomUUID()}.${EXT[mimeType]}`,
+      // Carpeta privada: la foto muestra la casa del cliente. Se sirve con permiso.
+      `${DELIVERY_PHOTO_DIR}/${orderId}/${randomUUID()}.${EXT[mimeType]}`,
       req.body,
       mimeType
     );
@@ -784,7 +788,98 @@ async function downloadDocument(req: Request, res: Response) {
   }
 }
 
+// ───────────── Fotos de entrega (privadas) ─────────────
+
+export const DELIVERY_PHOTO_DIR = "dispatch-photos";
+const LEGACY_DELIVERY_DIR = "catalog/dispatch";
+
+/** ¿Puede ver la foto de entrega de este pedido? Comprador, vendedor, despachador o admin. */
+export async function canSeeDeliveryPhoto(viewer: { id: number; role: string }, orderId: number) {
+  if (viewer.role === "admin") return true;
+  const db = await requireDb();
+  const [row] = await db
+    .select({
+      buyerId: czOrders.userId,
+      sellerId: czStores.userId,
+      dispatcherId: czDispatchJobs.dispatcherUserId,
+    })
+    .from(czOrders)
+    .leftJoin(czStores, eq(czStores.id, czOrders.storeId))
+    .leftJoin(czDispatchJobs, eq(czDispatchJobs.orderId, czOrders.id))
+    .where(eq(czOrders.id, orderId))
+    .limit(1);
+  return Boolean(row && [row.buyerId, row.sellerId, row.dispatcherId].includes(viewer.id));
+}
+
+async function serveDeliveryPhoto(req: Request, res: Response) {
+  try {
+    const orderId = Number(req.params.orderId);
+    const file = String(req.params.file);
+    if (!Number.isSafeInteger(orderId) || orderId <= 0 || !/^[A-Za-z0-9-]+\.(?:jpg|png|webp)$/.test(file))
+      return res.status(404).end();
+    const viewer = await sdk.authenticateRequest(req).catch(() => null);
+    if (!viewer || !(await canSeeDeliveryPhoto(viewer, orderId))) return res.status(404).end();
+    const root = path.resolve(ENV.storageDir);
+    const full = path.resolve(root, DELIVERY_PHOTO_DIR, String(orderId), file);
+    if (!full.startsWith(root + path.sep)) return res.status(404).end();
+    res.setHeader("Cache-Control", "private, max-age=3600");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    return res.sendFile(full, err => {
+      if (err && !res.headersSent) res.status(404).end();
+    });
+  } catch {
+    return res.status(404).end();
+  }
+}
+
+/**
+ * Las fotos de entrega subidas antes del 17/11/2026 quedaron en la carpeta
+ * pública del catálogo. Al arrancar se mueven a la carpeta privada y se
+ * actualiza su enlace. No hace nada si ya no queda ninguna.
+ */
+export async function moveLegacyDeliveryPhotos() {
+  const db = await getDb();
+  if (!db) return 0;
+  const rows = await db
+    .select({ orderId: czDispatchJobs.orderId, photoUrl: czDispatchJobs.photoUrl })
+    .from(czDispatchJobs)
+    .where(like(czDispatchJobs.photoUrl, `/media/${LEGACY_DELIVERY_DIR}/%`));
+  const root = path.resolve(ENV.storageDir);
+  let moved = 0;
+  for (const row of rows) {
+    const file = String(row.photoUrl).split("/").pop() ?? "";
+    if (!/^[A-Za-z0-9-]+\.(?:jpg|png|webp)$/.test(file)) continue;
+    const from = path.join(root, LEGACY_DELIVERY_DIR, String(row.orderId), file);
+    const toDir = path.join(root, DELIVERY_PHOTO_DIR, String(row.orderId));
+    await mkdir(toDir, { recursive: true });
+    await rename(from, path.join(toDir, file)).catch(() => undefined);
+    await db
+      .update(czDispatchJobs)
+      .set({ photoUrl: `/media/${DELIVERY_PHOTO_DIR}/${row.orderId}/${file}` })
+      .where(eq(czDispatchJobs.orderId, row.orderId));
+    moved++;
+  }
+  // Lo que haya quedado suelto en la carpeta pública tampoco se sirve más.
+  await readdir(path.join(root, LEGACY_DELIVERY_DIR)).then(
+    async dirs => {
+      for (const dir of dirs) {
+        for (const file of await readdir(path.join(root, LEGACY_DELIVERY_DIR, dir)).catch(() => [])) {
+          const toDir = path.join(root, DELIVERY_PHOTO_DIR, dir);
+          await mkdir(toDir, { recursive: true });
+          await rename(path.join(root, LEGACY_DELIVERY_DIR, dir, file), path.join(toDir, file)).catch(() => undefined);
+        }
+      }
+    },
+    () => undefined
+  );
+  return moved;
+}
+
 export function registerDispatchRoutes(app: Express) {
+  app.get(`/media/${DELIVERY_PHOTO_DIR}/:orderId/:file`, serveDeliveryPhoto);
+  void moveLegacyDeliveryPhotos()
+    .then(n => n && console.log(`[Despacho] ${n} fotos de entrega movidas a la carpeta privada`))
+    .catch(error => console.error("[Despacho] No se pudieron mover las fotos de entrega:", error instanceof Error ? error.message : error));
   const rawDoc = (req: Request, res: Response, next: () => void) =>
     express.raw({ type: () => true, limit: MAX_DOC_BYTES })(req, res, error =>
       error ? res.status(413).json({ error: "El documento supera 5 MiB" }) : next()
