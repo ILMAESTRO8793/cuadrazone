@@ -103,7 +103,10 @@ async function signInWithContact(channel: Channel, destination: string) {
     });
     return { openId, name: existing[0]?.name ?? "" };
   }
-  const existing = await database.select({ openId: users.openId, name: users.name }).from(users).where(eq(users.phone, destination)).limit(1);
+  const existing = await database.select({ openId: users.openId, name: users.name, role: users.role }).from(users).where(eq(users.phone, destination)).limit(1);
+  // Los administradores entran solo con el código que llega a su correo.
+  if (existing[0]?.role === "admin")
+    throw new AuthCodeError(403, "Las cuentas de administrador entran con el código que llega a su correo.");
   const openId = existing[0]?.openId ?? phoneOpenId(destination);
   await db.upsertUser({ openId, phone: destination, ...(existing[0] ? {} : { loginMethod: "phone" }), lastSignedIn: new Date() });
   return { openId, name: existing[0]?.name ?? "" };

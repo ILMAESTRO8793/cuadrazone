@@ -1,4 +1,4 @@
-import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
+import { ADMIN_SESSION_MS, COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 import { ForbiddenError } from "@shared/_core/errors";
 import { parse as parseCookieHeader } from "cookie";
 import type { Request } from "express";
@@ -14,7 +14,12 @@ export type SessionPayload = {
   openId: string;
   appId: string;
   name: string;
+  /** Cuándo se emitió la sesión (segundos). */
+  iat?: number;
 };
+
+/** lastSignedIn se guarda como mucho una vez por hora (no en cada petición). */
+const LAST_SEEN_EVERY_MS = 60 * 60 * 1000;
 
 /** Usuario autenticado por una cookie de sesión firmada por este servidor. */
 export type AuthenticatedUser = User;
@@ -51,9 +56,9 @@ class SessionService {
     if (!cookieValue) return null;
     try {
       const { payload } = await jwtVerify(cookieValue, this.getSessionSecret(), { algorithms: ["HS256"] });
-      const { openId, appId, name } = payload as Record<string, unknown>;
+      const { openId, appId, name, iat } = payload as Record<string, unknown>;
       if (!isNonEmptyString(openId) || appId !== ENV.appId || typeof name !== "string") return null;
-      return { openId, appId, name };
+      return { openId, appId, name, iat: typeof iat === "number" ? iat : undefined };
     } catch {
       return null;
     }
@@ -68,9 +73,27 @@ class SessionService {
     const user = await db.getUserByOpenId(session.openId);
     if (!user) throw ForbiddenError("User not found");
 
-    await db.upsertUser({ openId: user.openId, lastSignedIn: new Date() });
-    return user;
+    const effective = adminCheck(user, session.iat);
+
+    const last = user.lastSignedIn ? new Date(user.lastSignedIn).getTime() : 0;
+    if (Date.now() - last > LAST_SEEN_EVERY_MS)
+      await db.upsertUser({ openId: user.openId, lastSignedIn: new Date() });
+    return effective;
   }
+}
+
+/**
+ * El rol de administrador se comprueba en cada petición:
+ * - si su correo ya no está en ADMIN_EMAILS, se le trata como usuario normal;
+ * - una sesión de administrador vence a las 12 horas, aunque la cookie diga otra cosa.
+ */
+export function adminCheck(user: User, issuedAtSeconds: number | undefined, now = Date.now()): User {
+  if (user.role !== "admin") return user;
+  const email = (user.email ?? "").trim().toLowerCase();
+  if (!email || !ENV.adminEmails.includes(email)) return { ...user, role: "user" };
+  if (!issuedAtSeconds || now - issuedAtSeconds * 1000 > ADMIN_SESSION_MS)
+    throw ForbiddenError("Admin session expired");
+  return user;
 }
 
 export const sdk = new SessionService();
