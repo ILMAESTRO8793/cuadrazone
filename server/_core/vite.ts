@@ -15,7 +15,7 @@ import type { Request } from "express";
 import { COOKIE_NAME } from "@shared/const";
 import { isPublicPath, loginRedirectFor } from "@shared/accessGate";
 import { sdk } from "./sdk";
-import { isFingerprintedAsset } from "./hardening";
+import { inlineScriptHashesOf, isFingerprintedAsset, setInlineScriptHashes } from "./hardening";
 
 /**
  * Para ver CuadraZone hay que iniciar sesión. Si quien pide una página no
@@ -136,6 +136,8 @@ export function serveStatic(app: Express) {
   // La app (y cualquier pestaña abierta) pregunta esto para saber si hay una
   // versión nueva publicada y recargarse sola.
   const indexHtml = fs.readFileSync(path.resolve(distPath, "index.html"), "utf8");
+  // La CSP permite solo los scripts en línea que trae la página publicada.
+  setInlineScriptHashes(inlineScriptHashesOf(indexHtml));
   const version = /\/assets\/index-[\w-]+\.js/.exec(indexHtml)?.[0] ?? "";
   app.get("/api/version", (_req, res) => {
     res.setHeader("Cache-Control", "no-store");

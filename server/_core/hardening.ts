@@ -5,7 +5,8 @@
  * les ofrecen las páginas abiertas: la entrada, la ayuda y los documentos
  * legales. robots.txt y sitemap.xml se sirven antes del control de acceso.
  */
-import type { Express, NextFunction, Request, Response } from "express";
+import { createHash } from "node:crypto";
+import express, { type Express, type NextFunction, type Request, type Response } from "express";
 import { legalDocs } from "../../client/src/data/legal";
 
 /**
@@ -19,7 +20,7 @@ import { legalDocs } from "../../client/src/data/legal";
  * fotos externas y el estado inicial en línea la romperían sin pruebas en vivo.
  */
 export const securityHeaders: Record<string, string> = {
-  "Strict-Transport-Security": "max-age=31536000",
+  "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
   "X-Content-Type-Options": "nosniff",
   "X-Frame-Options": "SAMEORIGIN",
   "Content-Security-Policy":
@@ -30,12 +31,59 @@ export const securityHeaders: Record<string, string> = {
   "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
 };
 
+// ───────────── Content-Security-Policy (por ahora solo informa) ─────────────
+
+let inlineScriptHashes: string[] = [];
+
+/** Huellas sha256 de los <script> en línea de la página (se calculan al arrancar). */
+export function inlineScriptHashesOf(html: string): string[] {
+  const hashes: string[] = [];
+  for (const m of html.matchAll(/<script(?![^>]*\bsrc=)(?![^>]*type="application\/json")[^>]*>([\s\S]*?)<\/script>/g)) {
+    if (!m[1]!.trim()) continue;
+    hashes.push(`'sha256-${createHash("sha256").update(m[1]!).digest("base64")}'`);
+  }
+  return hashes;
+}
+
+export function setInlineScriptHashes(hashes: string[]) {
+  inlineScriptHashes = hashes;
+}
+
+/**
+ * Lista de lo que la página puede cargar. Incluye el traductor de Google (solo
+ * se usa si eligen inglés), las teselas del mapa (imágenes https) y el visor de
+ * documentos (blob:). Se publica como «Report-Only»: el navegador no bloquea
+ * nada y avisa a /api/csp-report de lo que bloquearía, para activarla después
+ * sin romper nada.
+ */
+export function contentSecurityPolicy(hashes = inlineScriptHashes) {
+  const google = "https://translate.google.com https://translate.googleapis.com https://translate-pa.googleapis.com https://www.gstatic.com";
+  return [
+    "default-src 'self'",
+    `script-src 'self' ${hashes.join(" ")} ${google}`.replace(/\s+/g, " "),
+    "style-src 'self' 'unsafe-inline' https://www.gstatic.com https://translate.googleapis.com",
+    "img-src 'self' data: blob: https:",
+    "font-src 'self' data:",
+    "connect-src 'self' https://translate.googleapis.com https://translate-pa.googleapis.com",
+    "media-src 'self' blob:",
+    "frame-src 'self' blob:",
+    "worker-src 'self' blob:",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "frame-ancestors 'self'",
+    "form-action 'self' https://accounts.google.com",
+    "report-uri /api/csp-report",
+  ].join("; ");
+}
+
 export function applySecurityHeaders(
   _req: Request,
   res: Response,
   next: NextFunction
 ) {
   res.set(securityHeaders);
+  if (process.env.NODE_ENV === "production")
+    res.set("Content-Security-Policy-Report-Only", contentSecurityPolicy());
   next();
 }
 
@@ -78,6 +126,21 @@ function originOf(req: Request) {
 
 export function registerHardening(app: Express) {
   app.use(applySecurityHeaders);
+  // Avisos del navegador sobre lo que la CSP bloquearía (se anotan en el registro).
+  app.post(
+    "/api/csp-report",
+    express.json({ limit: "8kb", type: ["application/csp-report", "application/json", "application/reports+json"] }),
+    (req, res) => {
+      const r = (req.body?.["csp-report"] ?? req.body ?? {}) as Record<string, unknown>;
+      const page = String(r["document-uri"] ?? "").replace(/^https?:\/\/[^/]+/, "").slice(0, 120);
+      console.warn(
+        `[CSP] ${String(r["violated-directive"] ?? r["effective-directive"] ?? "?").slice(0, 60)} bloquearía ${String(r["blocked-uri"] ?? "?").slice(0, 160)} en ${page}`
+      );
+      res.status(204).end();
+    }
+  );
+  // La plantilla sin procesar no se sirve: /index.html es la portada.
+  app.get("/index.html", (_req, res) => res.redirect(301, "/"));
   app.get("/robots.txt", (req, res) => {
     res
       .type("text/plain")

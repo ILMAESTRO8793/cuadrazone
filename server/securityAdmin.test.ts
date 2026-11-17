@@ -55,3 +55,18 @@ describe("protecciones globales de la API", () => {
     expect(isUnexpectedError(intended)).toBe(false);
   });
 });
+
+describe("respaldo de la base de datos", () => {
+  it("el permiso de descarga vale una sola vez, para el mismo admin y por 60 segundos", async () => {
+    const { issueBackupTicket, useBackupTicket } = await import("./_core/backup");
+    const now = Date.now();
+    const t = issueBackupTicket(1, now);
+    expect(useBackupTicket(t, 2, now)).toBe(false); // otro admin: no (y se gasta)
+    const t2 = issueBackupTicket(1, now);
+    expect(useBackupTicket(t2, 1, now + 61_000)).toBe(false); // vencido
+    const t3 = issueBackupTicket(1, now);
+    expect(useBackupTicket(t3, 1, now + 1000)).toBe(true);
+    expect(useBackupTicket(t3, 1, now + 1000)).toBe(false); // ya usado
+    expect(useBackupTicket(undefined, 1, now)).toBe(false);
+  });
+});

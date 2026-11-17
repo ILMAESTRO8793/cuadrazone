@@ -1,9 +1,44 @@
 // Respaldo completo de la base de datos para el administrador: un solo archivo
 // .sql con la estructura y todos los datos, listo para restaurar en otro MySQL.
 // Contiene datos personales y documentos privados: solo administradores.
+import { randomBytes } from "node:crypto";
 import type { Express, Request, Response } from "express";
 import mysql from "mysql2/promise";
+import { czMembershipAudit } from "../../drizzle/schema";
+import { getDb } from "../db";
 import { sdk } from "./sdk";
+
+/**
+ * Para descargar el respaldo primero se pide un permiso de un solo uso que
+ * vence en 60 segundos (POST con la cabecera anti-CSRF). Así un enlace en otra
+ * página no puede disparar la descarga.
+ */
+const TICKET_MS = 60 * 1000;
+const tickets = new Map<string, { adminId: number; expiresAt: number }>();
+
+export function issueBackupTicket(adminId: number, now = Date.now()) {
+  for (const [key, t] of tickets) if (t.expiresAt <= now) tickets.delete(key);
+  const ticket = randomBytes(24).toString("base64url");
+  tickets.set(ticket, { adminId, expiresAt: now + TICKET_MS });
+  return ticket;
+}
+
+/** Usa el permiso: vale una sola vez, solo para el mismo administrador y antes de vencer. */
+export function useBackupTicket(ticket: unknown, adminId: number, now = Date.now()) {
+  if (typeof ticket !== "string") return false;
+  const t = tickets.get(ticket);
+  tickets.delete(ticket);
+  return Boolean(t && t.adminId === adminId && t.expiresAt > now);
+}
+
+async function requestTicket(req: Request, res: Response) {
+  res.set("Cache-Control", "no-store");
+  if (req.headers["x-cz-request"] !== "1") return res.status(412).json({ error: "Falta la cabecera x-cz-request: 1" });
+  const user = await sdk.authenticateRequest(req).catch(() => null);
+  if (!user) return res.status(401).json({ error: "Inicia sesión como administrador." });
+  if (user.role !== "admin") return res.status(403).json({ error: "Solo el administrador puede descargar el respaldo." });
+  return res.json({ ticket: issueBackupTicket(user.id) });
+}
 
 const BATCH = 500;
 
@@ -51,6 +86,8 @@ async function download(req: Request, res: Response) {
   const user = await sdk.authenticateRequest(req).catch(() => null);
   if (!user) return res.status(401).send("Inicia sesión como administrador.");
   if (user.role !== "admin") return res.status(403).send("Solo el administrador puede descargar el respaldo.");
+  if (!useBackupTicket(req.query.t, user.id))
+    return res.status(403).send("El permiso de descarga venció. Vuelve a pulsar «Descargar respaldo».");
   const url = process.env.DATABASE_URL;
   if (!url) return res.status(503).send("La base de datos no está configurada.");
   const day = new Date().toISOString().slice(0, 10);
@@ -62,7 +99,13 @@ async function download(req: Request, res: Response) {
   });
   try {
     const tables = await writeBackup(url, chunk => res.write(chunk));
-    console.log(`[Respaldo] ${user.email ?? user.id} descargó el respaldo (${tables} tablas)`);
+    console.log(`[Respaldo] El administrador #${user.id} descargó el respaldo (${tables} tablas)`);
+    // Queda anotado quién lo descargó y cuándo.
+    const db = await getDb();
+    await db
+      ?.insert(czMembershipAudit)
+      .values({ applicationId: null, userId: user.id, actorUserId: user.id, action: "backup_downloaded", reason: null, metadata: { tables } })
+      .catch(() => undefined);
     res.end();
   } catch (error) {
     console.error("[Respaldo] Error:", error instanceof Error ? error.message : error);
@@ -72,5 +115,6 @@ async function download(req: Request, res: Response) {
 }
 
 export function registerBackupRoutes(app: Express) {
+  app.post("/api/admin/respaldo/permiso", requestTicket);
   app.get("/api/admin/respaldo.sql", download);
 }

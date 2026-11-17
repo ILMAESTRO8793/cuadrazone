@@ -18,6 +18,18 @@ import { AuthGate } from "./AuthGate";
 import { DocumentViewer } from "./DocumentViewer";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
+/** Pide un permiso de un solo uso (60 s) y empieza la descarga del respaldo. */
+async function downloadBackup() {
+  try {
+    const r = await fetch("/api/admin/respaldo/permiso", { method: "POST", credentials: "include", headers: { "x-cz-request": "1" } });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok || !data.ticket) throw new Error(data.error || "No se pudo preparar el respaldo");
+    window.location.href = `/api/admin/respaldo.sql?t=${encodeURIComponent(data.ticket)}`;
+  } catch (error) {
+    toast.error(error instanceof Error ? error.message : "No se pudo preparar el respaldo");
+  }
+}
+
 export function AdminVerificationPage({ initialTab = "solicitudes" }: { initialTab?: "dashboard" | "solicitudes" | "suscripciones" | "denominaciones" | "reclamos" | "moderacion" | "reportes" | "portada" | "despachadores" }) {
   const auth = useAuth();
   const [tab, setTab] = useState(initialTab === "despachadores" ? "dashboard" : initialTab);
@@ -27,7 +39,7 @@ export function AdminVerificationPage({ initialTab = "solicitudes" }: { initialT
   const enabled = !auth.loading && auth.user?.role === "admin";
   const queue = trpc.membership.admin.list.useQuery({ status, cursor, limit: 25 }, { enabled });
   return <AuthGate requireAdmin><div className="member-page container admin-page">
-    {tab !== "dashboard" && <div className="admin-heading"><div><p className="eyebrow">Administración · Acceso protegido</p><h1>Verificación de vendedores</h1><p>Revisa evidencias reales. La aprobación nunca sustituye la primera mensualidad.</p><a className="btn btn-outline admin-backup" href="/api/admin/respaldo.sql" download>Descargar respaldo de la base de datos</a></div><ShieldCheck size={40} /></div>}
+    {tab !== "dashboard" && <div className="admin-heading"><div><p className="eyebrow">Administración · Acceso protegido</p><h1>Verificación de vendedores</h1><p>Revisa evidencias reales. La aprobación nunca sustituye la primera mensualidad.</p><button type="button" className="btn btn-outline admin-backup" onClick={() => void downloadBackup()}>Descargar respaldo de la base de datos</button></div><ShieldCheck size={40} /></div>}
     <div className="admin-tabs" role="group" aria-label="Secciones de administración"><button className={tab === "dashboard" ? "active" : ""} onClick={() => setTab("dashboard")}>Dashboard</button><button className={tab === "solicitudes" ? "active" : ""} onClick={() => setTab("solicitudes")}>Solicitudes</button><button className={tab === "suscripciones" ? "active" : ""} onClick={() => setTab("suscripciones")}>Suscripciones</button><button className={tab === "denominaciones" ? "active" : ""} onClick={() => setTab("denominaciones")}>Denominaciones</button><button className={tab === "reclamos" ? "active" : ""} onClick={() => setTab("reclamos")}>Reclamos</button><button className={tab === "moderacion" ? "active" : ""} onClick={() => setTab("moderacion")}>Moderación</button><button className={tab === "reportes" ? "active" : ""} onClick={() => setTab("reportes")}>Reportes</button><button className={tab === "portada" ? "active" : ""} onClick={() => setTab("portada")}>Portada</button><Link href="/mi-cuenta">Mi cuenta</Link></div>
     {tab !== "dashboard" && <p className="member-notice">CuadraZone está abierto a vendedores cristianos y no cristianos: todos aceptan los valores cristianos de la plataforma. La iglesia y el pastor son opcionales. El correo queda verificado cuando la persona entra con Google o con el código que le llega por correo. El celular es solo de contacto: no hace falta verificarlo para aprobar.</p>}
     {tab === "dashboard" ? <AdminDashboard enabled={enabled} initialSection={initialTab === "despachadores" ? "despachadores" : "resumen"} /> : tab === "reclamos" ? <AdminClaims enabled={enabled} /> : tab === "moderacion" ? <><AdminModeration enabled={enabled} /><AdminListingReviews enabled={enabled} /></> : tab === "reportes" ? <AdminReports enabled={enabled} /> : tab === "portada" ? <><AdminServicePub enabled={enabled} /><AdminShowcase enabled={enabled} /><AdminSiteContent enabled={enabled} /></> : tab === "suscripciones" ? <AdminSubscriptions enabled={enabled} /> : tab === "denominaciones" ? <DenominationManager enabled={enabled} /> : <div className="admin-columns">

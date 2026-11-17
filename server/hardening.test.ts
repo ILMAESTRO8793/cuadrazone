@@ -74,3 +74,26 @@ describe("caché de archivos", () => {
     expect(isFingerprintedAsset("/app/dist/public/index.html")).toBe(false);
   });
 });
+
+describe("CSP (solo informe) e index.html", () => {
+  it("HSTS incluye subdominios", async () => {
+    const { securityHeaders } = await import("./_core/hardening");
+    expect(securityHeaders["Strict-Transport-Security"]).toBe("max-age=31536000; includeSubDomains");
+  });
+
+  it("solo permite los scripts en línea de la página, por su huella", async () => {
+    const { contentSecurityPolicy, inlineScriptHashesOf } = await import("./_core/hardening");
+    const { readFileSync } = await import("node:fs");
+    const html = readFileSync(new URL("../client/index.html", import.meta.url), "utf8");
+    const hashes = inlineScriptHashesOf(html);
+    expect(hashes).toHaveLength(1);
+    expect(hashes[0]).toMatch(/^'sha256-[A-Za-z0-9+/=]{44}'$/);
+    // Los datos JSON y los scripts externos no cuentan.
+    expect(inlineScriptHashesOf('<script type="application/json">{}</script><script src="/a.js"></script>')).toEqual([]);
+    const csp = contentSecurityPolicy(hashes);
+    expect(csp).toContain(`script-src 'self' ${hashes[0]}`);
+    expect(csp).toContain("object-src 'none'");
+    expect(csp).toContain("report-uri /api/csp-report");
+    expect(csp).not.toContain("'unsafe-eval'");
+  });
+});
