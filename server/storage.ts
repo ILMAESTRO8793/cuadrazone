@@ -7,6 +7,7 @@ import express, { type Express } from "express";
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { ENV } from "./_core/env";
+import { stripImageMetadata } from "./services/imageMetadata";
 
 export const MEDIA_PREFIX = "/media/";
 const SAFE_KEY = /^[A-Za-z0-9][A-Za-z0-9._-]*(?:\/[A-Za-z0-9][A-Za-z0-9._-]*)*$/;
@@ -37,7 +38,9 @@ export async function storagePut(
   const full = resolveKey(key);
   await mkdir(path.dirname(full), { recursive: true });
   // "wx": nunca sobrescribe; las claves llevan un UUID aleatorio.
-  await writeFile(full, data, { flag: "wx" });
+  // Las fotos se guardan sin GPS ni otros metadatos (se conserva la orientación).
+  const body = typeof data === "string" ? data : stripImageMetadata(Buffer.isBuffer(data) ? data : Buffer.from(data));
+  await writeFile(full, body, { flag: "wx" });
   return { key, url: `${MEDIA_PREFIX}${key}` };
 }
 
