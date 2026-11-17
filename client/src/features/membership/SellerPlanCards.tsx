@@ -236,6 +236,8 @@ export function PlanConditions({ section }: { section: PlanSection }) {
       <>
         {section === "inmuebles"
           ? "Venta y alquiler tienen planes separados. Venta: según cuántos inmuebles en venta tienes publicados, hasta 20, de 21 a 100 o más de 100. Alquiler: según cuántos inmuebles en alquiler publicas al mes, Particular hasta 5, Agente de 6 a 20, Agencia de 21 a 50 e Inmobiliaria 51 o más."
+          : section === "autos"
+            ? "Venta y alquiler tienen planes separados. Venta: según cuántos autos en venta publicas al mes, Particular hasta 5, Vendedor de 6 a 20, Agencia de 21 a 50 y Concesionario 51 o más. Alquiler: según cuántos autos en alquiler tienes publicados, hasta 20, de 21 a 100 o más de 100."
           : section === "empleos"
             ? "El plan depende de cuántas vacantes publicas al mes: hasta 10, de 11 a 20 o más de 20."
             : `El plan depende de ${unit}: hasta 20, de 21 a 100 o más de 100.`}{" "}

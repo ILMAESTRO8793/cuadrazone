@@ -25,6 +25,7 @@ const listingForms: Record<ListingSection, string> = {
   inmuebles: "/bienes-raices/mis-anuncios?nuevo=1",
   alquileres: "/bienes-raices/mis-anuncios?nuevo=1",
   autos: "/autos/mis-anuncios?nuevo=1",
+  autosventa: "/autos/mis-anuncios?nuevo=1",
   empleos: "/empleos/mis-vacantes?nuevo=1",
 };
 
@@ -78,7 +79,7 @@ function ListingPlans({ section }: { section: ListingSection }) {
             <ul>
               <li>
                 <Check size={16} aria-hidden="true" />
-                {`${listingRange(id, section)} ${listingUnits[section]} ${section === "empleos" ? "publicadas al mes" : section === "alquileres" ? "publicados al mes" : "publicados"}`}
+                {`${listingRange(id, section)} ${listingUnits[section]} ${section === "empleos" ? "publicadas al mes" : section === "alquileres" || section === "autosventa" ? "publicados al mes" : "publicados"}`}
               </li>
               <li>
                 <Check size={16} aria-hidden="true" />
@@ -175,7 +176,16 @@ export function SubscriptionsPage() {
             <ListingPlans section="alquileres" />
           </>
         )}
-        {(section === "autos" || section === "empleos") && <ListingPlans section={section} />}
+        {section === "autos" && (
+          <>
+            {/* Venta y alquiler tienen planes separados. */}
+            <h2 className="plans-group-title">Autos en venta</h2>
+            <ListingPlans section="autosventa" />
+            <h2 className="plans-group-title">Autos en alquiler</h2>
+            <ListingPlans section="autos" />
+          </>
+        )}
+        {section === "empleos" && <ListingPlans section="empleos" />}
 
         <section
           className="plan-buyer-strip"

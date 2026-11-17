@@ -1,7 +1,7 @@
 // Autos: mismas reglas que bienes raíces (plan activo para publicar, destacado
 // con Mayor Visibilidad, los anuncios se ocultan si vence el plan).
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, ne, sql } from "drizzle-orm";
+import { and, desc, eq, gte, ne, sql } from "drizzle-orm";
 import express, { type Express, type Request, type Response } from "express";
 import { czVehicles } from "../../drizzle/catalog-schema";
 import type { User } from "../../drizzle/schema";
@@ -130,6 +130,36 @@ function cleanImages(id: number, images: string[]) {
   return images.filter(url => url.startsWith(prefix) && /^[A-Za-z0-9/._-]+$/.test(url)).slice(0, MAX_VEHICLE_IMAGES);
 }
 
+// ───────────── Planes: venta y alquiler por separado ─────────────
+
+/**
+ * Desde esta fecha la venta de autos tiene su propio plan (sección «autosventa»,
+ * por vehículos publicados al mes). El alquiler sigue con el plan «autos». Los
+ * autos en venta publicados antes siguen visibles con ese plan activo.
+ */
+export const CAR_SALE_PLANS_SINCE = new Date("2026-11-18T05:00:00Z");
+
+type PlanState = { active: boolean; featured: boolean };
+
+/** ¿Se ve este auto? Alquiler: plan «autos». Venta: plan de venta (o anterior al cambio). */
+export function vehicleVisible(
+  row: { operation: string; publishedAt: Date | string | null },
+  rentPlan: PlanState | undefined,
+  salePlan: PlanState | undefined
+): { visible: boolean; featured: boolean } {
+  if (row.operation === "alquiler")
+    return { visible: Boolean(rentPlan?.active), featured: Boolean(rentPlan?.active && rentPlan.featured) };
+  if (salePlan?.active) return { visible: true, featured: salePlan.featured };
+  const legacy = Boolean(row.publishedAt && new Date(row.publishedAt) < CAR_SALE_PLANS_SINCE && rentPlan?.active);
+  return { visible: legacy, featured: Boolean(legacy && rentPlan?.featured) };
+}
+
+/** Inicio del mes actual en Panamá. */
+function monthStartPanama(now = Date.now()) {
+  const panama = new Date(now - 5 * 3600_000).toISOString().slice(0, 7);
+  return new Date(`${panama}-01T05:00:00Z`);
+}
+
 export async function saveVehicle(user: User, raw: unknown): Promise<OwnVehicleDTO> {
   const parsed = saveVehicleInput.safeParse(raw);
   if (!parsed.success) fail("BAD_REQUEST", parsed.error.issues[0]?.message ?? "Datos inválidos");
@@ -145,6 +175,9 @@ export async function saveVehicle(user: User, raw: unknown): Promise<OwnVehicleD
   const current = await ownVehicle(db, user.id, input.id);
   if (input.expectedRevision !== undefined && input.expectedRevision !== current.revision)
     fail("CONFLICT", "El anuncio cambió en otra ventana. Recarga y vuelve a intentarlo.");
+  // Venta y alquiler tienen planes distintos: para cambiarlo, primero se pausa.
+  if (current.status === "published" && input.operation !== current.operation)
+    fail("PRECONDITION_FAILED", "Para cambiar entre venta y alquiler, primero pausa el anuncio.");
   const result = await db
     .update(czVehicles)
     .set({ ...columns(input), images: cleanImages(input.id, input.images), videos: cleanVideos(input.id, input.videos), slug: `${slugify(input.title)}-${input.id}`, revision: current.revision + 1 })
@@ -158,11 +191,21 @@ export async function setVehicleStatus(user: User, id: number, status: "publishe
   const row = await ownVehicle(db, user.id, id);
   if (status === "published") {
     // Mes gratis la primera vez, plan vigente y sin pasar el límite del plan.
-    const published = await db
-      .select({ n: sql<number>`count(*)` })
-      .from(czVehicles)
-      .where(and(eq(czVehicles.userId, user.id), eq(czVehicles.status, "published"), ne(czVehicles.id, id)));
-    await assertCanPublish(db, user.id, "autos", Number(published[0]?.n ?? 0));
+    if (row.operation === "alquiler") {
+      // Alquiler: se cuentan los autos en alquiler publicados ahora.
+      const published = await db
+        .select({ n: sql<number>`count(*)` })
+        .from(czVehicles)
+        .where(and(eq(czVehicles.userId, user.id), eq(czVehicles.status, "published"), eq(czVehicles.operation, "alquiler"), ne(czVehicles.id, id)));
+      await assertCanPublish(db, user.id, "autos", Number(published[0]?.n ?? 0));
+    } else {
+      // Venta: se cuentan los autos en venta publicados este mes (hora de Panamá).
+      const published = await db
+        .select({ n: sql<number>`count(*)` })
+        .from(czVehicles)
+        .where(and(eq(czVehicles.userId, user.id), ne(czVehicles.operation, "alquiler"), gte(czVehicles.publishedAt, monthStartPanama()), ne(czVehicles.id, id)));
+      await assertCanPublish(db, user.id, "autosventa", Number(published[0]?.n ?? 0));
+    }
     if (!jsonList(row.images).length) fail("PRECONDITION_FAILED", "Agrega al menos una foto antes de publicar.");
   }
   await db
@@ -184,8 +227,9 @@ export async function deleteVehicle(user: User, id: number) {
 export async function myVehicles(user: User) {
   const db = await requireDb();
   const plan = (await publishPlans(db, [user.id], "autos")).get(user.id) ?? NO_PLAN;
+  const salePlan = (await publishPlans(db, [user.id], "autosventa")).get(user.id) ?? NO_PLAN;
   const rows = await db.select().from(czVehicles).where(eq(czVehicles.userId, user.id)).orderBy(desc(czVehicles.updatedAt)).limit(200);
-  return { plan, vehicles: rows.map((r: any) => toOwnDTO(r, plan.featured)) };
+  return { plan, salePlan, vehicles: rows.map((r: any) => toOwnDTO(r, vehicleVisible(r, plan, salePlan).featured)) };
 }
 
 export async function publicVehicles(filters: VehicleFilters) {
@@ -198,11 +242,14 @@ export async function publicVehicles(filters: VehicleFilters) {
   if (filters.fuel) conditions.push(eq(czVehicles.fuel, filters.fuel));
   if (filters.condition) conditions.push(eq(czVehicles.condition, filters.condition));
   const rows = await db.select().from(czVehicles).where(and(...conditions)).orderBy(desc(czVehicles.publishedAt)).limit(1000);
-  const plans = await publishPlans(db, [...new Set<number>(rows.map((r: any) => r.userId))], "autos");
+  const owners = [...new Set<number>(rows.map((r: any) => r.userId))];
+  const plans = await publishPlans(db, owners, "autos");
+  const salePlans = await publishPlans(db, owners, "autosventa");
+  const look = (r: any) => vehicleVisible(r, plans.get(r.userId), salePlans.get(r.userId));
   const q = filters.q?.toLowerCase();
   const make = filters.make?.toLowerCase();
   const visible = rows
-    .filter((r: any) => plans.get(r.userId)?.active)
+    .filter((r: any) => look(r).visible)
     .filter((r: any) => !make || (r.make === "Otra" ? r.otherMake : r.make).toLowerCase() === make)
     .filter((r: any) => filters.minYear === undefined || r.year >= filters.minYear)
     .filter((r: any) => filters.maxYear === undefined || r.year <= filters.maxYear)
@@ -210,7 +257,7 @@ export async function publicVehicles(filters: VehicleFilters) {
     .filter((r: any) => filters.maxPriceCents === undefined || Number(r.priceCents) <= filters.maxPriceCents)
     .filter((r: any) => filters.maxMileageKm === undefined || r.mileageKm <= filters.maxMileageKm)
     .filter((r: any) => !q || `${r.title} ${r.make} ${r.otherMake} ${r.model} ${r.district}`.toLowerCase().includes(q))
-    .map((r: any) => toDTO(r, Boolean(plans.get(r.userId)?.featured)))
+    .map((r: any) => toDTO(r, look(r).featured))
     .sort((a: VehicleDTO, b: VehicleDTO) => Number(b.featured) - Number(a.featured));
   const start = (filters.page - 1) * PAGE_SIZE;
   return { total: visible.length, page: filters.page, pageSize: PAGE_SIZE, items: visible.slice(start, start + PAGE_SIZE) };
@@ -220,9 +267,12 @@ export async function publicVehicle(slug: string) {
   const db = await requireDb();
   const rows = await db.select().from(czVehicles).where(and(eq(czVehicles.slug, slug), eq(czVehicles.status, "published"))).limit(1);
   const row = rows[0];
-  const plan = row ? (await publishPlans(db, [row.userId], "autos")).get(row.userId) : undefined;
-  if (!row || !plan?.active) fail("NOT_FOUND", "Este anuncio ya no está disponible");
-  return toDTO(row, plan.featured);
+  if (!row) fail("NOT_FOUND", "Este anuncio ya no está disponible");
+  const rentPlan = (await publishPlans(db, [row.userId], "autos")).get(row.userId);
+  const salePlan = row.operation === "alquiler" ? undefined : (await publishPlans(db, [row.userId], "autosventa")).get(row.userId);
+  const look = vehicleVisible(row, rentPlan, salePlan);
+  if (!look.visible) fail("NOT_FOUND", "Este anuncio ya no está disponible");
+  return toDTO(row, look.featured);
 }
 
 async function uploadImage(req: Request, res: Response) {

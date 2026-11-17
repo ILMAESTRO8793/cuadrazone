@@ -58,7 +58,7 @@ export const realEstateRouter = router({
       z.object({
         account: z.string().trim().min(5).max(320),
         section: z.enum(listingSections),
-        planId: z.enum([...listingPlanIds, ...rentalPlanIds]),
+        planId: z.enum([...listingPlanIds, ...rentalPlanIds, "vendedor", "concesionario"]),
         months: z.number().int().min(1).max(12),
         amountCents: z.number().int().positive(),
         method: z.enum(["yappy", "transferencia", "efectivo", "otro"]),
