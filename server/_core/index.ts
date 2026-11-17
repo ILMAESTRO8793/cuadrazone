@@ -23,6 +23,7 @@ import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { registerMediaRoutes } from "../storage";
 import { registerHardening } from "./hardening";
+import { rateLimits } from "./rateLimit";
 import { runMigrations } from "./migrate";
 import { startSubscriptionSweeper } from "../services/subscriptions";
 import { startEmailWorker } from "../services/email";
@@ -50,6 +51,8 @@ async function startServer() {
   app.set("trust proxy", 1);
   app.disable("x-powered-by");
   registerHardening(app);
+  // Límites de peticiones antes de cualquier ruta de la API.
+  for (const limit of rateLimits()) app.use(limit);
   registerMediaRoutes(app);
   registerDocumentRoutes(app);
   registerBillingRoutes(app);
