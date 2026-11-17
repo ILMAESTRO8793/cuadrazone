@@ -153,6 +153,21 @@ export default function Home() {
                     <ArrowRight size={26} />
                   </span>
                 </Link>
+                <Link
+                  href="/despachador"
+                  className="gate-choice gate-choice--dispatch"
+                >
+                  <GatePhoto name="despachador" />
+                  <span className="gate-text">
+                    <strong>{t("DESPACHADOR")}</strong>
+                    <span className="gate-detail">
+                      {t("Gana dinero llevando pedidos de comercios y restaurantes en tu provincia.")}
+                    </span>
+                  </span>
+                  <span className="gate-arrow" aria-hidden="true">
+                    <ArrowRight size={26} />
+                  </span>
+                </Link>
               </div>
               <div className="hero-small gate-small">
                 <span>

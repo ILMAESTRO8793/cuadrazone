@@ -2286,3 +2286,9 @@ html.cz-app .main-nav nav > a.active {
     transform: none;
   }
 }
+
+/* Despachador en la portada */
+.gate-choice--dispatch {
+  --door-accent: #0f6b8a;
+  --door-wash: #e2eff4;
+}

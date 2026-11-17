@@ -141,6 +141,9 @@ export const EN: Record<string, string> = {
   "Compra, venta y alquiler de autos y motos.": "Buy, sell and rent cars and motorcycles.",
   "BUSCAR Y PUBLICAR EMPLEOS": "FIND AND POST JOBS",
   "Crea tu CV, aplica a vacantes o publica un empleo.": "Create your CV, apply to jobs or post a job.",
+  "DESPACHADOR": "DELIVERY DRIVER",
+  "Gana dinero llevando pedidos de comercios y restaurantes en tu provincia.":
+    "Earn money delivering orders from shops and restaurants in your province.",
   "Verificación de vendedores": "Seller verification",
   "Confianza desde el inicio": "Trust from the start",
   "Un proceso de verificación para quienes venden.": "A verification process for sellers.",

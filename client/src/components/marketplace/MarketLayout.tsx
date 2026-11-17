@@ -8,7 +8,6 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useLocation, useSearch } from "wouter";
 import {
   ArrowRight,
-  Bike,
   ChevronDown,
   Heart,
   MapPin,
@@ -455,9 +454,6 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
                 <ShieldCheck size={15} /> {t("Administración")}
               </Link>
             )}
-            <Link className="dispatch-nav" href="/despachador">
-              <Bike size={15} aria-hidden="true" /> {t("Despachador")}
-            </Link>
             <Link className="sell-nav" href="/vender">
               {t("Vende en CuadraZone")} <ArrowRight size={15} />
             </Link>
