@@ -9,6 +9,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { toast } from "sonner";
+import { LiveSelfie, isTouchDevice } from "./LiveSelfie";
 import {
   DISPATCH_MIN_CENTS,
   DISPATCH_PING_MS,
@@ -133,6 +134,14 @@ function ApplyForm({
   const apply = trpc.dispatch.register.useMutation();
   const docs = trpc.dispatch.myDocuments.useQuery();
   const [uploading, setUploading] = useState<DispatchDocKind | null>(null);
+  const [selfieOpen, setSelfieOpen] = useState(false);
+  function openSelfie() {
+    if (!isTouchDevice()) {
+      toast.error("La selfie se toma en vivo con tu celular. Abre cuadrazone.com/despachador en tu celular para tomarla.");
+      return;
+    }
+    setSelfieOpen(true);
+  }
   const hasDocs = dispatchDocKinds.every(kind => Boolean(docs.data?.[kind]));
   async function uploadDoc(kind: DispatchDocKind, file: File) {
     setUploading(kind);
@@ -144,6 +153,8 @@ function ApplyForm({
           "Content-Type": file.type || "application/octet-stream",
           "x-cz-request": "1",
           "x-file-name": file.name.replace(/[^\w.\- ]+/g, "").slice(0, 180),
+          // La selfie solo llega desde la cámara en vivo.
+          ...(kind === "selfie" ? { "x-cz-live": "1" } : {}),
         },
         body: file,
       });
@@ -263,7 +274,8 @@ function ApplyForm({
             equipo de CuadraZone para aprobarte. La selfie sirve para comprobar
             que quien maneja es la misma persona de la licencia; la foto del
             vehículo debe mostrar la placa si tiene. Licencia y récord: PDF o
-            foto. Selfie y vehículo: foto. Máximo 5 MiB.
+            foto. Vehículo: foto. La selfie se toma en vivo con la cámara de tu
+            celular, no se sube de la galería.
           </p>
           {dispatchDocKinds.map(kind => [kind, dispatchDocLabels[kind]] as const).map(([kind, label]) => (
             <div key={kind} className="dz-doc-row">
@@ -275,6 +287,16 @@ function ApplyForm({
                   <em className="dz-doc-missing">Falta</em>
                 )}
               </span>
+              {kind === "selfie" ? (
+                <button
+                  type="button"
+                  className="btn btn-outline dz-photo-btn"
+                  disabled={uploading !== null}
+                  onClick={openSelfie}
+                >
+                  {uploading === kind ? "Subiendo…" : docs.data?.[kind] ? "Repetir selfie" : "Tomar selfie"}
+                </button>
+              ) : (
               <label className="btn btn-outline dz-photo-btn">
                 {uploading === kind ? "Subiendo…" : docs.data?.[kind] ? "Cambiar" : "Subir"}
                 <input
@@ -284,12 +306,8 @@ function ApplyForm({
                       ? "image/png,image/jpeg,image/webp"
                       : "application/pdf,image/png,image/jpeg,image/webp"
                   }
-                  // En el celular abre la cámara: la de frente para la selfie.
-                  {...(kind === "selfie"
-                    ? { capture: "user" as const }
-                    : kind === "vehiculo"
-                      ? { capture: "environment" as const }
-                      : {})}
+                  // En el celular la foto del vehículo abre la cámara trasera.
+                  {...(kind === "vehiculo" ? { capture: "environment" as const } : {})}
                   hidden
                   disabled={uploading !== null}
                   onChange={e => {
@@ -299,9 +317,19 @@ function ApplyForm({
                   }}
                 />
               </label>
+              )}
             </div>
           ))}
         </fieldset>
+        {selfieOpen && (
+          <LiveSelfie
+            onCancel={() => setSelfieOpen(false)}
+            onDone={file => {
+              setSelfieOpen(false);
+              void uploadDoc("selfie", file);
+            }}
+          />
+        )}
         <button
           className="btn btn-gold"
           type="submit"

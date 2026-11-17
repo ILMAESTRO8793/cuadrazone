@@ -722,6 +722,9 @@ async function uploadDocument(req: Request, res: Response) {
     const kind = String(req.params.kind);
     if (!DOC_KINDS.has(kind)) return res.status(400).json({ error: "Documento no válido" });
     const mimeType = String(req.headers["content-type"] ?? "").split(";", 1)[0]!.toLowerCase();
+    // La selfie se toma en vivo con la cámara del celular (no de la galería).
+    if (kind === "selfie" && (req.headers["x-cz-live"] !== "1" || mimeType !== "image/jpeg"))
+      return res.status(400).json({ error: "La selfie se toma en vivo con la cámara de tu celular" });
     // La selfie y el vehículo tienen que ser fotos; los demás pueden ser PDF.
     if ((dispatchPhotoOnlyDocs as readonly string[]).includes(kind) && !PHOTO_TYPES.has(mimeType))
       return res.status(400).json({ error: "Sube una foto (JPG, PNG o WEBP)" });
