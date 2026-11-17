@@ -48,6 +48,7 @@ import "./jobs.css";
 import FilterDrawer, { countActiveFilters } from "@/components/marketplace/FilterDrawer";
 import { LanguagePicker, ResumePhoto,
   uploadResumePhoto, SalaryCalculator, SkillPicker, ToggleChips } from "./CvParts";
+import { instagramUrlFrom, instagramUserFrom } from "@shared/socialLinks";
 
 const errorText = (e: unknown) => (e instanceof Error ? e.message : "Ocurrió un error");
 const dateEs = (iso: string) => new Date(`${iso.slice(0, 10)}T12:00:00Z`).toLocaleDateString("es-PA", { day: "numeric", month: "long", year: "numeric" });
@@ -405,13 +406,22 @@ function ResumeContent() {
               <label>Salario que esperas al mes (US$, opcional)<Input inputMode="decimal" value={expectedSalary} onChange={e => setExpectedSalary(e.target.value)} placeholder="Ej.: 800" /></label>
               <label>
                 Instagram (opcional)
-                <Input
-                  type="url"
-                  value={cv.instagramUrl}
-                  onChange={e => set("instagramUrl", e.target.value)}
-                  maxLength={200}
-                  placeholder="https://www.instagram.com/tu-usuario"
-                />
+                {/* Solo el usuario: el enlace completo se arma solo. */}
+                <span className="cv-prefixed">
+                  <span className="cv-prefix" aria-hidden="true">
+                    instagram.com/
+                  </span>
+                  <Input
+                    value={instagramUserFrom(cv.instagramUrl)}
+                    onChange={e => set("instagramUrl", instagramUrlFrom(e.target.value))}
+                    maxLength={60}
+                    placeholder="tu_usuario"
+                    aria-label="Usuario de Instagram"
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck={false}
+                  />
+                </span>
               </label>
               <label>
                 Facebook (opcional)

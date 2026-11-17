@@ -106,3 +106,9 @@
   .cv-sheet { position: absolute; inset: 0 auto auto 0; width: 100%; border: 0; box-shadow: none; border-radius: 0; padding: 0; }
   @page { margin: 18mm; }
 }
+
+/* Instagram: «instagram.com/» fijo y la persona escribe solo su usuario */
+.cv-prefixed { display: flex; align-items: stretch; border: 1px solid #9AA8A5; border-radius: 10px; background: #fff; overflow: hidden; }
+.cv-prefixed:focus-within { outline: 3px solid #B58C3C; outline-offset: 1px; }
+.cv-prefix { display: inline-flex; align-items: center; padding: 0 4px 0 12px; background: #F1EADB; color: #4A5568; font-weight: 600; font-size: 14px; white-space: nowrap; border-right: 1px solid #DCE3E1; }
+.cv-prefixed input { flex: 1; min-width: 0; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; outline: none !important; }
