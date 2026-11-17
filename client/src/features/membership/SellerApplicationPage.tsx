@@ -1,5 +1,11 @@
 import { useCatalogCategories } from "@/lib/catalogCategories";
-import { getSellerPlan, sellerPlanLabel } from "@shared/pricing";
+import {
+  PLAN_CATALOG_VERSION,
+  getSellerPlan,
+  plansForStoreKind,
+  sellerPlanIdInput,
+  sellerPlanLabel,
+} from "@shared/pricing";
 import { AuthGate } from "@/features/membership/AuthGate";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { authFetch } from "@/lib/authFetch";
@@ -101,6 +107,22 @@ function SellerApplicationContent() {
     refetchOnWindowFocus: false,
   });
   const saveApplication = trpc.membership.application.save.useMutation();
+  const planPreference = trpc.membership.plan.get.useQuery(undefined, {
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+  const savePlan = trpc.membership.plan.select.useMutation();
+  // Desde «Planes de suscripción» llega con ?tipo=…&plan=…: ese plan queda
+  // propuesto y se guarda junto con la solicitud.
+  const [proposedPlan] = useState(() => {
+    if (typeof window === "undefined") return null;
+    const params = new URLSearchParams(window.location.search);
+    const plan = sellerPlanIdInput.safeParse(params.get("plan"));
+    if (!plan.success) return null;
+    return plansForStoreKind(params.get("tipo")).includes(plan.data)
+      ? plan.data
+      : null;
+  });
   const submitApplication = trpc.membership.application.submit.useMutation();
   const [form, setForm] = useState<ApplicationInput>(emptyApplication);
   const initialized = useRef(false);
@@ -217,6 +239,25 @@ function SellerApplicationContent() {
       });
       setEditingRevision(saved.revision);
       setForm(values);
+      if (
+        proposedPlan &&
+        plansForStoreKind(values.storeKind).includes(proposedPlan) &&
+        planPreference.data?.planId !== proposedPlan
+      ) {
+        try {
+          await savePlan.mutateAsync({
+            planId: proposedPlan,
+            catalogVersion: PLAN_CATALOG_VERSION,
+            expectedRevision: planPreference.data?.revision ?? 0,
+            acknowledgePending: true,
+          });
+          await utils.membership.plan.get.invalidate();
+        } catch (error) {
+          toast.error("No se pudo guardar el plan elegido", {
+            description: errorText(error, "Elígelo de nuevo en Planes."),
+          });
+        }
+      }
       await utils.membership.me.invalidate();
       toast.success("Borrador guardado");
     } catch (error) {
@@ -417,7 +458,7 @@ function SellerApplicationContent() {
         </div>
       )}
 
-      <section className="member-card"><h2>Plan de tu negocio</h2><p>{snapshot.planSelection ? `${getSellerPlan(snapshot.planSelection.planId).name} · ${sellerPlanLabel(snapshot.planSelection.planId)}/mes, preferencia guardada.` : `Normal ${sellerPlanLabel("normal")}/mes o Mayor Visibilidad ${sellerPlanLabel("mayor_visibilidad")}/mes. No hay una selección guardada.`}</p><p>Elegir plan no verifica ni activa tu tienda. Los cobros siguen pendientes.</p><Link className="btn btn-outline" href="/vendedor/plan" target="_blank" rel="noopener noreferrer">Elegir plan en otra pestaña sin perder el formulario</Link></section>
+      <section className="member-card"><h2>Plan de tu negocio</h2><p>{proposedPlan && snapshot.planSelection?.planId !== proposedPlan ? `Elegiste ${getSellerPlan(proposedPlan).name} · ${sellerPlanLabel(proposedPlan)}/mes. Se guarda cuando guardes tu solicitud.` : snapshot.planSelection ? `${getSellerPlan(snapshot.planSelection.planId).name} · ${sellerPlanLabel(snapshot.planSelection.planId)}/mes, preferencia guardada.` : `Normal ${sellerPlanLabel("normal")}/mes o Mayor Visibilidad ${sellerPlanLabel("mayor_visibilidad")}/mes. No hay una selección guardada.`}</p><p>Elegir plan no verifica ni activa tu tienda. Los cobros siguen pendientes.</p><Link className="btn btn-outline" href="/vendedor/plan" target="_blank" rel="noopener noreferrer">Elegir plan en otra pestaña sin perder el formulario</Link></section>
 
       <form
         className={`member-card member-application-form ${!editable ? "member-card--locked" : ""}`}

@@ -51,13 +51,17 @@ export default function Home() {
               <h1 id="gate-title">Bienvenido a CuadraZone</h1>
               <CountryPicker />
               <div className="gate-choices">
-                <Link href="/vender" className="gate-choice gate-choice--store">
+                <Link
+                  href="/suscripciones"
+                  className="gate-choice gate-choice--store"
+                >
                   <GatePhoto name="crear-tienda" />
                   <span className="gate-text">
-                    <strong>CREAR TU TIENDA</strong>
+                    <strong>PLANES DE SUSCRIPCIÓN</strong>
                     <span className="gate-detail">
-                      Vende tus productos u ofrece tus servicios. Los primeros 3
-                      meses son gratis.
+                      Elige el plan de tu sección y llena tu formulario:
+                      comercios, servicios, restaurantes, bienes raíces, autos
+                      y empleos.
                     </span>
                   </span>
                   <span className="gate-arrow" aria-hidden="true">
@@ -143,7 +147,7 @@ export default function Home() {
                 <Link href="/empleos" className="gate-choice gate-choice--jobs">
                   <GatePhoto name="empleo" />
                   <span className="gate-text">
-                    <strong>BUSCAR EMPLEO</strong>
+                    <strong>BUSCAR Y PUBLICAR EMPLEOS</strong>
                     <span className="gate-detail">
                       Crea tu CV, aplica a vacantes o publica un empleo.
                     </span>

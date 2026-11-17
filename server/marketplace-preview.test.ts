@@ -20,8 +20,8 @@ describe("CuadraZone preview", () => {
     expect(result.html).toContain("Bienvenido a CuadraZone</h1>");
     expect(result.html).toContain("¿En qué país estás?");
     expect(result.html).toContain(">COMERCIOS<");
-    expect(result.html).toContain(">CREAR TU TIENDA<");
-    expect(result.html).toContain('href="/vender" class="gate-choice');
+    expect(result.html).toContain(">PLANES DE SUSCRIPCIÓN<");
+    expect(result.html).toContain('href="/suscripciones" class="gate-choice');
     expect(result.html).toContain(">SERVICIOS<");
     expect(result.html).toContain('href="/mercado" class="gate-choice');
     expect(result.html).toContain('href="/servicios" class="gate-choice');

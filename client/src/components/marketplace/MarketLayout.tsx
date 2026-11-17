@@ -90,7 +90,7 @@ const navBySection: Record<Section, { title: string; href: string }[]> = {
     { title: "Restaurantes", href: "/restaurantes" },
     { title: "Bienes raíces", href: "/bienes-raices" },
     { title: "Autos", href: "/autos" },
-    { title: "Buscar trabajo", href: "/empleos" },
+    { title: "Buscar y publicar empleos", href: "/empleos" },
   ],
 };
 export default function MarketLayout({ children }: { children: ReactNode }) {

@@ -702,7 +702,10 @@ function MineContent() {
   const save = trpc.vehicles.save.useMutation();
   const setStatus = trpc.vehicles.setStatus.useMutation();
   const remove = trpc.vehicles.remove.useMutation();
-  const [form, setForm] = useState<Form | null>(null);
+  // Desde «Planes de suscripción» llega con ?nuevo=1: abre el formulario.
+  const [form, setForm] = useState<Form | null>(() =>
+    typeof window !== "undefined" && new URLSearchParams(window.location.search).has("nuevo") ? { ...emptyForm } : null
+  );
   const [uploading, setUploading] = useState(false);
   /** Fotos elegidas mientras se crea el anuncio; se suben al pulsar «Crear anuncio». */
   const [pending, setPending] = useState<Array<{ file: File; url: string }>>(

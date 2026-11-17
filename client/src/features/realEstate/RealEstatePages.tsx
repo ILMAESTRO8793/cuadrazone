@@ -309,7 +309,10 @@ function MineContent() {
   const save = trpc.realEstate.save.useMutation();
   const setStatus = trpc.realEstate.setStatus.useMutation();
   const remove = trpc.realEstate.remove.useMutation();
-  const [form, setForm] = useState<Form | null>(null);
+  // Desde «Planes de suscripción» llega con ?nuevo=1: abre el formulario.
+  const [form, setForm] = useState<Form | null>(() =>
+    typeof window !== "undefined" && new URLSearchParams(window.location.search).has("nuevo") ? { ...emptyForm } : null
+  );
   const [uploading, setUploading] = useState(false);
   const set = <K extends keyof Form>(k: K, v: Form[K]) => setForm(f => (f ? { ...f, [k]: v } : f));
   const plan = mine.data?.plan;

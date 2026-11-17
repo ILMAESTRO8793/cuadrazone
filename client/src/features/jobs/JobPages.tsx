@@ -55,7 +55,7 @@ function JobsHeader({ title, subtitle }: { title: string; subtitle: string }) {
   return (
     <div className="re-hero">
       <div>
-        <p className="eyebrow">BUSCAR EMPLEO</p>
+        <p className="eyebrow">BUSCAR Y PUBLICAR EMPLEOS</p>
         <h1>{title}</h1>
         <p className="re-muted">{subtitle}</p>
       </div>
@@ -269,7 +269,7 @@ function ResumeContent() {
     <div className="re-page container">
       <div className="re-hero no-print">
         <div>
-          <p className="eyebrow">BUSCAR EMPLEO</p>
+          <p className="eyebrow">BUSCAR Y PUBLICAR EMPLEOS</p>
           <h1>Mi CV</h1>
           <p className="re-muted">Créalo una vez y úsalo para aplicar a todas las vacantes. Solo lo ven las empresas a las que aplicas.</p>
         </div>
@@ -435,7 +435,10 @@ function MyJobsContent() {
   const save = trpc.jobs.save.useMutation();
   const setStatus = trpc.jobs.setStatus.useMutation();
   const remove = trpc.jobs.remove.useMutation();
-  const [form, setForm] = useState<JobForm | null>(null);
+  // Desde «Planes de suscripción» llega con ?nuevo=1: abre el formulario.
+  const [form, setForm] = useState<JobForm | null>(() =>
+    typeof window !== "undefined" && new URLSearchParams(window.location.search).has("nuevo") ? emptyJob() : null
+  );
   const [viewing, setViewing] = useState<number | null>(null);
   const set = <K extends keyof JobForm>(k: K, v: JobForm[K]) => setForm(x => (x ? { ...x, [k]: v } : x));
   const plan = mine.data?.plan;
@@ -507,7 +510,7 @@ function MyJobsContent() {
   return (
     <div className="re-page container">
       <div className="re-hero">
-        <div><p className="eyebrow">BUSCAR EMPLEO</p><h1>Mis vacantes</h1></div>
+        <div><p className="eyebrow">BUSCAR Y PUBLICAR EMPLEOS</p><h1>Mis vacantes</h1></div>
         <button className="btn btn-gold" onClick={() => setForm(emptyJob())}>+ Nueva vacante</button>
       </div>
       {plan && (

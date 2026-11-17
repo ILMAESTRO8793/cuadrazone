@@ -134,7 +134,7 @@ export function SellerPlanCards({
               </button>
             ) : (
               <Link
-                href={`/vendedor/plan?plan=${id}`}
+                href={`/solicitud-vendedor?tipo=${storeKind ?? "comercio"}&plan=${id}`}
                 className="btn btn-gold btn-wide"
               >
                 Elegir {plan.name}

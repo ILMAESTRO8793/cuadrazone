@@ -16,6 +16,13 @@ import {
   type PlanSection,
 } from "@/features/membership/SellerPlanCards";
 
+/** Formulario donde se publica el primer anuncio de cada sección. */
+const listingForms: Record<ListingSection, string> = {
+  inmuebles: "/bienes-raices/mis-anuncios?nuevo=1",
+  autos: "/autos/mis-anuncios?nuevo=1",
+  empleos: "/empleos/mis-vacantes?nuevo=1",
+};
+
 /** Planes de una sección de anuncios (Bienes raíces, Autos o Empleos). */
 function ListingPlans({ section }: { section: ListingSection }) {
   return (
@@ -42,6 +49,9 @@ function ListingPlans({ section }: { section: ListingSection }) {
                 Sin comisión
               </li>
             </ul>
+            <Link href={listingForms[section]} className="btn btn-gold btn-wide">
+              Elegir {plan.name}
+            </Link>
           </article>
         );
       })}

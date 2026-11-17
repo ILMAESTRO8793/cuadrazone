@@ -55,7 +55,7 @@ export function getPageMeta(url: string, snapshot: PublicSnapshot = {}) {
     "/bienes-raices/mis-anuncios": "Mis anuncios de bienes raíces",
     "/autos": "Autos: venta y alquiler",
     "/autos/mis-anuncios": "Mis autos",
-    "/empleos": "Buscar empleo en Panamá",
+    "/empleos": "Buscar y publicar empleos en Panamá",
     "/empleos/mi-cv": "Mi CV",
     "/empleos/mis-postulaciones": "Mis postulaciones",
     "/empleos/mis-vacantes": "Mis vacantes",
