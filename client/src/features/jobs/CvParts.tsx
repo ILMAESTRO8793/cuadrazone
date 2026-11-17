@@ -3,7 +3,14 @@ import { toast } from "sonner";
 import { Check, Plus, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { trpc } from "@/lib/trpc";
-import { MAX_SKILLS, jobUsd, skillGroups } from "@shared/jobs";
+import {
+  MAX_SKILLS,
+  jobUsd,
+  languageLevels,
+  levelLabels,
+  skillGroups,
+  suggestedLanguages,
+} from "@shared/jobs";
 import { monthlyCents, netSalary } from "@shared/netSalary";
 
 /** Botones para marcar o desmarcar opciones con un clic. */
@@ -137,6 +144,115 @@ export function SkillPicker({
             <Plus size={16} aria-hidden="true" /> Agregar
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+type LanguageEntry = { language: string; level: (typeof languageLevels)[number] };
+
+/** Idiomas: se agregan con un clic y luego se elige el nivel de cada uno. */
+export function LanguagePicker({
+  value,
+  onChange,
+}: {
+  value: LanguageEntry[];
+  onChange: (next: LanguageEntry[]) => void;
+}) {
+  const [other, setOther] = useState("");
+  const has = (name: string) =>
+    value.some(l => l.language.toLowerCase() === name.toLowerCase());
+  const full = value.length >= 8;
+  const add = (name: string) => {
+    const language = name.trim().slice(0, 40);
+    if (language.length < 2 || has(language)) return;
+    if (full) {
+      toast.error("Puedes agregar hasta 8 idiomas");
+      return;
+    }
+    onChange([...value, { language, level: "intermedio" }]);
+  };
+  const toggle = (name: string) =>
+    has(name)
+      ? onChange(value.filter(l => l.language.toLowerCase() !== name.toLowerCase()))
+      : add(name);
+  return (
+    <div className="cv-skills">
+      <p className="re-muted re-small">Toca los idiomas que hablas y elige tu nivel.</p>
+      <div className="cv-chips" role="group" aria-label="Idiomas">
+        {suggestedLanguages.map(name => {
+          const on = has(name);
+          return (
+            <button
+              key={name}
+              type="button"
+              className={`cv-chip ${on ? "is-on" : ""}`}
+              aria-pressed={on}
+              onClick={() => toggle(name)}
+            >
+              {on && <Check size={14} aria-hidden="true" />}
+              {name}
+            </button>
+          );
+        })}
+      </div>
+      {value.length > 0 && (
+        <ul className="cv-languages">
+          {value.map((l, i) => (
+            <li key={l.language}>
+              <strong>{l.language}</strong>
+              <select
+                aria-label={`Nivel de ${l.language}`}
+                value={l.level}
+                onChange={e =>
+                  onChange(
+                    value.map((x, idx) =>
+                      idx === i ? { ...x, level: e.target.value as LanguageEntry["level"] } : x
+                    )
+                  )
+                }
+              >
+                {languageLevels.map(level => (
+                  <option key={level} value={level}>{levelLabels[level]}</option>
+                ))}
+              </select>
+              <button
+                type="button"
+                className="re-back"
+                aria-label={`Quitar ${l.language}`}
+                onClick={() => onChange(value.filter((_, idx) => idx !== i))}
+              >
+                Quitar
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="cv-other">
+        <Input
+          value={other}
+          maxLength={40}
+          onChange={e => setOther(e.target.value)}
+          onKeyDown={e => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              add(other);
+              setOther("");
+            }
+          }}
+          placeholder="Otro idioma"
+          aria-label="Otro idioma"
+        />
+        <button
+          type="button"
+          className="btn btn-outline"
+          onClick={() => {
+            add(other);
+            setOther("");
+          }}
+        >
+          <Plus size={16} aria-hidden="true" /> Agregar
+        </button>
       </div>
     </div>
   );

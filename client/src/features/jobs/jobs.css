@@ -65,6 +65,9 @@
 .cv-chip:hover { border-color: #B58C3C; }
 .cv-chip:focus-visible { outline: 3px solid #B58C3C; outline-offset: 2px; }
 .cv-chip.is-on { background: #0B1F3B; border-color: #0B1F3B; color: #fff; }
+.cv-languages { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.cv-languages li { display: grid; grid-template-columns: minmax(0, 1fr) 140px auto; gap: 10px; align-items: center; padding: 8px 12px; border: 1px solid #DCE3E1; border-radius: 12px; background: #fff; }
+.cv-languages select { min-height: 40px; padding: 0 10px; border: 1px solid #9AA8A5; border-radius: 10px; font: inherit; background: #fff; }
 .cv-other { display: flex; gap: 8px; align-items: center; }
 .cv-other > :first-child { flex: 1; min-width: 0; }
 .cv-other .btn { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }

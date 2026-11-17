@@ -26,7 +26,6 @@ import {
   jobStatusLabels,
   jobTypeLabels,
   jobTypes,
-  languageLevels,
   levelLabels,
   modalityLabels,
   salaryLabel,
@@ -47,7 +46,7 @@ import { Input } from "@/components/ui/input";
 import "../realEstate/realEstate.css";
 import "./jobs.css";
 import FilterDrawer, { countActiveFilters } from "@/components/marketplace/FilterDrawer";
-import { ResumePhoto, SalaryCalculator, SkillPicker, ToggleChips } from "./CvParts";
+import { LanguagePicker, ResumePhoto, SalaryCalculator, SkillPicker, ToggleChips } from "./CvParts";
 
 const errorText = (e: unknown) => (e instanceof Error ? e.message : "Ocurrió un error");
 const dateEs = (iso: string) => new Date(`${iso.slice(0, 10)}T12:00:00Z`).toLocaleDateString("es-PA", { day: "numeric", month: "long", year: "numeric" });
@@ -367,14 +366,7 @@ function ResumeContent() {
           </fieldset>
           <fieldset>
             <legend>Idiomas</legend>
-            {cv.languages.map((x, i) => (
-              <div className="re-row" key={i}>
-                <label>Idioma<Input value={x.language} onChange={e => updateItem("languages", i, { language: e.target.value })} required /></label>
-                <label>Nivel<select value={x.level} onChange={e => updateItem("languages", i, { level: e.target.value as (typeof languageLevels)[number] })}>{languageLevels.map(l => <option key={l} value={l}>{levelLabels[l]}</option>)}</select></label>
-                <button type="button" className="re-back" onClick={() => removeItem("languages", i)}>Quitar</button>
-              </div>
-            ))}
-            {cv.languages.length < 8 && <button type="button" className="btn btn-outline" onClick={() => set("languages", [...cv.languages, { language: "", level: "intermedio" }])}>+ Agregar idioma</button>}
+            <LanguagePicker value={cv.languages} onChange={next => set("languages", next)} />
           </fieldset>
           <fieldset>
             <legend>Cómo quieres trabajar</legend>

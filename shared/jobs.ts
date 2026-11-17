@@ -58,6 +58,8 @@ export const skillGroups: { title: string; skills: string[] }[] = [
   { title: "Habilidades personales", skills: ["Trabajo en equipo", "Puntualidad", "Liderazgo", "Comunicación", "Responsabilidad", "Resolución de problemas", "Organización", "Aprendo rápido", "Trabajo bajo presión", "Creatividad", "Adaptabilidad"] },
 ];
 export const MAX_SKILLS = 30;
+/** Idiomas sugeridos: se agregan al CV con un clic. */
+export const suggestedLanguages = ["Español", "Inglés", "Francés", "Portugués", "Mandarín", "Alemán", "Lengua de señas"];
 
 export const jobStatusLabels: Record<JobStatus, string> = { draft: "Borrador", published: "Publicada", paused: "Pausada", closed: "Cerrada" };
 export const applicationStatusLabels: Record<ApplicationStatus, string> = {
