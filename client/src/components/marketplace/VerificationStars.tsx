@@ -10,12 +10,12 @@ import "./verificationStars.css";
 
 /**
  * Una fila de estrellas de verificación; sin `stars` muestra las cinco.
- * `labeled` pone debajo de cada estrella el nombre de su logro.
+ * Solo las estrellas: los nombres de los logros quedan para lectores de
+ * pantalla y como texto al pasar el mouse. `labeled` ya no muestra nombres.
  */
 export function VerificationStars({
   size = 18,
   stars = verificationStars,
-  labeled = false,
 }: {
   size?: number;
   stars?: readonly VerificationStar[];
@@ -23,26 +23,6 @@ export function VerificationStars({
 }) {
   if (!stars.length) return null;
   const names = stars.map(s => verificationStarInfo[s].achievement);
-  if (labeled)
-    return (
-      <ul
-        className="vstars vstars--labeled"
-        aria-label="Estrellas de verificación"
-      >
-        {stars.map(s => (
-          <li key={s} title={verificationStarInfo[s].rule}>
-            <Star
-              size={size}
-              color={verificationStarInfo[s].color}
-              fill={verificationStarInfo[s].color}
-              strokeWidth={1.5}
-              aria-hidden="true"
-            />
-            <span>{verificationStarInfo[s].achievement}</span>
-          </li>
-        ))}
-      </ul>
-    );
   return (
     <span
       className="vstars"

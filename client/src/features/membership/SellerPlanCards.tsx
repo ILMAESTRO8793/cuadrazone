@@ -11,6 +11,7 @@ import {
   sellerPlanAnnualLabel,
   planAmountCents,
   ANNUAL_DISCOUNT_PCT,
+  moneyLabel,
   type SellerPlanId,
 } from "@shared/pricing";
 
@@ -20,9 +21,9 @@ const kicker: Record<SellerPlanId, string> = {
   mayor_visibilidad: "Pymes · más exposición",
   mediana: "Empresas medianas",
   grande: "Grandes empresas",
-  rest_basico: "Pymes · hasta 20 platos",
-  rest_medio: "Mediana empresa · de 21 a 100 platos",
-  rest_grande: "Gran empresa · más de 100 platos",
+  rest_basico: "Pymes · hasta 20 menús",
+  rest_medio: "Mediana empresa · de 21 a 100 menús",
+  rest_grande: "Gran empresa · más de 100 menús",
 };
 
 export function SellerPlanCards({
@@ -39,7 +40,7 @@ export function SellerPlanCards({
 }) {
   const ids = plansForStoreKind(storeKind);
   const [cycle, setCycle] = useState<"mensual" | "anual">("mensual");
-  const money = (cents: number) => `US${(cents / 100).toFixed(2)}`;
+  const money = moneyLabel;
   return (
     <>
     <div className="plan-cycle" role="radiogroup" aria-label="Forma de pago">
@@ -105,20 +106,9 @@ export function SellerPlanCards({
               ))}
             </ul>
             {isFeaturedPlan(id) && (
-              <>
-                <div className="plan-stars">
-                  <span>Las cinco estrellas de verificación</span>
-                </div>
-                <VerificationStars size={22} labeled />
-                <p className="plan-stars-why">
-                  Las estrellas le dicen al comprador que tu tienda es de
-                  confianza: más credibilidad, más ganas de comprarte.
-                </p>
-                <p className="plan-pending-note">
-                  Con {plan.name} se ven las cinco estrellas en tu tienda y en
-                  tus anuncios. No garantiza ventas ni primer puesto permanente.
-                </p>
-              </>
+              <div className="plan-stars">
+                <VerificationStars size={22} />
+              </div>
             )}
             {onChoose ? (
               <button
@@ -226,7 +216,7 @@ export function PlanConditions({ section }: { section: PlanSection }) {
     title = "Cómo funciona el plan de Restaurantes";
     parts = [
       <>
-        El plan depende de cuántos platos tiene tu menú: pyme hasta 20, mediana
+        El plan depende de cuántos menús tienes: pyme hasta 20, mediana
         empresa de 21 a 100 y gran empresa más de 100. {tope}
       </>,
       <>

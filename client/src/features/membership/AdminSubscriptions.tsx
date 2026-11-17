@@ -6,6 +6,7 @@ import {
   planAmountCents,
   isInTrial,
   LISTING_PLANS,
+  listingPlanAmountCents,
   listingPlanIds,
   listingPlanName,
   listingSectionLabels,
@@ -188,7 +189,7 @@ function AdvertiserPlans() {
   const [method, setMethod] = useState<AdvertiserMethod>("yappy");
   const [reference, setReference] = useState("");
   const [paidOn, setPaidOn] = useState(todayInPanama());
-  const amount = LISTING_PLANS[planId].monthlyCents * months;
+  const amount = listingPlanAmountCents(planId, months);
   async function save(e: React.FormEvent) {
     e.preventDefault();
     try {

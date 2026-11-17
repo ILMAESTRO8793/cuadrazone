@@ -1,5 +1,8 @@
 import {
+  ANNUAL_DISCOUNT_PCT,
+  ANNUAL_MONTHS,
   LISTING_PLANS,
+  listingPlanAmountCents,
   PLAN_ACTIVATION_NOTICE,
   listingPlanIds,
   listingUnits,
@@ -25,20 +28,51 @@ const listingForms: Record<ListingSection, string> = {
 
 /** Planes de una sección de anuncios (Bienes raíces, Autos o Empleos). */
 function ListingPlans({ section }: { section: ListingSection }) {
+  const [cycle, setCycle] = useState<"mensual" | "anual">("mensual");
   return (
+    <>
+    <div className="plan-cycle" role="radiogroup" aria-label="Forma de pago">
+      <button type="button" role="radio" aria-checked={cycle === "mensual"} className={cycle === "mensual" ? "is-active" : ""} onClick={() => setCycle("mensual")}>
+        Pago mensual
+      </button>
+      <button type="button" role="radio" aria-checked={cycle === "anual"} className={cycle === "anual" ? "is-active" : ""} onClick={() => setCycle("anual")}>
+        Pago anual <span>−{ANNUAL_DISCOUNT_PCT} %</span>
+      </button>
+    </div>
     <div className="plan-grid seller-plan-grid">
       {listingPlanIds.map(id => {
         const plan = LISTING_PLANS[id];
+        const annual = listingPlanAmountCents(id, ANNUAL_MONTHS);
+        const saved = plan.monthlyCents * ANNUAL_MONTHS - annual;
         return (
           <article className="plan-card seller-plan-card" key={id}>
             <div className="plan-kicker">
               {`${plan.range} ${listingUnits[section]}`}
             </div>
             <h2>{plan.name}</h2>
-            <div className="plan-price">
-              <strong>{moneyLabel(plan.monthlyCents)}</strong>
-              <span>/ mes</span>
-            </div>
+            {cycle === "mensual" ? (
+              <>
+                <div className="plan-price">
+                  <strong>{moneyLabel(plan.monthlyCents)}</strong>
+                  <span>/ mes</span>
+                </div>
+                <p className="plan-annual">
+                  o <strong>{moneyLabel(annual)} al año</strong> con{" "}
+                  {ANNUAL_DISCOUNT_PCT} % de descuento
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="plan-price">
+                  <strong>{moneyLabel(annual)}</strong>
+                  <span>/ año</span>
+                </div>
+                <p className="plan-annual">
+                  Equivale a <strong>{moneyLabel(Math.floor(annual / ANNUAL_MONTHS))} al mes</strong>.
+                  Ahorras {moneyLabel(saved)} frente a pagar mes a mes.
+                </p>
+              </>
+            )}
             <ul>
               <li>
                 <Check size={16} aria-hidden="true" />
@@ -56,6 +90,7 @@ function ListingPlans({ section }: { section: ListingSection }) {
         );
       })}
     </div>
+    </>
   );
 }
 

@@ -641,7 +641,7 @@ function SellerApplicationContent() {
               {([
                 ["comercio", "Comercio", "Cosas tangibles: ropa, artesanías, repostería, tecnología, libros… Con fotos y videos, inventario y envíos. No incluye restaurantes, casas, autos ni vacantes."],
                 ["servicios", "Servicios", "Lo que haces para otros: clases, plomería, consultas, eventos, diseño… Sin envíos: el cliente te solicita y coordinan."],
-                ["restaurante", "Restaurante", "Tu menú con platos, tamaños y extras, y pedidos a domicilio. Planes según cuántos platos tengas."],
+                ["restaurante", "Restaurante", "Tu menú con platos, tamaños y extras, y pedidos a domicilio. Planes según cuántos menús tengas."],
               ] as const).map(([kind, title, text]) => (
                 <button
                   key={kind}

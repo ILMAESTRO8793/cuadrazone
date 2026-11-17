@@ -146,9 +146,9 @@ export const SELLER_PLANS: Record<SellerPlanId, SellerPlan> = {
     dishLimit: TIER_LIMITS.basico,
     commissionBps: 1000,
     featured: false,
-    description: "Para restaurantes pequeños: un menú de hasta 20 platos.",
+    description: "Para restaurantes pequeños: hasta 20 menús.",
     benefits: [
-      "Hasta 20 platos en tu menú",
+      "Hasta 20 menús",
       "Pedidos a domicilio",
       "10% de comisión por pedido entregado",
     ],
@@ -163,9 +163,9 @@ export const SELLER_PLANS: Record<SellerPlanId, SellerPlan> = {
     dishLimit: TIER_LIMITS.medio,
     commissionBps: 500,
     featured: false,
-    description: "Para restaurantes medianos: un menú de 21 a 100 platos.",
+    description: "Para restaurantes medianos: de 21 a 100 menús.",
     benefits: [
-      "De 21 a 100 platos en tu menú",
+      "De 21 a 100 menús",
       "Pedidos a domicilio",
       "5% de comisión por pedido entregado",
     ],
@@ -181,9 +181,9 @@ export const SELLER_PLANS: Record<SellerPlanId, SellerPlan> = {
     commissionBps: 300,
     featured: false,
     description:
-      "Para cadenas grandes de comida rápida: un menú de más de 100 platos.",
+      "Para cadenas grandes de comida rápida: más de 100 menús.",
     benefits: [
-      "Más de 100 platos en tu menú, sin límite",
+      "Más de 100 menús, sin límite",
       "Pedidos a domicilio",
       "3% de comisión por pedido entregado",
     ],
@@ -303,7 +303,7 @@ export function listingPlanName(planId: string | null | undefined): string {
   return isListingPlanId(planId) ? LISTING_PLANS[planId].name : "Sin plan";
 }
 export function moneyLabel(cents: number) {
-  return `US$${(cents / 100).toFixed(2)}`;
+  return `US$${(cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 /**
@@ -345,9 +345,17 @@ export function planAmountCents(id: SellerPlanId, months: number): number {
     : full;
 }
 
+/** Lo que cuesta pagar `months` meses de un plan de Bienes raíces, Autos o Empleos; 12 meses llevan el descuento anual. */
+export function listingPlanAmountCents(id: ListingPlanId, months: number): number {
+  const full = LISTING_PLANS[id].monthlyCents * months;
+  return months === ANNUAL_MONTHS
+    ? Math.round((full * (100 - ANNUAL_DISCOUNT_PCT)) / 100)
+    : full;
+}
+
 /** Precio anual con descuento, p. ej. «US$215.89». */
 export function sellerPlanAnnualLabel(id: SellerPlanId) {
-  return `US$${(planAmountCents(id, ANNUAL_MONTHS) / 100).toFixed(2)}`;
+  return moneyLabel(planAmountCents(id, ANNUAL_MONTHS));
 }
 
 export function sellerPlanLabel(id: SellerPlanId) {

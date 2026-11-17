@@ -20,7 +20,7 @@ type Quota = "product" | "service" | "dish";
 const words: Record<Quota, string> = {
   product: "productos",
   service: "servicios",
-  dish: "platos",
+  dish: "menús",
 };
 
 /** Plan que manda en los límites: el pagado o, en el mes gratis, el elegido. */

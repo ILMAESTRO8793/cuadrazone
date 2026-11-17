@@ -13,6 +13,7 @@ import {
   isListingPlanId,
   limitReachedMessage,
   listingLimitFor,
+  listingPlanAmountCents,
   listingSectionLabels,
   listingSections,
   listingUnits,
@@ -224,11 +225,11 @@ export async function adminRecordSectionPayment(
   if (!isListingPlanId(input.planId)) fail("BAD_REQUEST", "Plan no válido");
   if (!Number.isInteger(input.months) || input.months < 1 || input.months > 12)
     fail("BAD_REQUEST", "Entre 1 y 12 meses");
-  const expected = LISTING_PLANS[input.planId].monthlyCents * input.months;
+  const expected = listingPlanAmountCents(input.planId, input.months);
   if (input.amountCents !== expected)
     fail(
       "BAD_REQUEST",
-      `El monto debe ser US$${(expected / 100).toFixed(2)} (${input.months} × plan)`
+      `El monto debe ser US$${(expected / 100).toFixed(2)} (${input.months === 12 ? "1 año con 10 % de descuento" : `${input.months} × plan`})`
     );
   const db = await getDb();
   if (!db) fail("INTERNAL_SERVER_ERROR", "La base de datos no está disponible");
