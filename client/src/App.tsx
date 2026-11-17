@@ -62,6 +62,7 @@ import { SellerEventsPage, TicketScannerPage } from "./features/events/SellerEve
 import { MyAppointmentsPage, ProviderAgendaPage } from "./features/services/AppointmentPages";
 import { JobDetailPage, JobListPage, MyApplicationsPage, MyJobsPage, ResumePage } from "./features/jobs/JobPages";
 import { SellerStatusPage } from "./features/membership/SellerStatusPage";
+import { LanguageProvider } from "@/lib/i18n";
 import { AdminVerificationPage } from "./features/membership/AdminVerificationPage";
 
 function PageMetadata() {
@@ -258,6 +259,7 @@ export default function App({ snapshot }: { snapshot?: PublicSnapshot }) {
   return (
     <ErrorBoundary>
       <ThemeProvider defaultTheme="light">
+        <LanguageProvider>
         <TooltipProvider>
           <PublicCatalogProvider snapshot={snapshot}>
             <MarketProvider>
@@ -269,6 +271,7 @@ export default function App({ snapshot }: { snapshot?: PublicSnapshot }) {
             </MarketProvider>
           </PublicCatalogProvider>
         </TooltipProvider>
+        </LanguageProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );

@@ -6,6 +6,7 @@ import {
   trialOfferLabel,
 } from "@shared/pricing";
 import { useState } from "react";
+import { useLang, useT } from "@/lib/i18n";
 import { Link } from "wouter";
 import { countries, type CountryCode } from "@shared/countries";
 import {
@@ -42,13 +43,15 @@ function GatePhoto({ name, eager = false }: { name: string; eager?: boolean }) {
 }
 
 export default function Home() {
+  const t = useT();
+  const { lang } = useLang();
   return (
     <>
       <div className="gate-band">
         <section className="gate container" aria-labelledby="gate-title">
           <div className="gate-grid">
             <div className="gate-main">
-              <h1 id="gate-title">Bienvenido a CuadraZone</h1>
+              <h1 id="gate-title">{t("Bienvenido a CuadraZone")}</h1>
               <CountryPicker />
               <div className="gate-choices">
                 <Link
@@ -57,11 +60,9 @@ export default function Home() {
                 >
                   <GatePhoto name="crear-tienda" />
                   <span className="gate-text">
-                    <strong>PLANES DE SUSCRIPCIÓN</strong>
+                    <strong>{t("PLANES DE SUSCRIPCIÓN")}</strong>
                     <span className="gate-detail">
-                      Elige el plan de tu sección y llena tu formulario:
-                      comercios, servicios, restaurantes, bienes raíces, autos
-                      y empleos.
+                      {t("Elige el plan de tu sección y llena tu formulario: comercios, servicios, restaurantes, bienes raíces, autos y empleos.")}
                     </span>
                   </span>
                   <span className="gate-arrow" aria-hidden="true">
@@ -74,10 +75,9 @@ export default function Home() {
                 >
                   <GatePhoto name="comercios" eager />
                   <span className="gate-text">
-                    <strong>COMERCIOS</strong>
+                    <strong>{t("COMERCIOS")}</strong>
                     <span className="gate-detail">
-                      Productos, artesanías, ropa, tecnología y libros
-                      cristianos de tiendas verificadas.
+                      {t("Productos, artesanías, ropa, tecnología y libros cristianos de tiendas verificadas.")}
                     </span>
                   </span>
                   <span className="gate-arrow" aria-hidden="true">
@@ -90,10 +90,9 @@ export default function Home() {
                 >
                   <GatePhoto name="servicios" eager />
                   <span className="gate-text">
-                    <strong>SERVICIOS</strong>
+                    <strong>{t("SERVICIOS")}</strong>
                     <span className="gate-detail">
-                      Clases, tutorías, trabajos a domicilio, consultas
-                      profesionales y eventos.
+                      {t("Clases, tutorías, trabajos a domicilio, consultas profesionales y eventos.")}
                     </span>
                   </span>
                   <span className="gate-arrow" aria-hidden="true">
@@ -106,10 +105,9 @@ export default function Home() {
                 >
                   <GatePhoto name="restaurantes" eager />
                   <span className="gate-text">
-                    <strong>RESTAURANTES</strong>
+                    <strong>{t("RESTAURANTES")}</strong>
                     <span className="gate-detail">
-                      Platos de restaurantes cerca de ti, con entrega a
-                      domicilio.
+                      {t("Platos de restaurantes cerca de ti, con entrega a domicilio.")}
                     </span>
                   </span>
                   <span className="gate-arrow" aria-hidden="true">
@@ -122,10 +120,9 @@ export default function Home() {
                 >
                   <GatePhoto name="bienes-raices" eager />
                   <span className="gate-text">
-                    <strong>BIENES RAÍCES</strong>
+                    <strong>{t("BIENES RAÍCES")}</strong>
                     <span className="gate-detail">
-                      Casas, apartamentos, terrenos y locales en venta o
-                      alquiler.
+                      {t("Casas, apartamentos, terrenos y locales en venta o alquiler.")}
                     </span>
                   </span>
                   <span className="gate-arrow" aria-hidden="true">
@@ -135,9 +132,9 @@ export default function Home() {
                 <Link href="/autos" className="gate-choice gate-choice--cars">
                   <GatePhoto name="autos" />
                   <span className="gate-text">
-                    <strong>AUTOS</strong>
+                    <strong>{t("AUTOS")}</strong>
                     <span className="gate-detail">
-                      Compra, venta y alquiler de autos y motos.
+                      {t("Compra, venta y alquiler de autos y motos.")}
                     </span>
                   </span>
                   <span className="gate-arrow" aria-hidden="true">
@@ -147,9 +144,9 @@ export default function Home() {
                 <Link href="/empleos" className="gate-choice gate-choice--jobs">
                   <GatePhoto name="empleo" />
                   <span className="gate-text">
-                    <strong>BUSCAR Y PUBLICAR EMPLEOS</strong>
+                    <strong>{t("BUSCAR Y PUBLICAR EMPLEOS")}</strong>
                     <span className="gate-detail">
-                      Crea tu CV, aplica a vacantes o publica un empleo.
+                      {t("Crea tu CV, aplica a vacantes o publica un empleo.")}
                     </span>
                   </span>
                   <span className="gate-arrow" aria-hidden="true">
@@ -159,10 +156,10 @@ export default function Home() {
               </div>
               <div className="hero-small gate-small">
                 <span>
-                  <ShieldCheck size={16} /> Verificación de vendedores
+                  <ShieldCheck size={16} /> {t("Verificación de vendedores")}
                 </span>
                 <span>
-                  <Check size={15} /> {trialBadgeLabel()}
+                  <Check size={15} /> {t(trialBadgeLabel())}
                 </span>
               </div>
             </div>
@@ -178,22 +175,22 @@ export default function Home() {
           <div>
             <ShieldCheck size={28} strokeWidth={1.4} />
             <span>
-              <strong>Confianza desde el inicio</strong>
-              <small>Un proceso de verificación para quienes venden.</small>
+              <strong>{t("Confianza desde el inicio")}</strong>
+              <small>{t("Un proceso de verificación para quienes venden.")}</small>
             </span>
           </div>
           <div>
             <Store size={28} strokeWidth={1.4} />
             <span>
-              <strong>Más para tu emprendimiento</strong>
-              <small>{trialOfferLabel()}.</small>
+              <strong>{t("Más para tu emprendimiento")}</strong>
+              <small>{t(trialOfferLabel())}.</small>
             </span>
           </div>
           <div>
             <Truck size={28} strokeWidth={1.4} />
             <span>
-              <strong>Conectados en Panamá</strong>
-              <small>Envío, retiro o servicio a domicilio.</small>
+              <strong>{t("Conectados en Panamá")}</strong>
+              <small>{t("Envío, retiro o servicio a domicilio.")}</small>
             </span>
           </div>
         </div>
@@ -204,52 +201,62 @@ export default function Home() {
           <Sparkles size={18} />
         </div>
         <div>
-          <span className="eyebrow">TU TRABAJO MERECE SER VISTO</span>
-          <h2>Abre nuevas puertas para tu negocio.</h2>
-          <p>
+          <span className="eyebrow">{t("TU TRABAJO MERECE SER VISTO")}</span>
+          <h2>{t("Abre nuevas puertas para tu negocio.")}</h2>
+          {lang === "en" ? (
+            <p>
+              Plans for small businesses from{" "}
+              <strong>{sellerPlanLabel("normal")}/month</strong>, for medium and
+              large companies, restaurants, real estate, cars and jobs.{" "}
+              {t(trialOfferLabel())}, with no commission. After that, the sales
+              commission is 10%, 5% or 3% depending on the plan, only for shops
+              and restaurants.
+            </p>
+          ) : (
+            <p>
             Planes para pymes desde{" "}
             <strong>{sellerPlanLabel("normal")}/mes</strong>, para empresas
             medianas y grandes, restaurantes, bienes raíces, autos y empleos.{" "}
             {trialOfferLabel()}, sin comisión. Después, la comisión por venta
             es de 10%, 5% o 3% según el plan, solo en comercios y restaurantes.
           </p>
+          )}
         </div>
         <Link className="btn btn-gold" href="/vender">
-          Quiero ser vendedor <ArrowRight size={17} />
+          {t("Quiero ser vendedor")} <ArrowRight size={17} />
         </Link>
       </section>
       <section className="buyer-invite container">
         <div>
-          <span className="eyebrow">SIN CUOTA DE COMPRADOR</span>
+          <span className="eyebrow">{t("SIN CUOTA DE COMPRADOR")}</span>
           <h2>
-            Cuando encuentres lo tuyo,
+            {t("Cuando encuentres lo tuyo,")}
             <br />
-            da el siguiente paso.
+            {t("da el siguiente paso.")}
           </h2>
           <p>
-            Tu cuenta de comprador será gratuita. Compra productos, reserva
-            servicios y adquiere boletos sin pagar una cuota mensual.
+            {t("Tu cuenta de comprador será gratuita. Compra productos, reserva servicios y adquiere boletos sin pagar una cuota mensual.")}
           </p>
           <Link className="text-link" href="/suscripciones">
-            Conoce cómo funciona <ArrowRight size={15} />
+            {t("Conoce cómo funciona")} <ArrowRight size={15} />
           </Link>
         </div>
         <div className="membership-card">
-          <span>COMPRADOR CUADRAZONE</span>
+          <span>{t("COMPRADOR CUADRAZONE")}</span>
           <div>
-            <strong>Gratis</strong>
-            <small>sin mensualidad</small>
+            <strong>{t("Gratis")}</strong>
+            <small>{t("sin mensualidad")}</small>
           </div>
           <p>
-            Una cuenta gratuita.
+            {t("Una cuenta gratuita.")}
             <br />
-            Muchas formas de conectar.
+            {t("Muchas formas de conectar.")}
           </p>
           <div>
-            <Check size={16} /> Productos, servicios y eventos
+            <Check size={16} /> {t("Productos, servicios y eventos")}
           </div>
           <span className="membership-small">
-            Cobros no activos en esta vista previa
+            {t("Cobros no activos en esta vista previa")}
           </span>
         </div>
       </section>
@@ -259,6 +266,7 @@ export default function Home() {
 
 /** Elegir país: Panamá entra directo; en los demás se deja el correo para el aviso. */
 function CountryPicker() {
+  const t = useT();
   const [country, setCountry] = useState<CountryCode>("PA");
   const [email, setEmail] = useState("");
   const [state, setState] = useState<"idle" | "sending" | "done" | "error">(
@@ -291,7 +299,7 @@ function CountryPicker() {
   return (
     <div className="country-picker">
       <label className="country-select">
-        <span>¿En qué país estás?</span>
+        <span>{t("¿En qué país estás?")}</span>
         <select
           value={country}
           onChange={event => {
@@ -303,7 +311,7 @@ function CountryPicker() {
           {countries.map(c => (
             <option key={c.code} value={c.code}>
               {c.name}
-              {c.active ? "" : " · Próximamente"}
+              {c.active ? "" : ` · ${t("Próximamente")}`}
             </option>
           ))}
         </select>
@@ -316,7 +324,7 @@ function CountryPicker() {
         >
           <p>
             <strong>CuadraZone todavía no está en {selected.name}.</strong>{" "}
-            Déjanos tu correo y te avisamos cuando abra.
+            {t("Déjanos tu correo y te avisamos cuando abra.")}
           </p>
           {state === "done" ? (
             <p className="country-done" role="status">
@@ -330,7 +338,7 @@ function CountryPicker() {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="tu@correo.com"
-                aria-label="Tu correo"
+                aria-label={t("Tu correo")}
                 autoComplete="email"
               />
               <button
@@ -338,7 +346,7 @@ function CountryPicker() {
                 type="submit"
                 disabled={state === "sending"}
               >
-                {state === "sending" ? "Enviando…" : "Avísame"}
+                {state === "sending" ? t("Enviando…") : t("Avísame")}
               </button>
             </form>
           )}
@@ -348,7 +356,7 @@ function CountryPicker() {
             </p>
           )}
           <p className="country-note">
-            Mientras tanto puedes ver lo que hay en Panamá.
+            {t("Mientras tanto puedes ver lo que hay en Panamá.")}
           </p>
         </div>
       )}

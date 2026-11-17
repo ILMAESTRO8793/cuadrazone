@@ -2,6 +2,8 @@ import "@/features/dispatch/dispatchNav.css";
 import { businessCategories } from "@shared/businessCategories";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { useT } from "@/lib/i18n";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useLocation, useSearch } from "wouter";
 import {
@@ -96,6 +98,7 @@ const navBySection: Record<Section, { title: string; href: string }[]> = {
 export default function MarketLayout({ children }: { children: ReactNode }) {
   const { province, setProvince } = useMarket();
   const auth = useAuth();
+  const t = useT();
   const savedCart = trpc.commerce.cart.useQuery(undefined, {
     enabled: !auth.loading && Boolean(auth.user),
   });
@@ -167,35 +170,34 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
   return (
     <>
       <a className="skip-link" href="#main-content">
-        Ir al contenido
+        {t("Ir al contenido")}
       </a>
       <div className="utility-strip">
         <div className="container utility-inner">
           <span className="utility-motto">
-            Unidos por la fe. Conectados por lo que hacemos.
+            {t("Unidos por la fe. Conectados por lo que hacemos.")}
           </span>
           <VerseOfDay />
           <span className="utility-right">
             Panamá <span className="utility-dot" /> USD{" "}
             <span className="utility-dot" />{" "}
-            <strong>{trialBadgeLabel()}</strong>
+            <strong>{t(trialBadgeLabel())}</strong>
           </span>
         </div>
       </div>
-      <header className="site-header">
+      <header className="site-header" translate="no">
         <div className="container header-main">
           <div className="header-brand">
             <Link
               href="/"
               className="site-logo"
-              aria-label="CuadraZone, inicio"
+              aria-label={t("CuadraZone, inicio")}
             >
               <img src={assets.logo} alt="CuadraZone" width={240} height={78} />
             </Link>
             <figure className="brand-scripture">
               <blockquote cite="https://www.biblegateway.com/passage/?search=Salmos%20133%3A1&version=RVR1960">
-                ¡Mirad cuán bueno y cuán delicioso es Habitar los hermanos
-                juntos en armonía!
+                {t("¡Mirad cuán bueno y cuán delicioso es Habitar los hermanos juntos en armonía!")}
               </blockquote>
               <figcaption>
                 <a
@@ -203,7 +205,7 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Salmo 133:1
+                  {t("Salmo 133:1")}
                 </a>
               </figcaption>
             </figure>
@@ -211,7 +213,7 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
           <label className="header-location">
             <MapPin size={19} />
             <span>
-              <small>Explorar en</small>
+              <small>{t("Explorar en")}</small>
               <select
                 value={province}
                 onChange={event => {
@@ -224,7 +226,7 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
                     navigate(`${location}${params.size ? `?${params}` : ""}`);
                   }
                 }}
-                aria-label="Provincia de entrega"
+                aria-label={t("Provincia de entrega")}
               >
                 {provinces.map(value => (
                   <option key={value}>{value}</option>
@@ -244,26 +246,26 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
             >
               <select
                 className="header-search-scope"
-                aria-label="Tipo de búsqueda"
+                aria-label={t("Tipo de búsqueda")}
                 value={scope}
                 onChange={event => {
                   setScope(event.target.value as typeof scope);
                   setSelected(-1);
                 }}
               >
-                <option value="all">Todo</option>
-                <option value="stores">Tiendas</option>
-                <option value="products">Productos</option>
+                <option value="all">{t("Todo")}</option>
+                <option value="stores">{t("Tiendas")}</option>
+                <option value="products">{t("Productos")}</option>
               </select>
               <Search size={19} aria-hidden="true" />
               <input
-                aria-label="Buscar productos, tiendas, categorías o especialidades"
+                aria-label={t("Buscar productos, tiendas, categorías o especialidades")}
                 maxLength={120}
                 aria-expanded={showSearch && matches.length > 0}
                 aria-controls="search-suggestions"
                 role="combobox"
                 autoComplete="off"
-                placeholder="¿Qué estás buscando?"
+                placeholder={t("¿Qué estás buscando?")}
                 value={query}
                 onFocus={() => setShowSearch(true)}
                 onChange={event => {
@@ -289,7 +291,7 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
                 <button
                   type="button"
                   className="search-clear"
-                  aria-label="Limpiar búsqueda"
+                  aria-label={t("Limpiar búsqueda")}
                   onClick={() => {
                     setQuery("");
                     setSelected(-1);
@@ -301,7 +303,7 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
               <button
                 type="submit"
                 className="search-submit"
-                aria-label="Buscar"
+                aria-label={t("Buscar")}
               >
                 <ArrowRight size={19} />
               </button>
@@ -311,7 +313,7 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
                 className="search-results"
                 id="search-suggestions"
                 role="listbox"
-                aria-label="Sugerencias de búsqueda"
+                aria-label={t("Sugerencias de búsqueda")}
               >
                 {matches.map((item, index) => (
                   <button
@@ -325,8 +327,8 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
                       {item}
                       <small>
                         {scope === "stores"
-                          ? "Tiendas por actividad"
-                          : "Buscar en la comunidad"}
+                          ? t("Tiendas por actividad")
+                          : t("Buscar en la comunidad")}
                       </small>
                     </span>
                     <ArrowRight size={15} />
@@ -334,27 +336,27 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
                 ))}
                 {!matches.length && (
                   <p>
-                    No hay sugerencias con este texto. Busca una tienda,
-                    producto o categoría.
+                    {t("No hay sugerencias con este texto. Busca una tienda, producto o categoría.")}
                   </p>
                 )}
                 <button className="all-results" onClick={search}>
-                  Ver resultados de búsqueda <ArrowRight size={14} />
+                  {t("Ver resultados de búsqueda")} <ArrowRight size={14} />
                 </button>
               </div>
             )}
           </div>
           <div className="header-actions">
+            <LanguageSwitcher />
             {auth.user ? (
               <Link
                 href="/mi-cuenta"
                 className="account-link"
-                aria-label="Mi cuenta"
+                aria-label={t("Mi cuenta")}
               >
                 <UserRound size={23} />
                 <span>
-                  <small>{`Hola, ${greetingName(auth.user.name) ?? "de nuevo"}`}</small>
-                  <strong>Mi cuenta</strong>
+                  <small>{greetingName(auth.user.name) ? `${t("Hola")}, ${greetingName(auth.user.name)}` : t("Hola, de nuevo")}</small>
+                  <strong>{t("Mi cuenta")}</strong>
                 </span>
               </Link>
             ) : (
@@ -369,7 +371,7 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
                 className="login-cta"
               >
                 <UserRound size={18} aria-hidden="true" />
-                Iniciar sesión
+                {t("Iniciar sesión")}
               </Link>
             )}
             <Link
@@ -396,15 +398,15 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
           <div className="container main-nav">
             <button
               className="category-menu"
-              aria-label="Categorías"
+              aria-label={t("Categorías")}
               aria-expanded={menuOpen}
               onClick={() => setMenuOpen(value => !value)}
             >
               <Menu size={17} />
-              <span>Categorías</span>
+              <span>{t("Categorías")}</span>
               <ChevronDown size={13} />
             </button>
-            <nav aria-label="Navegación principal">
+            <nav aria-label={t("Navegación principal")}>
               {nav.slice(1).map(item => (
                 <Link
                   key={item.href}
@@ -421,7 +423,7 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
                       : ""
                   }
                 >
-                  {item.title}
+                  {t(item.title)}
                 </Link>
               ))}
             </nav>
@@ -439,25 +441,25 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
                 }
               >
                 {section === "market"
-                  ? "Ir a Servicios"
+                  ? t("Ir a Servicios")
                   : section === "estate" ||
                       section === "cars" ||
                       section === "jobs"
-                    ? "Volver al inicio"
-                    : "Ir a Comercios"}{" "}
+                    ? t("Volver al inicio")
+                    : t("Ir a Comercios")}{" "}
                 <ArrowRight size={14} />
               </Link>
             )}
             {auth.user?.role === "admin" && (
               <Link className="admin-nav" href="/admin">
-                <ShieldCheck size={15} /> Administración
+                <ShieldCheck size={15} /> {t("Administración")}
               </Link>
             )}
             <Link className="dispatch-nav" href="/despachador">
-              <Bike size={15} aria-hidden="true" /> Despachador
+              <Bike size={15} aria-hidden="true" /> {t("Despachador")}
             </Link>
             <Link className="sell-nav" href="/vender">
-              Vende en CuadraZone <ArrowRight size={15} />
+              {t("Vende en CuadraZone")} <ArrowRight size={15} />
             </Link>
           </div>
         </div>
@@ -466,24 +468,24 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
             <div>
               {nav.map(item => (
                 <Link key={item.href} href={item.href}>
-                  {item.title}
+                  {t(item.title)}
                   <ArrowRight size={14} />
                 </Link>
               ))}
               <strong className="category-menu-heading">
-                Categorías de negocios
+                {t("Categorías de negocios")}
               </strong>
               {businessCategories.map(category => (
                 <Link
                   key={category.id}
                   href={`/tiendas?category=${encodeURIComponent(category.id)}`}
                 >
-                  {category.label}
+                  {t(category.label)}
                   <ArrowRight size={14} />
                 </Link>
               ))}
               <Link href="/suscripciones">
-                Cuentas y plan vendedor
+                {t("Cuentas y plan vendedor")}
                 <ArrowRight size={14} />
               </Link>
             </div>
@@ -493,10 +495,10 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
       <main id="main-content" className="site-main">
         {children}
       </main>
-      <footer className="site-footer">
+      <footer className="site-footer" translate="no">
         <div className="container footer-top">
           <div className="footer-brand">
-            <Link href="/" aria-label="Inicio CuadraZone">
+            <Link href="/" aria-label={t("Inicio CuadraZone")}>
               <img
                 className="footer-logo"
                 src={assets.logo}
@@ -506,8 +508,7 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
               />
             </Link>
             <p>
-              Un espacio para descubrir, comprar y apoyar el talento de nuestra
-              comunidad en Panamá.
+              {t("Un espacio para descubrir, comprar y apoyar el talento de nuestra comunidad en Panamá.")}
             </p>
             <div className="footer-social">
               <a
@@ -518,67 +519,67 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
               >
                 <Instagram size={17} />
               </a>
-              <Link href="/ayuda" aria-label="Ayuda y contacto">
+              <Link href="/ayuda" aria-label={t("Ayuda y contacto")}>
                 <Mail size={17} />
               </Link>
-              <span>Hecho para conectar.</span>
+              <span>{t("Hecho para conectar.")}</span>
             </div>
           </div>
           <div>
-            <h2>Descubre</h2>
-            <Link href="/tiendas">Tiendas por categoría</Link>
-            <Link href="/mercado">Productos de tiendas activas</Link>
-            <Link href="/catalogo">Catálogo de ejemplo</Link>
-            <Link href="/mercado?kind=book">Libros cristianos</Link>
-            <Link href="/eventos">Eventos y conciertos</Link>
-            <Link href="/servicios">Servicios profesionales</Link>
+            <h2>{t("Descubre")}</h2>
+            <Link href="/tiendas">{t("Tiendas por categoría")}</Link>
+            <Link href="/mercado">{t("Productos de tiendas activas")}</Link>
+            <Link href="/catalogo">{t("Catálogo de ejemplo")}</Link>
+            <Link href="/mercado?kind=book">{t("Libros cristianos")}</Link>
+            <Link href="/eventos">{t("Eventos y conciertos")}</Link>
+            <Link href="/servicios">{t("Servicios profesionales")}</Link>
           </div>
           <div>
-            <h2>Forma parte</h2>
-            <Link href="/vender">Quiero vender</Link>
-            <Link href="/suscripciones">Cuentas y plan vendedor</Link>
-            <Link href="/mi-cuenta">Mi cuenta</Link>
-            <Link href="/ayuda">Preguntas frecuentes</Link>
+            <h2>{t("Forma parte")}</h2>
+            <Link href="/vender">{t("Quiero vender")}</Link>
+            <Link href="/suscripciones">{t("Cuentas y plan vendedor")}</Link>
+            <Link href="/mi-cuenta">{t("Mi cuenta")}</Link>
+            <Link href="/ayuda">{t("Preguntas frecuentes")}</Link>
           </div>
           <div>
-            <h2>Confianza y ayuda</h2>
-            <Link href="/legal/terminos">Términos y condiciones</Link>
-            <Link href="/legal/privacidad">Privacidad</Link>
-            <Link href="/legal/datos-sensibles">Datos sensibles</Link>
-            <Link href="/legal/cookies">Cookies y preferencias</Link>
-            <Link href="/legal/conducta">Código de conducta</Link>
-            <Link href="/legal/reclamos">Reclamos y devoluciones</Link>
-            <Link href="/legal/fe">Fe y valores</Link>
+            <h2>{t("Confianza y ayuda")}</h2>
+            <Link href="/legal/terminos">{t("Términos y condiciones")}</Link>
+            <Link href="/legal/privacidad">{t("Privacidad")}</Link>
+            <Link href="/legal/datos-sensibles">{t("Datos sensibles")}</Link>
+            <Link href="/legal/cookies">{t("Cookies y preferencias")}</Link>
+            <Link href="/legal/conducta">{t("Código de conducta")}</Link>
+            <Link href="/legal/reclamos">{t("Reclamos y devoluciones")}</Link>
+            <Link href="/legal/fe">{t("Fe y valores")}</Link>
           </div>
         </div>
         <div className="container footer-bottom">
           <span>© 2026 CuadraZone · Panamá · USD</span>
           <span>
-            <ShieldCheck size={14} /> Vendedores verificados
+            <ShieldCheck size={14} /> {t("Vendedores verificados")}
           </span>
         </div>
-        <nav className="footer-legal" aria-label="Avisos legales">
+        <nav className="footer-legal" aria-label={t("Avisos legales")}>
           <div className="container">
             <ul>
               {footerLegalLinks.map(link => (
                 <li key={link.href}>
-                  <Link href={link.href}>{link.label}</Link>
+                  <Link href={link.href}>{t(link.label)}</Link>
                 </li>
               ))}
             </ul>
             <p>
               © 2026 CuadraZone ·{" "}
               <a href={`mailto:${LEGAL_OWNER.email}`}>{LEGAL_OWNER.email}</a>.
-              Todos los derechos reservados.
+              {t("Todos los derechos reservados.")}
             </p>
           </div>
         </nav>
       </footer>
       {/* Barra inferior: solo se ve dentro de la app (html.cz-app) */}
-      <nav className="app-tabbar" aria-label="Navegación de la app">
+      <nav translate="no" className="app-tabbar" aria-label={t("Navegación de la app")}>
         <Link href="/" className={location === "/" ? "is-active" : ""}>
           <House size={22} aria-hidden="true" />
-          <span>Inicio</span>
+          <span>{t("Inicio")}</span>
         </Link>
         <button
           type="button"
@@ -587,22 +588,22 @@ export default function MarketLayout({ children }: { children: ReactNode }) {
           onClick={() => setMenuOpen(value => !value)}
         >
           <LayoutGrid size={22} aria-hidden="true" />
-          <span>Categorías</span>
+          <span>{t("Categorías")}</span>
         </button>
         <Link href="/mi-carrito" className={location === "/mi-carrito" ? "is-active" : ""}>
           <span className="app-tab-icon">
             <ShoppingBag size={22} aria-hidden="true" />
             {cartCount > 0 && <span className="app-tab-badge">{cartCount}</span>}
           </span>
-          <span>Carrito</span>
+          <span>{t("Carrito")}</span>
         </Link>
         <Link href="/pedidos" className={location.startsWith("/pedidos") ? "is-active" : ""}>
           <Package size={22} aria-hidden="true" />
-          <span>Pedidos</span>
+          <span>{t("Pedidos")}</span>
         </Link>
         <Link href={auth.user ? "/mi-cuenta" : "/entrar"} className={location === "/mi-cuenta" || location === "/entrar" ? "is-active" : ""}>
           <UserRound size={22} aria-hidden="true" />
-          <span>Perfil</span>
+          <span>{t("Perfil")}</span>
         </Link>
       </nav>
     </>

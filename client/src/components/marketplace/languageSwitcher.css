@@ -1,0 +1,69 @@
+/* Botones de idioma con banderas (encabezado de la web y de la app) */
+.lang-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+.lang-switch button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 32px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  opacity: 0.72;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
+}
+.lang-switch button svg {
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15);
+}
+.lang-switch button:hover {
+  opacity: 1;
+}
+.lang-switch button.is-active {
+  opacity: 1;
+  background: #ead18d;
+  color: #0b1f3b;
+}
+.lang-switch button:focus-visible {
+  outline: 2px solid #ead18d;
+  outline-offset: 2px;
+}
+@media (max-width: 520px) {
+  .lang-switch button {
+    padding: 0 7px;
+    min-height: 30px;
+  }
+  .lang-switch button span {
+    display: none;
+  }
+}
+
+/* Barra y avisos del traductor de Google: no los mostramos. */
+.goog-te-banner-frame,
+.skiptranslate > iframe,
+#goog-gt-tt,
+.goog-te-balloon-frame,
+.goog-tooltip {
+  display: none !important;
+}
+body {
+  top: 0 !important;
+}
+.goog-text-highlight {
+  background: none !important;
+  box-shadow: none !important;
+}
