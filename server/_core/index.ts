@@ -14,6 +14,9 @@ import { registerVehicleImageRoutes } from "../services/vehicles";
 import { registerResumePhotoRoutes } from "../services/jobs";
 import { registerDocumentRoutes } from "../services/privateDocuments";
 import { registerBillingRoutes } from "../services/billing";
+import { cleanStoredImagesOnce } from "../services/imageMetadata";
+import path from "node:path";
+import { ENV } from "./env";
 import express from "express";
 import { createServer } from "http";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
@@ -38,6 +41,10 @@ async function startServer() {
     startSubscriptionSweeper();
     startEmailWorker();
   }
+  // Una sola vez: quitar GPS y otros metadatos de las fotos subidas antes.
+  void cleanStoredImagesOnce(path.resolve(ENV.storageDir))
+    .then(n => n && console.log(`[Fotos] Metadatos quitados de ${n} fotos guardadas`))
+    .catch(error => console.error("[Fotos] No se pudo limpiar metadatos:", error instanceof Error ? error.message : error));
   const app = express();
   // Railway (y la mayoría de hostings) entregan HTTPS a través de un proxy.
   app.set("trust proxy", 1);

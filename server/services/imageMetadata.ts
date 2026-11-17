@@ -151,3 +151,39 @@ function stripWebp(bytes: Buffer): Buffer {
   header.write("WEBP", 8, "ascii");
   return Buffer.concat([header, body]);
 }
+
+// ───────────── Limpieza de las fotos ya guardadas ─────────────
+
+import { readdir, readFile, writeFile, stat } from "node:fs/promises";
+import path from "node:path";
+
+const CLEANED_MARK = ".metadatos-limpios-v1";
+
+/**
+ * Recorre una sola vez la carpeta de fotos y les quita los metadatos a las que
+ * se subieron antes de este cambio. Deja una marca para no repetirlo.
+ * Devuelve cuántas fotos cambió.
+ */
+export async function cleanStoredImagesOnce(root: string): Promise<number> {
+  const mark = path.join(root, CLEANED_MARK);
+  if (await stat(mark).then(() => true, () => false)) return 0;
+  if (!(await stat(root).then(s => s.isDirectory(), () => false))) return 0;
+  let changed = 0;
+  const walk = async (dir: string): Promise<void> => {
+    for (const entry of await readdir(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) await walk(full);
+      else if (/\.(?:jpe?g|png|webp)$/i.test(entry.name)) {
+        const before = await readFile(full);
+        const after = stripImageMetadata(before);
+        if (after !== before && !after.equals(before)) {
+          await writeFile(full, after);
+          changed++;
+        }
+      }
+    }
+  };
+  await walk(root);
+  await writeFile(mark, new Date().toISOString());
+  return changed;
+}

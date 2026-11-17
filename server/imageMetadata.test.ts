@@ -43,3 +43,20 @@ describe("quitar metadatos de las fotos", () => {
     expect(stripImageMetadata(broken)).toBe(broken);
   });
 });
+
+describe("limpieza de las fotos ya guardadas", () => {
+  it("limpia una vez y deja una marca para no repetirlo", async () => {
+    const { mkdtemp, mkdir, copyFile, readFile, rm } = await import("node:fs/promises");
+    const { tmpdir } = await import("node:os");
+    const path = await import("node:path");
+    const { cleanStoredImagesOnce } = await import("./services/imageMetadata");
+    const root = await mkdtemp(path.join(tmpdir(), "cz-fotos-"));
+    await mkdir(path.join(root, "catalog", "products", "1"), { recursive: true });
+    const target = path.join(root, "catalog", "products", "1", "a.jpg");
+    await copyFile(new URL("./fixtures/gps.jpg", import.meta.url), target);
+    expect(await cleanStoredImagesOnce(root)).toBe(1);
+    expect((await readFile(target)).includes(Buffer.from("Galaxy S24"))).toBe(false);
+    expect(await cleanStoredImagesOnce(root)).toBe(0);
+    await rm(root, { recursive: true, force: true });
+  });
+});
