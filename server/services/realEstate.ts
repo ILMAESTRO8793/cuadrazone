@@ -3,7 +3,7 @@
 // primera vez empieza su mes gratis. Si el plan vence, los anuncios dejan de
 // mostrarse sin borrarse.
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, ne, sql } from "drizzle-orm";
+import { and, desc, eq, gte, ne, sql } from "drizzle-orm";
 import express, { type Express, type Request, type Response } from "express";
 import { czProperties } from "../../drizzle/catalog-schema";
 import type { User } from "../../drizzle/schema";
@@ -136,6 +136,35 @@ function cleanImages(id: number, images: string[]) {
   return images.filter(url => url.startsWith(prefix) && /^[A-Za-z0-9/._-]+$/.test(url)).slice(0, MAX_PROPERTY_IMAGES);
 }
 
+// ───────────── Planes: venta y alquiler por separado ─────────────
+
+/**
+ * Desde esta fecha los alquileres tienen su propio plan (sección «alquileres»).
+ * Los alquileres publicados antes siguen visibles con el plan de venta activo.
+ */
+export const RENTAL_PLANS_SINCE = new Date("2026-11-18T05:00:00Z");
+
+type PlanState = { active: boolean; featured: boolean };
+
+/** ¿Se ve este inmueble? Venta: plan de venta. Alquiler: plan de alquiler (o anterior al cambio). */
+export function propertyVisible(
+  row: { operation: string; publishedAt: Date | string | null },
+  salePlan: PlanState | undefined,
+  rentalPlan: PlanState | undefined
+): { visible: boolean; featured: boolean } {
+  if (row.operation !== "alquiler")
+    return { visible: Boolean(salePlan?.active), featured: Boolean(salePlan?.active && salePlan.featured) };
+  if (rentalPlan?.active) return { visible: true, featured: rentalPlan.featured };
+  const legacy = Boolean(row.publishedAt && new Date(row.publishedAt) < RENTAL_PLANS_SINCE && salePlan?.active);
+  return { visible: legacy, featured: Boolean(legacy && salePlan?.featured) };
+}
+
+/** Inicio del mes actual en Panamá. */
+function monthStartPanama(now = Date.now()) {
+  const panama = new Date(now - 5 * 3600_000).toISOString().slice(0, 7);
+  return new Date(`${panama}-01T05:00:00Z`);
+}
+
 export async function saveProperty(user: User, raw: unknown): Promise<OwnPropertyDTO> {
   const parsed = savePropertyInput.safeParse(raw);
   if (!parsed.success) fail("BAD_REQUEST", parsed.error.issues[0]?.message ?? "Datos inválidos");
@@ -151,6 +180,9 @@ export async function saveProperty(user: User, raw: unknown): Promise<OwnPropert
   const current = await ownProperty(db, user.id, input.id);
   if (input.expectedRevision !== undefined && input.expectedRevision !== current.revision)
     fail("CONFLICT", "El anuncio cambió en otra ventana. Recarga y vuelve a intentarlo.");
+  // Venta y alquiler tienen planes distintos: para cambiarlo, primero se pausa.
+  if (current.status === "published" && input.operation !== current.operation)
+    fail("PRECONDITION_FAILED", "Para cambiar entre venta y alquiler, primero pausa el anuncio.");
   const result = await db
     .update(czProperties)
     .set({ ...columns(input), images: cleanImages(input.id, input.images), slug: `${slugify(input.title)}-${input.id}`, revision: current.revision + 1 })
@@ -164,11 +196,35 @@ export async function setPropertyStatus(user: User, id: number, status: "publish
   const row = await ownProperty(db, user.id, id);
   if (status === "published") {
     // Mes gratis la primera vez, plan vigente y sin pasar el límite del plan.
-    const published = await db
-      .select({ n: sql<number>`count(*)` })
-      .from(czProperties)
-      .where(and(eq(czProperties.userId, user.id), eq(czProperties.status, "published"), ne(czProperties.id, id)));
-    await assertCanPublish(db, user.id, "inmuebles", Number(published[0]?.n ?? 0));
+    if (row.operation === "alquiler") {
+      // Alquiler: se cuentan los alquileres publicados este mes (hora de Panamá).
+      const published = await db
+        .select({ n: sql<number>`count(*)` })
+        .from(czProperties)
+        .where(
+          and(
+            eq(czProperties.userId, user.id),
+            eq(czProperties.operation, "alquiler"),
+            gte(czProperties.publishedAt, monthStartPanama()),
+            ne(czProperties.id, id)
+          )
+        );
+      await assertCanPublish(db, user.id, "alquileres", Number(published[0]?.n ?? 0));
+    } else {
+      // Venta: se cuentan los inmuebles en venta publicados ahora.
+      const published = await db
+        .select({ n: sql<number>`count(*)` })
+        .from(czProperties)
+        .where(
+          and(
+            eq(czProperties.userId, user.id),
+            eq(czProperties.status, "published"),
+            ne(czProperties.operation, "alquiler"),
+            ne(czProperties.id, id)
+          )
+        );
+      await assertCanPublish(db, user.id, "inmuebles", Number(published[0]?.n ?? 0));
+    }
     if (!jsonList(row.images).length) fail("PRECONDITION_FAILED", "Agrega al menos una foto antes de publicar.");
   }
   await db
@@ -188,8 +244,13 @@ export async function deleteProperty(user: User, id: number) {
 export async function myProperties(user: User) {
   const db = await requireDb();
   const plan = (await publishPlans(db, [user.id], "inmuebles")).get(user.id) ?? NO_PLAN;
+  const rentalPlan = (await publishPlans(db, [user.id], "alquileres")).get(user.id) ?? NO_PLAN;
   const rows = await db.select().from(czProperties).where(eq(czProperties.userId, user.id)).orderBy(desc(czProperties.updatedAt)).limit(200);
-  return { plan, properties: rows.map((r: any) => toOwnDTO(r, plan.featured)) };
+  return {
+    plan,
+    rentalPlan,
+    properties: rows.map((r: any) => toOwnDTO(r, propertyVisible(r, plan, rentalPlan).featured)),
+  };
 }
 
 // ───────────── Búsqueda pública ─────────────
@@ -201,11 +262,14 @@ export async function publicProperties(filters: PropertyFilters) {
   if (filters.propertyType) conditions.push(eq(czProperties.propertyType, filters.propertyType));
   if (filters.province) conditions.push(eq(czProperties.province, filters.province));
   const rows = await db.select().from(czProperties).where(and(...conditions)).orderBy(desc(czProperties.publishedAt)).limit(1000);
-  const plans = await publishPlans(db, [...new Set<number>(rows.map((r: any) => r.userId))], "inmuebles");
+  const owners = [...new Set<number>(rows.map((r: any) => r.userId))];
+  const plans = await publishPlans(db, owners, "inmuebles");
+  const rentalPlans = await publishPlans(db, owners, "alquileres");
+  const look = (r: any) => propertyVisible(r, plans.get(r.userId), rentalPlans.get(r.userId));
   const q = filters.q?.toLowerCase();
   const visible = rows
-    // Solo anunciantes con plan activo.
-    .filter((r: any) => plans.get(r.userId)?.active)
+    // Solo anunciantes con plan activo (de venta o de alquiler, según el inmueble).
+    .filter((r: any) => look(r).visible)
     .filter((r: any) => filters.minPriceCents === undefined || Number(r.priceCents) >= filters.minPriceCents)
     .filter((r: any) => filters.maxPriceCents === undefined || Number(r.priceCents) <= filters.maxPriceCents)
     .filter((r: any) => filters.minBedrooms === undefined || (r.bedrooms ?? 0) >= filters.minBedrooms)
@@ -213,7 +277,7 @@ export async function publicProperties(filters: PropertyFilters) {
     .filter((r: any) => !filters.furnished || r.furnished)
     .filter((r: any) => !filters.petsAllowed || r.petsAllowed)
     .filter((r: any) => !q || `${r.title} ${r.district} ${r.neighborhood}`.toLowerCase().includes(q))
-    .map((r: any) => toDTO(r, Boolean(plans.get(r.userId)?.featured)))
+    .map((r: any) => toDTO(r, look(r).featured))
     // Destacados primero; luego los más recientes.
     .sort((a: PropertyDTO, b: PropertyDTO) => Number(b.featured) - Number(a.featured));
   const start = (filters.page - 1) * PAGE_SIZE;
@@ -224,9 +288,12 @@ export async function publicProperty(slug: string) {
   const db = await requireDb();
   const rows = await db.select().from(czProperties).where(and(eq(czProperties.slug, slug), eq(czProperties.status, "published"))).limit(1);
   const row = rows[0];
-  const plan = row ? (await publishPlans(db, [row.userId], "inmuebles")).get(row.userId) : undefined;
-  if (!row || !plan?.active) fail("NOT_FOUND", "Este anuncio ya no está disponible");
-  return toDTO(row, plan.featured);
+  if (!row) fail("NOT_FOUND", "Este anuncio ya no está disponible");
+  const salePlan = (await publishPlans(db, [row.userId], "inmuebles")).get(row.userId);
+  const rentalPlan = row.operation === "alquiler" ? (await publishPlans(db, [row.userId], "alquileres")).get(row.userId) : undefined;
+  const look = propertyVisible(row, salePlan, rentalPlan);
+  if (!look.visible) fail("NOT_FOUND", "Este anuncio ya no está disponible");
+  return toDTO(row, look.featured);
 }
 
 // ───────────── Fotos ─────────────

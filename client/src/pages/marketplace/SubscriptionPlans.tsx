@@ -1,10 +1,10 @@
 import {
   ANNUAL_DISCOUNT_PCT,
   ANNUAL_MONTHS,
-  LISTING_PLANS,
   listingPlanAmountCents,
   PLAN_ACTIVATION_NOTICE,
-  listingPlanIds,
+  sectionPlanIds,
+  sectionPlanInfo,
   listingRange,
   listingUnits,
   type ListingSection,
@@ -23,6 +23,7 @@ import {
 /** Formulario donde se publica el primer anuncio de cada sección. */
 const listingForms: Record<ListingSection, string> = {
   inmuebles: "/bienes-raices/mis-anuncios?nuevo=1",
+  alquileres: "/bienes-raices/mis-anuncios?nuevo=1",
   autos: "/autos/mis-anuncios?nuevo=1",
   empleos: "/empleos/mis-vacantes?nuevo=1",
 };
@@ -41,8 +42,8 @@ function ListingPlans({ section }: { section: ListingSection }) {
       </button>
     </div>
     <div className="plan-grid seller-plan-grid">
-      {listingPlanIds.map(id => {
-        const plan = LISTING_PLANS[id];
+      {sectionPlanIds(section).map(id => {
+        const plan = sectionPlanInfo(section, id)!;
         const annual = listingPlanAmountCents(id, ANNUAL_MONTHS);
         const saved = plan.monthlyCents * ANNUAL_MONTHS - annual;
         return (
@@ -77,7 +78,7 @@ function ListingPlans({ section }: { section: ListingSection }) {
             <ul>
               <li>
                 <Check size={16} aria-hidden="true" />
-                {`${listingRange(id, section)} ${listingUnits[section]} ${section === "empleos" ? "publicadas al mes" : "publicados"}`}
+                {`${listingRange(id, section)} ${listingUnits[section]} ${section === "empleos" ? "publicadas al mes" : section === "alquileres" ? "publicados al mes" : "publicados"}`}
               </li>
               <li>
                 <Check size={16} aria-hidden="true" />
@@ -165,9 +166,16 @@ export function SubscriptionsPage() {
         {section === "restaurantes" && (
           <SellerPlanCards storeKind="restaurante" />
         )}
-        {(section === "inmuebles" ||
-          section === "autos" ||
-          section === "empleos") && <ListingPlans section={section} />}
+        {section === "inmuebles" && (
+          <>
+            {/* Venta y alquiler tienen planes separados. */}
+            <h2 className="plans-group-title">Inmuebles en venta</h2>
+            <ListingPlans section="inmuebles" />
+            <h2 className="plans-group-title">Inmuebles en alquiler</h2>
+            <ListingPlans section="alquileres" />
+          </>
+        )}
+        {(section === "autos" || section === "empleos") && <ListingPlans section={section} />}
 
         <section
           className="plan-buyer-strip"

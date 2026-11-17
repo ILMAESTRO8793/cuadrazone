@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { propertyFiltersInput } from "@shared/realEstate";
-import { listingPlanIds, listingSections } from "@shared/pricing";
+import { listingPlanIds, listingSections, rentalPlanIds } from "@shared/pricing";
 import { adminProcedure, protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import {
@@ -58,7 +58,7 @@ export const realEstateRouter = router({
       z.object({
         account: z.string().trim().min(5).max(320),
         section: z.enum(listingSections),
-        planId: z.enum(listingPlanIds),
+        planId: z.enum([...listingPlanIds, ...rentalPlanIds]),
         months: z.number().int().min(1).max(12),
         amountCents: z.number().int().positive(),
         method: z.enum(["yappy", "transferencia", "efectivo", "otro"]),

@@ -25,6 +25,7 @@ import {
   type PropertyType,
 } from "@shared/realEstate";
 import { trpc } from "@/lib/trpc";
+import { listingPlanName } from "@shared/pricing";
 import { AuthGate } from "@/features/membership/AuthGate";
 import { Input } from "@/components/ui/input";
 import "./realEstate.css";
@@ -299,6 +300,13 @@ function normalizePhone(v: string) {
   return d.length === 8 ? `+507${d}` : d.length === 11 && d.startsWith("507") ? `+${d}` : v.trim();
 }
 
+/** «plan Agente», «mes gratis» o «plan» si es un plan anterior. */
+function planWords(planId: string | null | undefined) {
+  const name = listingPlanName(planId);
+  if (name === "Mes gratis") return "mes gratis";
+  return name === "Sin plan" ? "plan" : `plan ${name}`;
+}
+
 export function RealEstateMinePage() {
   return <AuthGate><MineContent /></AuthGate>;
 }
@@ -316,6 +324,7 @@ function MineContent() {
   const [uploading, setUploading] = useState(false);
   const set = <K extends keyof Form>(k: K, v: Form[K]) => setForm(f => (f ? { ...f, [k]: v } : f));
   const plan = mine.data?.plan;
+  const rentalPlan = mine.data?.rentalPlan;
 
   const payload = (f: Form) => ({
     ...(f.id ? { id: f.id, expectedRevision: f.expectedRevision } : {}),
@@ -460,13 +469,23 @@ function MineContent() {
         </div>
         <button className="btn btn-gold" onClick={() => setForm({ ...emptyForm })}>+ Nuevo anuncio</button>
       </div>
-      {plan && (
-        <div className={`re-plan ${plan.active ? "re-plan--ok" : ""}`}>
-          {plan.active ? (
-            <p><strong>Plan activo{plan.featured ? " · Mayor Visibilidad (tus anuncios salen destacados)" : ""}</strong> hasta el {new Date(plan.endsAt!).toLocaleDateString("es-PA", { timeZone: "America/Panama" })}.</p>
-          ) : (
-            <p><strong>Para publicar necesitas un plan:</strong> Normal (US$19.99 al mes) o Mayor Visibilidad (US$39.99 al mes, tus anuncios salen primero y destacados). Paga por Yappy y escríbenos con el correo o celular de tu cuenta para activarlo. Mientras tanto puedes preparar tus anuncios.</p>
-          )}
+      {plan && rentalPlan && (
+        <div className="re-plan">
+          {/* Venta y alquiler tienen planes separados. */}
+          {([
+            ["Venta", plan, "Básico US$49.99 hasta 20 publicados, Mediano US$79.99 de 21 a 100 o Grande US$159.99 más de 100"],
+            ["Alquiler", rentalPlan, "Particular US$19.99 hasta 5 al mes, Agente US$49.99 de 6 a 20, Agencia US$79.99 de 21 a 50 o Inmobiliaria US$149.99 de 51 en adelante"],
+          ] as const).map(([label, p, prices]) => (
+            <p key={label}>
+              <strong>{label}:</strong>{" "}
+              {p.active
+                ? `${planWords(p.planId)} activo hasta el ${new Date(p.endsAt!).toLocaleDateString("es-PA", { timeZone: "America/Panama" })}.`
+                : p.trialUsed
+                  ? `tu plan venció. Planes: ${prices}.`
+                  : `tu primer anuncio en ${label.toLowerCase()} abre tu mes gratis. Después: ${prices}.`}
+            </p>
+          ))}
+          <p><Link href="/suscripciones?seccion=inmuebles">Ver planes</Link></p>
         </div>
       )}
       {mine.isLoading && <p role="status">Cargando…</p>}

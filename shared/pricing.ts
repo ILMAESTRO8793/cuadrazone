@@ -240,15 +240,17 @@ export const FEATURED_PLAN_IDS: SellerPlanId[] = sellerPlanIds.filter(
  * separado, según cuántos anuncios publicados tiene la cuenta en esa sección.
  * No pagan comisión.
  */
-export const listingSections = ["inmuebles", "autos", "empleos"] as const;
+export const listingSections = ["inmuebles", "alquileres", "autos", "empleos"] as const;
 export type ListingSection = (typeof listingSections)[number];
 export const listingSectionLabels: Record<ListingSection, string> = {
   inmuebles: "Bienes raíces",
+  alquileres: "Bienes raíces en alquiler",
   autos: "Autos",
   empleos: "Empleos",
 };
 export const listingUnits: Record<ListingSection, string> = {
   inmuebles: "inmuebles",
+  alquileres: "inmuebles en alquiler",
   autos: "vehículos",
   empleos: "vacantes",
 };
@@ -291,6 +293,39 @@ export function isListingPlanId(
 ): id is ListingPlanId {
   return Boolean(id) && (listingPlanIds as readonly string[]).includes(id!);
 }
+
+/**
+ * Bienes raíces en alquiler (desde el 17/11/2026) tiene sus propios planes,
+ * por inmuebles en alquiler publicados al mes. La venta sigue con los de arriba.
+ */
+export const rentalPlanIds = ["particular", "agente", "agencia", "inmobiliaria"] as const;
+export type RentalPlanId = (typeof rentalPlanIds)[number];
+export const RENTAL_PLANS: Record<
+  RentalPlanId,
+  { id: RentalPlanId; name: string; monthlyCents: number; limit: number | null; range: string }
+> = {
+  particular: { id: "particular", name: "Particular", monthlyCents: 1999, limit: 5, range: "Hasta 5" },
+  agente: { id: "agente", name: "Agente", monthlyCents: 4999, limit: 20, range: "De 6 a 20" },
+  agencia: { id: "agencia", name: "Agencia", monthlyCents: 7999, limit: 50, range: "De 21 a 50" },
+  inmobiliaria: { id: "inmobiliaria", name: "Inmobiliaria", monthlyCents: 14999, limit: null, range: "51 o más" },
+};
+export function isRentalPlanId(id: string | null | undefined): id is RentalPlanId {
+  return Boolean(id) && (rentalPlanIds as readonly string[]).includes(id!);
+}
+/** Planes que se pueden comprar en una sección. */
+export function sectionPlanIds(section: ListingSection): readonly string[] {
+  return section === "alquileres" ? rentalPlanIds : listingPlanIds;
+}
+/** ¿Ese plan existe en esa sección? */
+export function isSectionPlanId(id: string | null | undefined, section: ListingSection): boolean {
+  return section === "alquileres" ? isRentalPlanId(id) : isListingPlanId(id);
+}
+/** Datos de un plan de una sección (nombre, precio, tope y rango). */
+export function sectionPlanInfo(section: ListingSection, id: string) {
+  if (section === "alquileres") return isRentalPlanId(id) ? RENTAL_PLANS[id] : null;
+  if (!isListingPlanId(id)) return null;
+  return { ...LISTING_PLANS[id], range: listingRange(id, section), limit: listingLimitFor(id, section) };
+}
 /** Empleos tiene sus propios topes: hasta 10, de 11 a 20 y más de 20 vacantes. */
 export const JOB_TIER_LIMITS = { basico: 10, medio: 20 } as const;
 const JOB_RANGES: Record<ListingPlanId, string> = {
@@ -299,7 +334,9 @@ const JOB_RANGES: Record<ListingPlanId, string> = {
   grande: "Más de 20",
 };
 /** «Hasta 20», «De 21 a 100»…; en Empleos, «Hasta 10», «De 11 a 20»… */
-export function listingRange(id: ListingPlanId, section: ListingSection): string {
+export function listingRange(id: string, section: ListingSection): string {
+  if (section === "alquileres") return isRentalPlanId(id) ? RENTAL_PLANS[id].range : "";
+  if (!isListingPlanId(id)) return "";
   return section === "empleos" ? JOB_RANGES[id] : LISTING_PLANS[id].range;
 }
 
@@ -308,12 +345,15 @@ export function listingLimitFor(
   planId: string | null | undefined,
   section?: ListingSection
 ): number | null {
+  // Alquiler: la prueba gratis es como el plan Particular.
+  if (section === "alquileres") return RENTAL_PLANS[isRentalPlanId(planId) ? planId : "particular"].limit;
   const id: ListingPlanId = isListingPlanId(planId) ? planId : "basico";
   if (section === "empleos") return id === "grande" ? null : JOB_TIER_LIMITS[id];
   return LISTING_PLANS[id].limit;
 }
 export function listingPlanName(planId: string | null | undefined): string {
   if (planId === TRIAL_PLAN_ID) return "Mes gratis";
+  if (isRentalPlanId(planId)) return RENTAL_PLANS[planId].name;
   return isListingPlanId(planId) ? LISTING_PLANS[planId].name : "Sin plan";
 }
 export function moneyLabel(cents: number) {
@@ -360,8 +400,9 @@ export function planAmountCents(id: SellerPlanId, months: number): number {
 }
 
 /** Lo que cuesta pagar `months` meses de un plan de Bienes raíces, Autos o Empleos; 12 meses llevan el descuento anual. */
-export function listingPlanAmountCents(id: ListingPlanId, months: number): number {
-  const full = LISTING_PLANS[id].monthlyCents * months;
+export function listingPlanAmountCents(id: string, months: number): number {
+  const monthly = isRentalPlanId(id) ? RENTAL_PLANS[id].monthlyCents : isListingPlanId(id) ? LISTING_PLANS[id].monthlyCents : 0;
+  const full = monthly * months;
   return months === ANNUAL_MONTHS
     ? Math.round((full * (100 - ANNUAL_DISCOUNT_PCT)) / 100)
     : full;

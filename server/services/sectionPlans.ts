@@ -10,6 +10,7 @@ import { and, desc, eq, gt, inArray } from "drizzle-orm";
 import {
   TRIAL_PLAN_ID,
   isListingPlanId,
+  isSectionPlanId,
   limitReachedMessage,
   listingLimitFor,
   listingPlanAmountCents,
@@ -206,7 +207,7 @@ export async function adminSectionPlans() {
 export type RecordSectionPaymentInput = {
   account: string;
   section: ListingSection;
-  planId: ListingPlanId;
+  planId: string;
   months: number;
   amountCents: number;
   method: PaymentMethod;
@@ -223,7 +224,7 @@ export async function adminRecordSectionPayment(
   const receipt = validateReceipt(input, new Date());
   if (!(listingSections as readonly string[]).includes(input.section))
     fail("BAD_REQUEST", "Sección no válida");
-  if (!isListingPlanId(input.planId)) fail("BAD_REQUEST", "Plan no válido");
+  if (!isSectionPlanId(input.planId, input.section as ListingSection)) fail("BAD_REQUEST", "Plan no válido para esa sección");
   if (!Number.isInteger(input.months) || input.months < 1 || input.months > 12)
     fail("BAD_REQUEST", "Entre 1 y 12 meses");
   const expected = listingPlanAmountCents(input.planId, input.months);

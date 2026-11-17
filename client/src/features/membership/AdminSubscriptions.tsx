@@ -9,6 +9,8 @@ import {
   listingPlanAmountCents,
   listingRange,
   listingPlanIds,
+  sectionPlanIds,
+  sectionPlanInfo,
   listingPlanName,
   listingSectionLabels,
   listingSections,
@@ -16,6 +18,7 @@ import {
   sellerPlanIds,
   subscriptionPlanName,
   type ListingPlanId,
+  type RentalPlanId,
   type ListingSection,
   type SellerPlanId,
 } from "@shared/pricing";
@@ -185,7 +188,7 @@ function AdvertiserPlans() {
   const record = trpc.realEstate.recordSectionPayment.useMutation();
   const [account, setAccount] = useState("");
   const [section, setSection] = useState<ListingSection>("inmuebles");
-  const [planId, setPlanId] = useState<ListingPlanId>("basico");
+  const [planId, setPlanId] = useState<string>("basico");
   const [months, setMonths] = useState(1);
   const [method, setMethod] = useState<AdvertiserMethod>("yappy");
   const [reference, setReference] = useState("");
@@ -197,7 +200,7 @@ function AdvertiserPlans() {
       const r = await record.mutateAsync({
         account,
         section,
-        planId,
+        planId: planId as ListingPlanId | RentalPlanId,
         months,
         amountCents: amount,
         method,
@@ -238,7 +241,12 @@ function AdvertiserPlans() {
           Sección
           <select
             value={section}
-            onChange={e => setSection(e.target.value as ListingSection)}
+            onChange={e => {
+              const next = e.target.value as ListingSection;
+              setSection(next);
+              // Cada sección tiene sus planes: se elige el primero de la nueva.
+              setPlanId(sectionPlanIds(next)[0]!);
+            }}
           >
             {listingSections.map(id => (
               <option key={id} value={id}>
@@ -251,12 +259,12 @@ function AdvertiserPlans() {
           Plan
           <select
             value={planId}
-            onChange={e => setPlanId(e.target.value as ListingPlanId)}
+            onChange={e => setPlanId(e.target.value)}
           >
-            {listingPlanIds.map(id => (
+            {sectionPlanIds(section).map(id => (
               <option key={id} value={id}>
-                {listingRange(id, section)} {listingUnits[section]} ·{" "}
-                {money(LISTING_PLANS[id].monthlyCents)} al mes
+                {sectionPlanInfo(section, id)?.name} · {listingRange(id, section)} {listingUnits[section]} ·{" "}
+                {money(sectionPlanInfo(section, id)?.monthlyCents ?? 0)} al mes
               </option>
             ))}
           </select>
