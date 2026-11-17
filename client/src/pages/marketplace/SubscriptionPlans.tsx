@@ -5,6 +5,7 @@ import {
   listingPlanAmountCents,
   PLAN_ACTIVATION_NOTICE,
   listingPlanIds,
+  listingRange,
   listingUnits,
   type ListingSection,
   moneyLabel,
@@ -47,7 +48,7 @@ function ListingPlans({ section }: { section: ListingSection }) {
         return (
           <article className="plan-card seller-plan-card" key={id}>
             <div className="plan-kicker">
-              {`${plan.range} ${listingUnits[section]}`}
+              {`${listingRange(id, section)} ${listingUnits[section]}`}
             </div>
             <h2>{plan.name}</h2>
             {cycle === "mensual" ? (
@@ -76,7 +77,7 @@ function ListingPlans({ section }: { section: ListingSection }) {
             <ul>
               <li>
                 <Check size={16} aria-hidden="true" />
-                {`${plan.range} ${listingUnits[section]} ${section === "empleos" ? "publicadas" : "publicados"}`}
+                {`${listingRange(id, section)} ${listingUnits[section]} ${section === "empleos" ? "publicadas al mes" : "publicados"}`}
               </li>
               <li>
                 <Check size={16} aria-hidden="true" />

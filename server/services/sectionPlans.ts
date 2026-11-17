@@ -8,7 +8,6 @@
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, gt, inArray } from "drizzle-orm";
 import {
-  LISTING_PLANS,
   TRIAL_PLAN_ID,
   isListingPlanId,
   limitReachedMessage,
@@ -107,7 +106,7 @@ export async function publishPlans(
       source: "section",
       planId: row.planId,
       endsAt: new Date(row.endsAt).toISOString(),
-      limit: active ? listingLimitFor(row.planId) : 0,
+      limit: active ? listingLimitFor(row.planId, section) : 0,
       trialUsed: Boolean(row.trialUsedAt),
     });
   }
@@ -120,7 +119,7 @@ export async function publishPlans(
       source: "advertiser",
       planId: row.planId,
       endsAt: new Date(row.endsAt).toISOString(),
-      limit: LISTING_PLANS.basico.limit,
+      limit: listingLimitFor("basico", section),
       trialUsed: current?.trialUsed ?? false,
     });
   }
@@ -170,7 +169,9 @@ export async function assertCanPublish(
   if (plan.limit !== null && publishedCount >= plan.limit)
     fail(
       "PRECONDITION_FAILED",
-      limitReachedMessage(plan.limit, listingUnits[section])
+      section === "empleos"
+        ? `Tu plan permite publicar hasta ${plan.limit} vacantes al mes. Para publicar más, sube de plan: escríbenos y lo activamos.`
+        : limitReachedMessage(plan.limit, listingUnits[section])
     );
   return plan;
 }

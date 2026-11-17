@@ -2,7 +2,7 @@
 // envió al aplicar a su vacante. Publicar vacantes exige plan activo, igual que
 // bienes raíces y autos; crear el CV y aplicar es gratis.
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, inArray, ne, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, ne, sql } from "drizzle-orm";
 import express, { type Express, type Request, type Response } from "express";
 import { czJobApplications, czJobs, czResumes } from "../../drizzle/catalog-schema";
 import type { User } from "../../drizzle/schema";
@@ -175,10 +175,13 @@ export async function setJobStatus(user: User, id: number, status: "published" |
   const row = await ownJob(db, user.id, id);
   if (status === "published") {
     // Mes gratis la primera vez, plan vigente y sin pasar el límite del plan.
+    // En Empleos el límite es por mes: cuenta las vacantes publicadas este mes
+    // (hora de Panamá), aunque después se hayan cerrado.
+    const monthStart = new Date(`${todayPanama().slice(0, 7)}-01T05:00:00Z`);
     const published = await db
       .select({ n: sql<number>`count(*)` })
       .from(czJobs)
-      .where(and(eq(czJobs.userId, user.id), eq(czJobs.status, "published"), ne(czJobs.id, id)));
+      .where(and(eq(czJobs.userId, user.id), gte(czJobs.publishedAt, monthStart), ne(czJobs.id, id)));
     // Sin el sueldo base no se publica.
     if (!row.salaryMinCents || row.salaryNegotiable) fail("PRECONDITION_FAILED", SALARY_REQUIRED_MESSAGE);
     await assertCanPublish(db, user.id, "empleos", Number(published[0]?.n ?? 0));

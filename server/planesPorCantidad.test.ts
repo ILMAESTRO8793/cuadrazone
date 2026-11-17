@@ -4,6 +4,7 @@ import {
   isFeaturedPlan,
   listingLimitFor,
   listingPlanAmountCents,
+  listingRange,
   LISTING_PLANS,
   plansForStoreKind,
   storeLimits,
@@ -91,5 +92,22 @@ describe("plan anual de Bienes raíces, Autos y Empleos", () => {
     expect(listingPlanAmountCents("medio", 12)).toBe(86389);
     expect(listingPlanAmountCents("grande", 12)).toBe(172789);
     expect(listingPlanAmountCents("basico", 3)).toBe(4999 * 3);
+  });
+});
+
+describe("Empleos: topes propios por mes", () => {
+  it("hasta 10, de 11 a 20 y más de 20 vacantes", () => {
+    expect(listingLimitFor("basico", "empleos")).toBe(10);
+    expect(listingLimitFor("prueba", "empleos")).toBe(10);
+    expect(listingLimitFor("medio", "empleos")).toBe(20);
+    expect(listingLimitFor("grande", "empleos")).toBeNull();
+    expect(listingRange("basico", "empleos")).toBe("Hasta 10");
+    expect(listingRange("medio", "empleos")).toBe("De 11 a 20");
+    expect(listingRange("grande", "empleos")).toBe("Más de 20");
+  });
+  it("bienes raíces y autos siguen en 20, 100 y sin límite", () => {
+    expect(listingLimitFor("basico", "autos")).toBe(20);
+    expect(listingLimitFor("medio", "inmuebles")).toBe(100);
+    expect(listingRange("medio", "autos")).toBe("De 21 a 100");
   });
 });

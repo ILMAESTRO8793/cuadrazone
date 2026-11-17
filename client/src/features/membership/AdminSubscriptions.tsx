@@ -7,6 +7,7 @@ import {
   isInTrial,
   LISTING_PLANS,
   listingPlanAmountCents,
+  listingRange,
   listingPlanIds,
   listingPlanName,
   listingSectionLabels,
@@ -254,7 +255,7 @@ function AdvertiserPlans() {
           >
             {listingPlanIds.map(id => (
               <option key={id} value={id}>
-                {LISTING_PLANS[id].range} {listingUnits[section]} ·{" "}
+                {listingRange(id, section)} {listingUnits[section]} ·{" "}
                 {money(LISTING_PLANS[id].monthlyCents)} al mes
               </option>
             ))}

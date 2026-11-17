@@ -660,7 +660,7 @@ function MyJobsContent() {
           {plan.active ? (
             <p><strong>Plan activo{plan.featured ? " · Mayor Visibilidad (tus vacantes salen destacadas)" : ""}</strong> hasta el {new Date(plan.endsAt!).toLocaleDateString("es-PA", { timeZone: "America/Panama" })}.</p>
           ) : (
-            <p><strong>Tu primera vacante abre tu tiempo gratis.</strong> Después, el plan de Empleos es US$49.99 al mes hasta 20 vacantes, US$79.99 de 21 a 100 y US$159.99 para más de 100. <Link href="/suscripciones?seccion=empleos">Ver planes</Link></p>
+            <p><strong>Tu primera vacante abre tu tiempo gratis.</strong> Después, el plan de Empleos es US$49.99 al mes hasta 10 vacantes, US$79.99 de 11 a 20 y US$159.99 para más de 20. <Link href="/suscripciones?seccion=empleos">Ver planes</Link></p>
           )}
         </div>
       )}

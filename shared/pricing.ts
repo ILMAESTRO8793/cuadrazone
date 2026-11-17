@@ -11,9 +11,10 @@ import { z } from "zod";
  *   Medianas y grandes tienen las 5 estrellas desde que se registran.
  * Servicios: el plan de US$19.99 publica hasta 20 servicios; el de US$39.99, sin
  *   límite.
- * Restaurantes (platos del menú), Bienes raíces (inmuebles), Autos (vehículos)
- *   y Empleos (vacantes): hasta 20 por US$49.99, de 21 a 100 por US$79.99 y más
- *   de 100 por US$159.99.
+ * Restaurantes (menús), Bienes raíces (inmuebles) y Autos (vehículos): hasta 20
+ *   por US$49.99, de 21 a 100 por US$79.99 y más de 100 por US$159.99.
+ * Empleos (vacantes al mes): hasta 10 por US$49.99, de 11 a 20 por US$79.99 y
+ *   más de 20 por US$159.99.
  * Comisión por venta entregada, solo en comercios y restaurantes: 10% (pyme
  *   Normal y restaurante básico), 5% (Mayor Visibilidad, mediana y restaurante
  *   de 21 a 100) y 3% (grande y restaurante de más de 100). Servicios, bienes
@@ -290,13 +291,26 @@ export function isListingPlanId(
 ): id is ListingPlanId {
   return Boolean(id) && (listingPlanIds as readonly string[]).includes(id!);
 }
+/** Empleos tiene sus propios topes: hasta 10, de 11 a 20 y más de 20 vacantes. */
+export const JOB_TIER_LIMITS = { basico: 10, medio: 20 } as const;
+const JOB_RANGES: Record<ListingPlanId, string> = {
+  basico: "Hasta 10",
+  medio: "De 11 a 20",
+  grande: "Más de 20",
+};
+/** «Hasta 20», «De 21 a 100»…; en Empleos, «Hasta 10», «De 11 a 20»… */
+export function listingRange(id: ListingPlanId, section: ListingSection): string {
+  return section === "empleos" ? JOB_RANGES[id] : LISTING_PLANS[id].range;
+}
+
 /** Anuncios que permite el plan de una sección; la prueba gratis es como el Básico. */
 export function listingLimitFor(
-  planId: string | null | undefined
+  planId: string | null | undefined,
+  section?: ListingSection
 ): number | null {
-  return isListingPlanId(planId)
-    ? LISTING_PLANS[planId].limit
-    : LISTING_PLANS.basico.limit;
+  const id: ListingPlanId = isListingPlanId(planId) ? planId : "basico";
+  if (section === "empleos") return id === "grande" ? null : JOB_TIER_LIMITS[id];
+  return LISTING_PLANS[id].limit;
 }
 export function listingPlanName(planId: string | null | undefined): string {
   if (planId === TRIAL_PLAN_ID) return "Mes gratis";
