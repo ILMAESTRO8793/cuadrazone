@@ -2292,3 +2292,11 @@ html.cz-app .main-nav nav > a.active {
   --door-accent: #0f6b8a;
   --door-wash: #e2eff4;
 }
+
+/* «Bienvenido a CuadraZone» en una sola línea también en el celular */
+@media (max-width: 700px) {
+  .gate-band .gate h1#gate-title {
+    white-space: nowrap;
+    font-size: clamp(20px, 7.1vw, 40px);
+  }
+}
