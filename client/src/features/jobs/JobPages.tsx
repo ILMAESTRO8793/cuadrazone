@@ -590,7 +590,6 @@ function MyJobsContent() {
   );
   const [viewing, setViewing] = useState<number | null>(null);
   const set = <K extends keyof JobForm>(k: K, v: JobForm[K]) => setForm(x => (x ? { ...x, [k]: v } : x));
-  const plan = mine.data?.plan;
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -668,15 +667,6 @@ function MyJobsContent() {
         <div><p className="eyebrow">BUSCAR Y PUBLICAR EMPLEOS</p><h1>Mis vacantes</h1></div>
         <button className="btn btn-gold" onClick={() => setForm(emptyJob())}>+ Nueva vacante</button>
       </div>
-      {plan && (
-        <div className={`re-plan ${plan.active ? "re-plan--ok" : ""}`}>
-          {plan.active ? (
-            <p><strong>Plan activo{plan.featured ? " · Mayor Visibilidad (tus vacantes salen destacadas)" : ""}</strong> hasta el {new Date(plan.endsAt!).toLocaleDateString("es-PA", { timeZone: "America/Panama" })}.</p>
-          ) : (
-            <p><strong>Tu primera vacante abre tu tiempo gratis.</strong> Después, el plan de Empleos es US$49.99 al mes hasta 10 vacantes, US$79.99 de 11 a 20 y US$149.99 para más de 20. <Link href="/suscripciones?seccion=empleos">Ver planes</Link></p>
-          )}
-        </div>
-      )}
       {mine.isLoading && <p role="status">Cargando…</p>}
       {mine.data && mine.data.jobs.length === 0 && <div className="re-empty"><h2>Aún no tienes vacantes</h2><p>Publica tu primera vacante y recibe CVs de candidatos en Panamá.</p></div>}
       <ul className="re-mine">

@@ -45,14 +45,7 @@ import {
   type VehicleType,
 } from "@shared/vehicles";
 import { trpc } from "@/lib/trpc";
-import { listingPlanName } from "@shared/pricing";
 
-/** «plan Vendedor», «mes gratis» o «plan» si es un plan anterior. */
-function planWords(planId: string | null | undefined) {
-  const name = listingPlanName(planId);
-  if (name === "Mes gratis") return "mes gratis";
-  return name === "Sin plan" ? "plan" : `plan ${name}`;
-}
 import { AuthGate } from "@/features/membership/AuthGate";
 import { Input } from "@/components/ui/input";
 import "../realEstate/realEstate.css";
@@ -721,8 +714,6 @@ function MineContent() {
   );
   const set = <K extends keyof Form>(k: K, v: Form[K]) =>
     setForm(x => (x ? { ...x, [k]: v } : x));
-  const plan = mine.data?.plan;
-  const salePlan = mine.data?.salePlan;
   const clearPending = () => {
     pending.forEach(p => URL.revokeObjectURL(p.url));
     setPending([]);
@@ -1419,29 +1410,6 @@ function MineContent() {
           + Nuevo anuncio
         </button>
       </div>
-      {plan && salePlan && (
-        <div className="re-plan">
-          {/* Venta y alquiler tienen planes separados. */}
-          {(
-            [
-              ["Venta", salePlan, "Particular US$19.99 hasta 5 al mes, Vendedor US$49.99 de 6 a 20, Agencia US$79.99 de 21 a 50 o Concesionario US$149.99 de 51 en adelante"],
-              ["Alquiler", plan, "Básico US$49.99 hasta 20 publicados, Mediano US$79.99 de 21 a 100 o Grande US$149.99 más de 100"],
-            ] as const
-          ).map(([label, p, prices]) => (
-            <p key={label}>
-              <strong>{label}:</strong>{" "}
-              {p.active
-                ? `${planWords(p.planId)} activo hasta el ${new Date(p.endsAt!).toLocaleDateString("es-PA", { timeZone: "America/Panama" })}.`
-                : p.trialUsed
-                  ? `tu plan venció. Planes: ${prices}.`
-                  : `tu primer auto en ${label.toLowerCase()} abre tu mes gratis. Después: ${prices}.`}
-            </p>
-          ))}
-          <p>
-            <Link href="/suscripciones?seccion=autos">Ver planes</Link>
-          </p>
-        </div>
-      )}
       {mine.isLoading && <p role="status">Cargando…</p>}
       {mine.data && mine.data.vehicles.length === 0 && (
         <div className="re-empty">
