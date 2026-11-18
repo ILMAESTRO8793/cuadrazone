@@ -3,7 +3,7 @@ import { Link } from "wouter";
 import { BadgeCheck, ImagePlus, Lock, Palette } from "lucide-react";
 import { toast } from "sonner";
 import {
-  BRAND_BADGE_LABEL,
+  brandBadgeLabel,
   brandColorPresets,
   readableTextOn,
 } from "@shared/branding";
@@ -43,7 +43,7 @@ export function StoreBrandingEditor({ storeName }: { storeName: string }) {
           <h3 id="brand-title">Tu marca: insignia, portada, lema y color</h3>
           <p>
             Con el plan Mayor Visibilidad tu tienda lleva la insignia «
-            {BRAND_BADGE_LABEL}», una foto de portada, un lema debajo del nombre
+            {brandBadgeLabel(d.storeKind)}», una foto de portada, un lema debajo del nombre
             y tu propio color.
           </p>
           <Link
@@ -107,7 +107,8 @@ export function StoreBrandingEditor({ storeName }: { storeName: string }) {
           className="brand-badge"
           style={{ background: preview, color: readableTextOn(preview) }}
         >
-          <BadgeCheck size={14} aria-hidden="true" /> {BRAND_BADGE_LABEL}
+          <BadgeCheck size={14} aria-hidden="true" />{" "}
+          {brandBadgeLabel(d.storeKind)}
         </span>
       </div>
       <p className="brand-muted">

@@ -1,5 +1,5 @@
 import { BadgeCheck } from "lucide-react";
-import { BRAND_BADGE_LABEL, readableTextOn } from "@shared/branding";
+import { brandBadgeLabel, readableTextOn } from "@shared/branding";
 import { trpc } from "@/lib/trpc";
 import "./storeBrand.css";
 
@@ -12,7 +12,7 @@ export function useStoreBranding(slug: string) {
   return q.data?.[slug] ?? null;
 }
 
-/** Insignia «Tienda Destacada» con el color de la marca. */
+/** Insignia «Tienda Destacada» («Servicio Destacado» en servicios) con el color de la marca. */
 export function StoreBrandBadge({
   slug,
   color,
@@ -28,7 +28,8 @@ export function StoreBrandBadge({
       className="store-brand-badge"
       style={{ background: bg, color: readableTextOn(bg) }}
     >
-      <BadgeCheck size={14} aria-hidden="true" /> {BRAND_BADGE_LABEL}
+      <BadgeCheck size={14} aria-hidden="true" />{" "}
+      {brandBadgeLabel(branding.storeKind)}
     </span>
   );
 }

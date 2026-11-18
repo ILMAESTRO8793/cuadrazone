@@ -2,6 +2,10 @@ import { z } from "zod";
 
 /** Marca de la tienda: beneficio de Mayor Visibilidad. */
 export const BRAND_BADGE_LABEL = "Tienda Destacada";
+/** Insignia según el tipo de tienda: los servicios llevan «Servicio Destacado». */
+export function brandBadgeLabel(storeKind: string | null | undefined) {
+  return storeKind === "servicios" ? "Servicio Destacado" : BRAND_BADGE_LABEL;
+}
 
 /** Colores sugeridos; el vendedor también puede escoger uno propio. */
 export const brandColorPresets = [
@@ -35,6 +39,8 @@ export type SaveBrandingInput = z.infer<typeof saveBrandingInput>;
 
 export type PublicBranding = {
   featured: true;
+  /** comercio, servicios o restaurante (cambia el texto de la insignia). */
+  storeKind: string;
   coverUrl: string | null;
   tagline: string;
   brandColor: string;

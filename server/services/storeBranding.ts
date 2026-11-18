@@ -48,6 +48,7 @@ async function myStore(userId: number) {
       id: czStores.id,
       planId: czApplications.subscriptionPlanId,
       status: czApplications.subscriptionStatus,
+      storeKind: czApplications.storeKind,
     })
     .from(czStores)
     .leftJoin(czApplications, eq(czApplications.userId, czStores.userId))
@@ -67,6 +68,7 @@ export async function myBranding(user: User) {
     return {
       hasStore: false,
       eligible: false,
+      storeKind: "comercio",
       coverUrl: null,
       tagline: "",
       brandColor: "",
@@ -79,6 +81,7 @@ export async function myBranding(user: User) {
   return {
     hasStore: true,
     eligible,
+    storeKind: store.storeKind ?? "comercio",
     coverUrl: row?.coverUrl ?? null,
     tagline: row?.tagline ?? "",
     brandColor: row?.brandColor ?? "",
@@ -120,6 +123,7 @@ export async function brandingForSlugs(
       coverUrl: czStoreBranding.coverUrl,
       tagline: czStoreBranding.tagline,
       brandColor: czStoreBranding.brandColor,
+      storeKind: czApplications.storeKind,
     })
     .from(czStores)
     .innerJoin(czApplications, eq(czApplications.userId, czStores.userId))
@@ -128,6 +132,7 @@ export async function brandingForSlugs(
   for (const r of rows)
     out[r.slug] = {
       featured: true,
+      storeKind: r.storeKind ?? "comercio",
       coverUrl: r.coverUrl ?? null,
       tagline: r.tagline ?? "",
       brandColor: r.brandColor ?? "",

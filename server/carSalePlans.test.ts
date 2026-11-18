@@ -70,3 +70,13 @@ describe("cinco estrellas en planes de anuncios", () => {
       expect(listingPlanHasStars(id)).toBe(false);
   });
 });
+
+describe("insignia de la marca", () => {
+  it("servicios lleva «Servicio Destacado»; comercios y restaurantes, «Tienda Destacada»", async () => {
+    const { brandBadgeLabel } = await import("../shared/branding");
+    expect(brandBadgeLabel("servicios")).toBe("Servicio Destacado");
+    expect(brandBadgeLabel("comercio")).toBe("Tienda Destacada");
+    expect(brandBadgeLabel("restaurante")).toBe("Tienda Destacada");
+    expect(brandBadgeLabel(null)).toBe("Tienda Destacada");
+  });
+});

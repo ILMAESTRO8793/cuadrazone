@@ -206,7 +206,7 @@ export const SERVICE_PLAN_BENEFITS: Partial<Record<SellerPlanId, readonly string
     "Espacios superiores destacados por categoría, con rotación",
     "Ubicación identificada como Destacado — ubicación de pago",
     "Las cinco estrellas de verificación desde el primer día",
-    "Tu marca: insignia «Tienda Destacada», foto de portada, lema y color propio en tu tienda",
+    "Tu marca: insignia «Servicio Destacado», foto de portada, lema y color propio en tu página",
     "Sin comisión: solo la mensualidad",
   ],
 };
