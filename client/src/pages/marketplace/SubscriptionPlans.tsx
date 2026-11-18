@@ -2,6 +2,7 @@ import {
   ANNUAL_DISCOUNT_PCT,
   ANNUAL_MONTHS,
   listingPlanAmountCents,
+  listingPlanHasStars,
   PLAN_ACTIVATION_NOTICE,
   sectionPlanIds,
   sectionPlanInfo,
@@ -12,6 +13,7 @@ import {
   trialOfferLabel,
 } from "@shared/pricing";
 import { Check, Info, ShoppingBag } from "lucide-react";
+import { VerificationStars } from "@/components/marketplace/VerificationStars";
 import { useState } from "react";
 import { Link, useSearch } from "wouter";
 import {
@@ -48,7 +50,7 @@ function ListingPlans({ section }: { section: ListingSection }) {
         const annual = listingPlanAmountCents(id, ANNUAL_MONTHS);
         const saved = plan.monthlyCents * ANNUAL_MONTHS - annual;
         return (
-          <article className="plan-card seller-plan-card" key={id}>
+          <article className={`plan-card seller-plan-card ${listingPlanHasStars(id) ? "plan-card--visibility" : ""}`} key={id}>
             <div className="plan-kicker">
               {`${listingRange(id, section)} ${listingUnits[section]}`}
             </div>
@@ -85,7 +87,18 @@ function ListingPlans({ section }: { section: ListingSection }) {
                 <Check size={16} aria-hidden="true" />
                 Sin comisión
               </li>
+              {listingPlanHasStars(id) && (
+                <li>
+                  <Check size={16} aria-hidden="true" />
+                  Las cinco estrellas de verificación y tus anuncios salen primero
+                </li>
+              )}
             </ul>
+            {listingPlanHasStars(id) && (
+              <div className="plan-stars">
+                <VerificationStars size={22} />
+              </div>
+            )}
             <Link href={listingForms[section]} className="btn btn-gold btn-wide">
               Elegir {plan.name}
             </Link>

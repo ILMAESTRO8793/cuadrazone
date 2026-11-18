@@ -70,7 +70,9 @@ describe("planes por cantidad (16/11/2026)", () => {
     expect(isFeaturedPlan("mediana")).toBe(true);
     expect(isFeaturedPlan("grande")).toBe(true);
     expect(isFeaturedPlan("normal")).toBe(false);
-    expect(isFeaturedPlan("rest_grande")).toBe(false);
+    expect(isFeaturedPlan("rest_grande")).toBe(true);
+    expect(isFeaturedPlan("rest_medio")).toBe(true);
+    expect(isFeaturedPlan("rest_basico")).toBe(false);
   });
 
   it("mes gratis: antes de enero de 2027 llega al 1 de febrero; después, 1 mes", () => {

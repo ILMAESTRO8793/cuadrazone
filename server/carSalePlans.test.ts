@@ -60,3 +60,13 @@ describe("planes de venta de autos", () => {
     expect(vehicleVisible({ operation: "venta", publishedAt: before }, on, off).visible).toBe(true);
   });
 });
+
+describe("cinco estrellas en planes de anuncios", () => {
+  it("todos menos Básico, Particular y el mes gratis", async () => {
+    const { listingPlanHasStars } = await import("../shared/pricing");
+    for (const id of ["medio", "grande", "agente", "vendedor", "agencia", "inmobiliaria", "concesionario"])
+      expect(listingPlanHasStars(id)).toBe(true);
+    for (const id of ["basico", "particular", "prueba", null, undefined])
+      expect(listingPlanHasStars(id)).toBe(false);
+  });
+});

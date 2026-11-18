@@ -163,12 +163,13 @@ export const SELLER_PLANS: Record<SellerPlanId, SellerPlan> = {
     serviceLimit: 0,
     dishLimit: 50,
     commissionBps: 500,
-    featured: false,
+    featured: true,
     description: "Para restaurantes medianos: de 21 a 50 menús.",
     benefits: [
       "De 21 a 50 menús",
       "Pedidos a domicilio",
       "5% de comisión por pedido entregado",
+      "Las cinco estrellas de verificación y espacios «Destacados»",
     ],
   },
   rest_grande: {
@@ -180,13 +181,14 @@ export const SELLER_PLANS: Record<SellerPlanId, SellerPlan> = {
     serviceLimit: 0,
     dishLimit: null,
     commissionBps: 300,
-    featured: false,
+    featured: true,
     description:
       "Para cadenas de restaurantes: 51 menús o más.",
     benefits: [
       "51 menús o más, sin límite",
       "Pedidos a domicilio",
       "3% de comisión por pedido entregado",
+      "Las cinco estrellas de verificación y espacios «Destacados»",
     ],
   },
 };
@@ -395,6 +397,14 @@ export function listingLimitFor(
   const id: ListingPlanId = isListingPlanId(planId) ? planId : "basico";
   if (section === "empleos") return id === "grande" ? null : JOB_TIER_LIMITS[id];
   return LISTING_PLANS[id].limit;
+}
+/**
+ * Planes de anuncios (Bienes raíces, Autos, Empleos) que dan las 5 estrellas y
+ * ponen los anuncios primero: todos menos Básico, Particular y el mes gratis.
+ */
+export const STAR_LISTING_PLAN_IDS = ["medio", "grande", "agente", "vendedor", "agencia", "inmobiliaria", "concesionario"] as const;
+export function listingPlanHasStars(id: string | null | undefined): boolean {
+  return Boolean(id) && (STAR_LISTING_PLAN_IDS as readonly string[]).includes(id!);
 }
 export function listingPlanName(planId: string | null | undefined): string {
   if (planId === TRIAL_PLAN_ID) return "Mes gratis";

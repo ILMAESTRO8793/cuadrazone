@@ -12,6 +12,7 @@ import {
   isListingPlanId,
   isSectionPlanId,
   limitReachedMessage,
+  listingPlanHasStars,
   listingLimitFor,
   listingPlanAmountCents,
   listingSectionLabels,
@@ -103,7 +104,8 @@ export async function publishPlans(
     const active = new Date(row.endsAt) > now;
     plans.set(row.userId, {
       active,
-      featured: false,
+      // Todos menos Básico y Particular: cinco estrellas y anuncios primero.
+      featured: active && listingPlanHasStars(row.planId),
       source: "section",
       planId: row.planId,
       endsAt: new Date(row.endsAt).toISOString(),

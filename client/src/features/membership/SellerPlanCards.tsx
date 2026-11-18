@@ -221,7 +221,9 @@ export function PlanConditions({ section }: { section: PlanSection }) {
       </>,
       <>
         Tu restaurante tiene su menú con secciones, tamaños y extras, y recibe
-        pedidos a domicilio. Aparece en Restaurantes, no en Comercios.
+        pedidos a domicilio. Aparece en Restaurantes, no en Comercios. Con
+        Mediana empresa y Cadena de restaurantes tienes las cinco estrellas de
+        verificación y sales en <strong>Destacados</strong>.
       </>,
       <>
         La comisión por pedido entregado es de 10% (pyme), 5% (mediana empresa)
@@ -248,7 +250,11 @@ export function PlanConditions({ section }: { section: PlanSection }) {
         primera vez que publicas empieza tu mes gratis. No necesitas tener
         tienda.
       </>,
-      <>{name} no paga comisión, solo la mensualidad.</>,
+      <>
+        {name} no paga comisión, solo la mensualidad. Todos los planes, menos
+        Básico y Particular, tienen las cinco estrellas de verificación y tus
+        anuncios salen primero.
+      </>,
     ];
   }
   return (

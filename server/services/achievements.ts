@@ -25,7 +25,7 @@ import { czSectionPlans } from "../../drizzle/listingplan-schema";
 import { czListingReviews } from "../../drizzle/reviews-schema";
 import { czStoreStars } from "../../drizzle/verification-schema";
 import { czStoreLinks } from "../../drizzle/storelink-schema";
-import { TRIAL_PLAN_ID, isFeaturedPlan } from "@shared/pricing";
+import { TRIAL_PLAN_ID, isFeaturedPlan, listingPlanHasStars } from "@shared/pricing";
 import {
   MIN_DESCRIPTION,
   earnedStars,
@@ -256,6 +256,8 @@ export async function metricsForUsers(
     if (a.planId === TRIAL_PLAN_ID) continue;
     m.upToDate = true;
     if (a.planId === "mayor_visibilidad") m.featured = true;
+    // Planes de anuncios que no son Básico ni Particular: las cinco estrellas.
+    if (listingPlanHasStars(a.planId)) m.featured = true;
   }
   const phones = new Map(apps.map(a => [a.userId, (a.phone ?? "").trim()]));
   const linked = new Set(links.filter(l => l.url).map(l => l.userId));
