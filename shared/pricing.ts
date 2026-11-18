@@ -161,12 +161,12 @@ export const SELLER_PLANS: Record<SellerPlanId, SellerPlan> = {
     monthlyCents: 7999,
     productLimit: 0,
     serviceLimit: 0,
-    dishLimit: TIER_LIMITS.medio,
+    dishLimit: 50,
     commissionBps: 500,
     featured: false,
-    description: "Para restaurantes medianos: de 21 a 100 menús.",
+    description: "Para restaurantes medianos: de 21 a 50 menús.",
     benefits: [
-      "De 21 a 100 menús",
+      "De 21 a 50 menús",
       "Pedidos a domicilio",
       "5% de comisión por pedido entregado",
     ],
@@ -174,7 +174,7 @@ export const SELLER_PLANS: Record<SellerPlanId, SellerPlan> = {
   rest_grande: {
     id: "rest_grande",
     kind: "restaurante",
-    name: "Gran empresa",
+    name: "Cadena de restaurantes",
     monthlyCents: 14999,
     productLimit: 0,
     serviceLimit: 0,
@@ -182,9 +182,9 @@ export const SELLER_PLANS: Record<SellerPlanId, SellerPlan> = {
     commissionBps: 300,
     featured: false,
     description:
-      "Para cadenas grandes de comida rápida: más de 100 menús.",
+      "Para cadenas de restaurantes: 51 menús o más.",
     benefits: [
-      "Más de 100 menús, sin límite",
+      "51 menús o más, sin límite",
       "Pedidos a domicilio",
       "3% de comisión por pedido entregado",
     ],
@@ -252,7 +252,7 @@ export const listingSectionLabels: Record<ListingSection, string> = {
 export const listingUnits: Record<ListingSection, string> = {
   inmuebles: "inmuebles",
   alquileres: "inmuebles en alquiler",
-  autos: "vehículos",
+  autos: "vehículos en alquiler",
   autosventa: "vehículos en venta",
   empleos: "vacantes",
 };
@@ -316,9 +316,10 @@ export function isRentalPlanId(id: string | null | undefined): id is RentalPlanI
 }
 
 /**
- * Autos en venta (desde el 18/11/2026): mismos precios y topes que el alquiler
- * de Bienes raíces, por vehículos en venta publicados al mes. El alquiler de
- * autos sigue con Básico, Mediano y Grande.
+ * Autos en venta y en alquiler (desde el 18/11/2026): mismos precios y topes
+ * que el alquiler de Bienes raíces, por vehículos publicados al mes. Venta y
+ * alquiler se pagan por separado. Los planes Básico, Mediano y Grande ya
+ * pagados en el alquiler de autos conservan su tope hasta que vencen.
  */
 export const carSalePlanIds = ["particular", "vendedor", "agencia", "concesionario"] as const;
 export type CarSalePlanId = (typeof carSalePlanIds)[number];
@@ -339,8 +340,12 @@ type MonthlyPlan = { id: string; name: string; monthlyCents: number; limit: numb
 /** Secciones con planes por publicaciones al mes y su catálogo. */
 function monthlyCatalog(section: ListingSection | undefined): Record<string, MonthlyPlan> | null {
   if (section === "alquileres") return RENTAL_PLANS;
-  if (section === "autosventa") return CAR_SALE_PLANS;
+  if (section === "autosventa" || section === "autos") return CAR_SALE_PLANS;
   return null;
+}
+/** Plan anterior (Básico, Mediano o Grande) todavía vigente en el alquiler de autos. */
+function legacyCarRental(id: string | null | undefined, section: ListingSection | undefined): id is ListingPlanId {
+  return section === "autos" && isListingPlanId(id);
 }
 /** Un plan por mes, buscado en todos los catálogos (para nombre y precio). */
 function anyMonthlyPlan(id: string | null | undefined): MonthlyPlan | null {
@@ -360,7 +365,7 @@ export function isSectionPlanId(id: string | null | undefined, section: ListingS
 /** Datos de un plan de una sección (nombre, precio, tope y rango). */
 export function sectionPlanInfo(section: ListingSection, id: string) {
   const catalog = monthlyCatalog(section);
-  if (catalog) return catalog[id] ?? null;
+  if (catalog && !legacyCarRental(id, section)) return catalog[id] ?? null;
   if (!isListingPlanId(id)) return null;
   return { ...LISTING_PLANS[id], range: listingRange(id, section), limit: listingLimitFor(id, section) };
 }
@@ -374,7 +379,7 @@ const JOB_RANGES: Record<ListingPlanId, string> = {
 /** «Hasta 20», «De 21 a 100»…; en Empleos, «Hasta 10», «De 11 a 20»… */
 export function listingRange(id: string, section: ListingSection): string {
   const catalog = monthlyCatalog(section);
-  if (catalog) return catalog[id]?.range ?? "";
+  if (catalog && !legacyCarRental(id, section)) return catalog[id]?.range ?? "";
   if (!isListingPlanId(id)) return "";
   return section === "empleos" ? JOB_RANGES[id] : LISTING_PLANS[id].range;
 }
@@ -384,9 +389,9 @@ export function listingLimitFor(
   planId: string | null | undefined,
   section?: ListingSection
 ): number | null {
-  // Planes por mes (alquiler de inmuebles, venta de autos): la prueba gratis es como Particular.
+  // Planes por mes (alquiler de inmuebles, autos): la prueba gratis es como Particular.
   const catalog = monthlyCatalog(section);
-  if (catalog) return (planId && catalog[planId] ? catalog[planId] : catalog.particular!).limit;
+  if (catalog && !legacyCarRental(planId, section)) return (planId && catalog[planId] ? catalog[planId] : catalog.particular!).limit;
   const id: ListingPlanId = isListingPlanId(planId) ? planId : "basico";
   if (section === "empleos") return id === "grande" ? null : JOB_TIER_LIMITS[id];
   return LISTING_PLANS[id].limit;

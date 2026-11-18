@@ -32,14 +32,14 @@ describe("planes por cantidad (16/11/2026)", () => {
     ]);
   });
 
-  it("restaurantes: 20, 100 o sin límite de platos y no venden productos", () => {
+  it("restaurantes: 20, 50 o sin límite de menús y no venden productos", () => {
     expect(plansForStoreKind("restaurante")).toEqual([
       "rest_basico",
       "rest_medio",
       "rest_grande",
     ]);
     expect(storeLimits(null, "restaurante").dishLimit).toBe(20);
-    expect(storeLimits("rest_medio", "restaurante").dishLimit).toBe(100);
+    expect(storeLimits("rest_medio", "restaurante").dishLimit).toBe(50);
     expect(storeLimits("rest_grande", "restaurante").dishLimit).toBeNull();
     expect(storeLimits("rest_basico", "restaurante").productLimit).toBe(0);
   });
@@ -105,9 +105,9 @@ describe("Empleos: topes propios por mes", () => {
     expect(listingRange("medio", "empleos")).toBe("De 11 a 20");
     expect(listingRange("grande", "empleos")).toBe("Más de 20");
   });
-  it("bienes raíces y autos siguen en 20, 100 y sin límite", () => {
-    expect(listingLimitFor("basico", "autos")).toBe(20);
+  it("bienes raíces en venta sigue en 20, 100 y sin límite", () => {
+    expect(listingLimitFor("basico", "inmuebles")).toBe(20);
     expect(listingLimitFor("medio", "inmuebles")).toBe(100);
-    expect(listingRange("medio", "autos")).toBe("De 21 a 100");
+    expect(listingRange("medio", "inmuebles")).toBe("De 21 a 100");
   });
 });

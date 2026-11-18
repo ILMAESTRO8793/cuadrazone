@@ -26,11 +26,23 @@ describe("planes de venta de autos", () => {
     expect(listingPlanAmountCents("concesionario", 1)).toBe(14999);
   });
 
-  it("el alquiler de autos sigue con Básico, Mediano y Grande", () => {
-    expect(sectionPlanIds("autos")).toEqual(["basico", "medio", "grande"]);
-    expect(sectionPlanInfo("autos", "medio")?.monthlyCents).toBe(7999);
-    expect(isSectionPlanId("vendedor", "autos")).toBe(false);
+  it("el alquiler de autos tiene los mismos planes que la venta", () => {
+    expect(sectionPlanIds("autos")).toEqual(["particular", "vendedor", "agencia", "concesionario"]);
+    expect(sectionPlanInfo("autos", "vendedor")?.monthlyCents).toBe(4999);
+    expect(listingLimitFor("agencia", "autos")).toBe(50);
+    expect(listingLimitFor("prueba", "autos")).toBe(5);
+    expect(listingRange("concesionario", "autos")).toBe("51 o más");
+    expect(isSectionPlanId("vendedor", "autos")).toBe(true);
+    expect(isSectionPlanId("basico", "autos")).toBe(false);
     expect(isSectionPlanId("basico", "autosventa")).toBe(false);
+  });
+
+  it("los planes anteriores del alquiler de autos conservan su tope hasta que vencen", () => {
+    expect(listingLimitFor("basico", "autos")).toBe(20);
+    expect(listingLimitFor("medio", "autos")).toBe(100);
+    expect(listingLimitFor("grande", "autos")).toBeNull();
+    expect(listingRange("medio", "autos")).toBe("De 21 a 100");
+    expect(sectionPlanInfo("autos", "medio")?.name).toBe("Mediano");
   });
 
   it("qué autos se ven según el plan", () => {

@@ -22,8 +22,8 @@ const kicker: Record<SellerPlanId, string> = {
   mediana: "Empresas medianas",
   grande: "Grandes empresas",
   rest_basico: "Pymes · hasta 20 menús",
-  rest_medio: "Mediana empresa · de 21 a 100 menús",
-  rest_grande: "Gran empresa · más de 100 menús",
+  rest_medio: "Mediana empresa · de 21 a 50 menús",
+  rest_grande: "Cadena de restaurantes · 51 menús o más",
 };
 
 export function SellerPlanCards({
@@ -217,7 +217,7 @@ export function PlanConditions({ section }: { section: PlanSection }) {
     parts = [
       <>
         El plan depende de cuántos menús tienes: pyme hasta 20, mediana
-        empresa de 21 a 100 y gran empresa más de 100. {tope}
+        empresa de 21 a 50 y cadena de restaurantes 51 o más. {tope}
       </>,
       <>
         Tu restaurante tiene su menú con secciones, tamaños y extras, y recibe
@@ -225,7 +225,7 @@ export function PlanConditions({ section }: { section: PlanSection }) {
       </>,
       <>
         La comisión por pedido entregado es de 10% (pyme), 5% (mediana empresa)
-        o 3% (gran empresa). No hay comisión durante el tiempo gratis.{" "}
+        o 3% (cadena de restaurantes). No hay comisión durante el tiempo gratis.{" "}
         {verificacion}
       </>,
     ];
@@ -237,7 +237,7 @@ export function PlanConditions({ section }: { section: PlanSection }) {
         {section === "inmuebles"
           ? "Venta y alquiler tienen planes separados. Venta: según cuántos inmuebles en venta tienes publicados, hasta 20, de 21 a 100 o más de 100. Alquiler: según cuántos inmuebles en alquiler publicas al mes, Particular hasta 5, Agente de 6 a 20, Agencia de 21 a 50 e Inmobiliaria 51 o más."
           : section === "autos"
-            ? "Venta y alquiler tienen planes separados. Venta: según cuántos autos en venta publicas al mes, Particular hasta 5, Vendedor de 6 a 20, Agencia de 21 a 50 y Concesionario 51 o más. Alquiler: según cuántos autos en alquiler tienes publicados, hasta 20, de 21 a 100 o más de 100."
+            ? "Venta y alquiler tienen planes separados, con los mismos precios y topes: según cuántos autos publicas al mes en cada uno, Particular hasta 5, Vendedor de 6 a 20, Agencia de 21 a 50 y Concesionario 51 o más."
           : section === "empleos"
             ? "El plan depende de cuántas vacantes publicas al mes: hasta 10, de 11 a 20 o más de 20."
             : `El plan depende de ${unit}: hasta 20, de 21 a 100 o más de 100.`}{" "}

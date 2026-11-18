@@ -79,7 +79,7 @@ function ListingPlans({ section }: { section: ListingSection }) {
             <ul>
               <li>
                 <Check size={16} aria-hidden="true" />
-                {`${listingRange(id, section)} ${listingUnits[section]} ${section === "empleos" ? "publicadas al mes" : section === "alquileres" || section === "autosventa" ? "publicados al mes" : "publicados"}`}
+                {`${listingRange(id, section)} ${listingUnits[section]} ${section === "empleos" ? "publicadas al mes" : section === "alquileres" || section === "autosventa" || section === "autos" ? "publicados al mes" : "publicados"}`}
               </li>
               <li>
                 <Check size={16} aria-hidden="true" />

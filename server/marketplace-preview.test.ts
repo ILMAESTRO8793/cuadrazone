@@ -88,7 +88,7 @@ describe("CuadraZone preview", () => {
     expect(rest).not.toContain("Cómo funciona el plan de Comercios");
     const autos = renderPage("/suscripciones?seccion=autos").html;
     expect(autos).toContain("Cómo funciona el plan de Autos");
-    expect(autos).toContain("Hasta 20 vehículos");
+    expect(autos).toContain("Hasta 5 vehículos en alquiler publicados al mes");
     expect(result.html).not.toMatch(/(^|[^0-9])0% de comisión/);
   });
   it("uses the shared USD 19.99 seller fee without restoring a buyer subscription", () => {

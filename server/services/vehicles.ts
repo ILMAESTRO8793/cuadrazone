@@ -191,21 +191,14 @@ export async function setVehicleStatus(user: User, id: number, status: "publishe
   const row = await ownVehicle(db, user.id, id);
   if (status === "published") {
     // Mes gratis la primera vez, plan vigente y sin pasar el límite del plan.
-    if (row.operation === "alquiler") {
-      // Alquiler: se cuentan los autos en alquiler publicados ahora.
-      const published = await db
-        .select({ n: sql<number>`count(*)` })
-        .from(czVehicles)
-        .where(and(eq(czVehicles.userId, user.id), eq(czVehicles.status, "published"), eq(czVehicles.operation, "alquiler"), ne(czVehicles.id, id)));
-      await assertCanPublish(db, user.id, "autos", Number(published[0]?.n ?? 0));
-    } else {
-      // Venta: se cuentan los autos en venta publicados este mes (hora de Panamá).
-      const published = await db
-        .select({ n: sql<number>`count(*)` })
-        .from(czVehicles)
-        .where(and(eq(czVehicles.userId, user.id), ne(czVehicles.operation, "alquiler"), gte(czVehicles.publishedAt, monthStartPanama()), ne(czVehicles.id, id)));
-      await assertCanPublish(db, user.id, "autosventa", Number(published[0]?.n ?? 0));
-    }
+    // Venta y alquiler tienen planes separados, con los mismos topes: se
+    // cuentan los autos de esa operación publicados este mes (hora de Panamá).
+    const rental = row.operation === "alquiler";
+    const published = await db
+      .select({ n: sql<number>`count(*)` })
+      .from(czVehicles)
+      .where(and(eq(czVehicles.userId, user.id), rental ? eq(czVehicles.operation, "alquiler") : ne(czVehicles.operation, "alquiler"), gte(czVehicles.publishedAt, monthStartPanama()), ne(czVehicles.id, id)));
+    await assertCanPublish(db, user.id, rental ? "autos" : "autosventa", Number(published[0]?.n ?? 0));
     if (!jsonList(row.images).length) fail("PRECONDITION_FAILED", "Agrega al menos una foto antes de publicar.");
   }
   await db
