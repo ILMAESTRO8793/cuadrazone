@@ -79,7 +79,7 @@ describe("CuadraZone preview", () => {
     expect(result.html).toContain("Servicios, bienes raíces, autos y empleos no pagan comisión.");
     expect(result.html).toContain("No pagas nada hasta el 1 de febrero de 2027");
     // Comercios por defecto; cada sección muestra solo sus planes y condiciones.
-    for (const price of ["US$79.99", "US$159.99"])
+    for (const price of ["US$79.99", "US$149.99"])
       expect(result.html).toContain(price);
     expect(result.html).not.toContain("Cómo funciona el plan de Restaurantes");
     const rest = renderPage("/suscripciones?seccion=restaurantes").html;

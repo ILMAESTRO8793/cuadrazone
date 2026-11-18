@@ -16,7 +16,7 @@ describe("Oferta de dos planes", () => {
       "rest_grande",
     ]);
     expect(SELLER_PLANS.mediana.monthlyCents).toBe(7999);
-    expect(SELLER_PLANS.grande.monthlyCents).toBe(15999);
+    expect(SELLER_PLANS.grande.monthlyCents).toBe(14999);
     expect(SELLER_PLANS.rest_basico.monthlyCents).toBe(4999);
     expect(SELLER_PLANS.normal.monthlyCents).toBe(1999);
     expect(SELLER_PLANS.mayor_visibilidad.monthlyCents).toBe(3999);

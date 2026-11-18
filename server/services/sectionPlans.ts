@@ -1,7 +1,7 @@
 // Planes de anuncios por sección: Bienes raíces (inmuebles), Autos y Empleos.
 // Cada sección se paga aparte, según cuántos anuncios publicados tiene la
 // cuenta en ella: hasta 20 (US$49.99), de 21 a 100 (US$79.99) o más de 100
-// (US$159.99). La primera vez que alguien publica en una sección empieza su
+// (US$149.99). La primera vez que alguien publica en una sección empieza su
 // mes gratis (como el plan Básico). Los planes de anunciante antiguos (Normal
 // o Mayor Visibilidad) siguen valiendo, con el límite del Básico, hasta que
 // vencen. Estas secciones no pagan comisión.

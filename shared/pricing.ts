@@ -7,14 +7,14 @@ import { z } from "zod";
  * Comercios
  *   - Pymes: Normal US$19.99 y Mayor Visibilidad US$39.99, hasta 99 productos.
  *   - Empresas medianas US$79.99: de 100 a 300 productos.
- *   - Grandes empresas US$159.99: más de 300 productos.
+ *   - Grandes empresas US$149.99: más de 300 productos.
  *   Medianas y grandes tienen las 5 estrellas desde que se registran.
  * Servicios: el plan de US$19.99 publica hasta 20 servicios; el de US$39.99, sin
  *   límite.
  * Restaurantes (menús), Bienes raíces (inmuebles) y Autos (vehículos): hasta 20
- *   por US$49.99, de 21 a 100 por US$79.99 y más de 100 por US$159.99.
+ *   por US$49.99, de 21 a 100 por US$79.99 y más de 100 por US$149.99.
  * Empleos (vacantes al mes): hasta 10 por US$49.99, de 11 a 20 por US$79.99 y
- *   más de 20 por US$159.99.
+ *   más de 20 por US$149.99.
  * Comisión por venta entregada, solo en comercios y restaurantes: 10% (pyme
  *   Normal y restaurante básico), 5% (Mayor Visibilidad, mediana y restaurante
  *   de 21 a 100) y 3% (grande y restaurante de más de 100). Servicios, bienes
@@ -123,7 +123,7 @@ export const SELLER_PLANS: Record<SellerPlanId, SellerPlan> = {
     id: "grande",
     kind: "empresa",
     name: "Gran empresa",
-    monthlyCents: 15999,
+    monthlyCents: 14999,
     productLimit: null,
     serviceLimit: null,
     dishLimit: null,
@@ -175,7 +175,7 @@ export const SELLER_PLANS: Record<SellerPlanId, SellerPlan> = {
     id: "rest_grande",
     kind: "restaurante",
     name: "Gran empresa",
-    monthlyCents: 15999,
+    monthlyCents: 14999,
     productLimit: 0,
     serviceLimit: 0,
     dishLimit: null,
@@ -285,7 +285,7 @@ export const LISTING_PLANS: Record<
   grande: {
     id: "grande",
     name: "Grande",
-    monthlyCents: 15999,
+    monthlyCents: 14999,
     limit: null,
     range: "Más de 100",
   },

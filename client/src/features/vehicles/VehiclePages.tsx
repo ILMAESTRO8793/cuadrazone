@@ -1425,7 +1425,7 @@ function MineContent() {
           {(
             [
               ["Venta", salePlan, "Particular US$19.99 hasta 5 al mes, Vendedor US$49.99 de 6 a 20, Agencia US$79.99 de 21 a 50 o Concesionario US$149.99 de 51 en adelante"],
-              ["Alquiler", plan, "Básico US$49.99 hasta 20 publicados, Mediano US$79.99 de 21 a 100 o Grande US$159.99 más de 100"],
+              ["Alquiler", plan, "Básico US$49.99 hasta 20 publicados, Mediano US$79.99 de 21 a 100 o Grande US$149.99 más de 100"],
             ] as const
           ).map(([label, p, prices]) => (
             <p key={label}>

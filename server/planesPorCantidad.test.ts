@@ -51,7 +51,7 @@ describe("planes por cantidad (16/11/2026)", () => {
     expect(listingLimitFor("grande")).toBeNull();
     expect(LISTING_PLANS.basico.monthlyCents).toBe(4999);
     expect(LISTING_PLANS.medio.monthlyCents).toBe(7999);
-    expect(LISTING_PLANS.grande.monthlyCents).toBe(15999);
+    expect(LISTING_PLANS.grande.monthlyCents).toBe(14999);
   });
 
   it("comisión: 10/5/3 en comercios y restaurantes; 0 en el mes gratis", () => {
@@ -90,7 +90,7 @@ describe("plan anual de Bienes raíces, Autos y Empleos", () => {
   it("12 meses llevan 10 % de descuento; menos meses, precio completo", () => {
     expect(listingPlanAmountCents("basico", 12)).toBe(53989);
     expect(listingPlanAmountCents("medio", 12)).toBe(86389);
-    expect(listingPlanAmountCents("grande", 12)).toBe(172789);
+    expect(listingPlanAmountCents("grande", 12)).toBe(161989);
     expect(listingPlanAmountCents("basico", 3)).toBe(4999 * 3);
   });
 });
